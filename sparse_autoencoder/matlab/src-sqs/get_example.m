@@ -1,0 +1,9 @@
+function x = get_example(olsh)
+imageSize=512;
+patchSize=8;
+i = randi(10,1)-1;
+img = get_image(olsh, i);
+x=randi(imageSize-patchSize,1);
+y=randi(imageSize-patchSize,1);
+imagePatch=img(1+x:x+patchSize, 1+y:y+patchSize);
+x=reshape(imagePatch,patchSize^2,1);
