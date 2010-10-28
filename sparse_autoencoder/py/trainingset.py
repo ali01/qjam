@@ -3,8 +3,9 @@ import random
 class ImageTrainingSet(object):
 
     def __init__(self, olsh, imgwidth=512, imgheight=512):
+        """Opens an image .dat file at the path given by `olsh`."""
         if isinstance(olsh, str):
-            self.olsh = open(olsh_path)
+            self.olsh = open(olsh)
         elif isinstance(olsh, list):
             self.olsh = olsh
         self.imgwidth = imgwidth
@@ -12,7 +13,6 @@ class ImageTrainingSet(object):
         self.__parse_olsh()
 
     def __parse_olsh(self):
-        self.nimages = len(self.olsh) / self.imgheight
         self.images = []
         for i,line in enumerate(self.olsh):
             row = [float(px) for px in line.strip().split(' ') if px]
@@ -27,9 +27,14 @@ class ImageTrainingSet(object):
         from a randomly `width`-by-`height` region of a randomly chosen
         image."""
         img = random.choice(self.images)
-        x = random.uniform(0, self.imgwidth - width)
-        y = random.uniform(0, self.imgheight - height)
-        pass # TODO
+        startx = random.randint(0, self.imgwidth - width)
+        starty = random.randint(0, self.imgheight - height)
+        pixels = []
+        for y in range(starty, starty+height):
+            pixels.extend(img[y][startx:startx+width])
+        return pixels
+          
+                
 
 import unittest
 class ImageTrainingSetTest(unittest.TestCase):
@@ -39,7 +44,7 @@ class ImageTrainingSetTest(unittest.TestCase):
     def setUp(self):
         self.ts = ImageTrainingSet(self.sample_dat, imgwidth=3, imgheight=2)
     
-    def test_parses_dat(self):
+    def test_parses_sample_dat(self):
         expected = [[[0.34344572, 0.20327842, 2.7077097], [0.3, 0.4, 0.5]],
                      [[0.12344572, 0.41327842, 1.8077097], [0.6, 0.7, 0.5]]]
         self.assertEqual(len(self.ts.images), 2)
@@ -48,9 +53,16 @@ class ImageTrainingSetTest(unittest.TestCase):
                 for k,px in enumerate(row):
                     self.assertAlmostEqual(self.ts.images[i][j][k], px)
 
+    def test_parses_olsh(self):
+        olsh = ImageTrainingSet('olsh.dat', imgwidth=512, imgheight=512)
+        ex = olsh.get_example(8, 8)
+        self.assertEqual(len(ex), 64)
+                    
     def test_get_example_dimensions(self):
         ex = self.ts.get_example(2, 2)
         self.assertEqual(len(ex), 4)
 
 if __name__ == "__main__":
     unittest.main()
+    #ts = ImageTrainingSet('olsh.dat', imgwidth=512, imgheight=512)
+    #print ts.get_example(8,8)
