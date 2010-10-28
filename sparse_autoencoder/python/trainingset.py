@@ -21,7 +21,7 @@ class ImageTrainingSet(object):
             if y == 0: # start of a new image
                 self.images.append([])
             self.images[ex].append(row)
-    
+
     def get_example(self, width, height):
         """Returns an array of `width`-times-`height` pixel values (floats)
         from a randomly `width`-by-`height` region of a randomly chosen
@@ -30,11 +30,11 @@ class ImageTrainingSet(object):
         startx = random.randint(0, self.imgwidth - width)
         starty = random.randint(0, self.imgheight - height)
         pixels = []
-        for y in range(starty, starty+height):
+        for y in xrange(starty, starty+height):
             pixels.extend(img[y][startx:startx+width])
         return pixels
-          
-                
+
+
 
 import unittest
 class ImageTrainingSetTest(unittest.TestCase):
@@ -43,7 +43,7 @@ class ImageTrainingSetTest(unittest.TestCase):
 
     def setUp(self):
         self.ts = ImageTrainingSet(self.sample_dat, imgwidth=3, imgheight=2)
-    
+
     def test_parses_sample_dat(self):
         expected = [[[0.34344572, 0.20327842, 2.7077097], [0.3, 0.4, 0.5]],
                      [[0.12344572, 0.41327842, 1.8077097], [0.6, 0.7, 0.5]]]
@@ -57,7 +57,7 @@ class ImageTrainingSetTest(unittest.TestCase):
         olsh = ImageTrainingSet('olsh.dat', imgwidth=512, imgheight=512)
         ex = olsh.get_example(8, 8)
         self.assertEqual(len(ex), 64)
-                    
+
     def test_get_example_dimensions(self):
         ex = self.ts.get_example(2, 2)
         self.assertEqual(len(ex), 4)
