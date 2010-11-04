@@ -11,6 +11,7 @@ Note:
 '''
 
 import sys
+import time
 from numpy import matlib
 from numpy.matlib import multiply
 from numpy.matlib import power
@@ -20,11 +21,23 @@ SIZE_IMG = 512
 SIZE_IMG_SAMPLE = 8
 
 
-def printProgress(progress):
-  if progress == 1:
-    print '\rDone!               '
+def printProgress(progress, start_time):
+  elapsed = time.time() - start_time
+
+  if progress > 0:
+    total_eta_s = elapsed / progress
+    total_eta_m = total_eta_s / 60
+    total_eta_s = total_eta_s % 60
   else:
-    print '\rProgress: %02.02f%%' % (float(progress) * 100.0),
+    total_eta_m = 0
+    total_eta_s = 0
+
+  if progress == 1:
+    print
+    print 'Done!'
+  else:
+    print ('\rProgress: %02.02f%% (Total estimated time: %dm%ds)' %
+           (float(progress) * 100.0, total_eta_m, total_eta_s)),
   sys.stdout.flush()
 
 
@@ -71,15 +84,16 @@ class SparseAutoencoder(object):
     return matlib.matrix(sample).T
 
   def run(self, iterations):
-    printProgress(0.0)
+    start_time = time.time()
+    printProgress(0.0, start_time)
     for i in xrange(0, iterations):
       if i % 10000 == 0:
-        printProgress(float(i) / iterations)
+        printProgress(float(i) / iterations, start_time)
         if i % 100000 == 0:
           self.output()
 
       self.iteration_()
-    printProgress(1)
+    printProgress(1, start_time)
 
   def output(self):
     '''Outputs the current weights to the outputFile'''
