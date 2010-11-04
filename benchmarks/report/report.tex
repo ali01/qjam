@@ -1,0 +1,97 @@
+\documentclass[11pt]{article}
+
+\usepackage[top=1in, bottom=1in, left=0.8in, right=1in]{geometry}
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{listings}
+
+
+\title{R vs Python \\ linear algebra benchmarks }
+\author{
+\begin{tabular}{rl}
+  Juan Batiz-Benet & jbenet@cs.stanford.edu \\
+  Quinn Slack      & sqs@cs.stanford.edu \\
+  Matt Sparks      & msparks@cs.stanford.edu \\
+  Ali Yahya        & alive@cs.stanford.edu \\
+\end{tabular}}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{} In order to determine the viability of the \emph{R Programming Language} for efficient computation of machine learning algorithms, we compared benchmarks against the \emph{numpy Python} package. In order to avoid implementation or algorithm-specific bias, we decided to benchmark common linear algebra functions (e.g. matrix multiplication) ubiquitous in learning algorithms.
+
+\paragraph{} The following tables show the running times of python and R on various operations using different sizes, as well as the time ratio of python / R. Interestingly, python outperforms R in every case, most of the time by an order of magnitude. In the worst case, Python takes 0.8 the time of R.
+
+\begin{center}
+    \textbf{Matrix Addition} \\
+\begin{tabular}{cccc}
+size  & python  &  R       & python / R \\
+  \hline
+50  & 0.0060 & 0.0159 & 0.3774 \\
+75  & 0.0110 & 0.0302 & 0.3642 \\
+100 & 0.0170 & 0.0519 & 0.3276 \\
+150 & 0.0350 & 0.1161 & 0.3015 \\
+250 & 0.0950 & 0.3396 & 0.2797 \\
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+    \textbf{Matrix Multiplication} \\
+\begin{tabular}{cccc}
+size  & python  &  R       & python / R \\
+  \hline
+50  & 0.1600  & 0.2208  & 0.7246 \\
+75  & 0.5800  & 0.7339  & 0.7903 \\
+100 & 1.3030  & 1.6323  & 0.7983 \\
+150 & 4.2350  & 5.2311  & 0.8096 \\
+250 & 18.9190 & 22.9759 & 0.8234 \\
+\end{tabular}
+\end{center}
+
+\begin{center}
+    \textbf{Matrix Transpose} \\
+\begin{tabular}{cccc}
+size  & python  &  R       & python / R \\
+  \hline
+50  & 0.0010  & 0.0325 & 0.0308 \\
+75  & 0.0010  & 0.0610 & 0.0164 \\
+100 & 0.0010  & 0.1030 & 0.0097 \\
+150 & 0.0010  & 0.2196 & 0.0046 \\
+250 & 0.0010  & 0.6119 & 0.0016 \\
+\end{tabular}
+\end{center}
+
+\begin{center}
+    \textbf{Element-wise Matrix Multiplication} \\
+\begin{tabular}{cccc}
+size  & python  &  R       & python / R \\
+  \hline
+150   & 0.0350  &  0.1576  &  0.2221 \\
+225   & 0.0760  &  0.3741  &  0.2032 \\
+300   & 0.1510  &  0.6859  &  0.2201 \\
+450   & 0.9310  &  2.0938  &  0.4446 \\
+750   & 3.3010  &  5.4117  &  0.6100 \\
+\end{tabular}
+\end{center}
+
+\begin{center}
+    \textbf{Vector inner product} \\
+\begin{tabular}{cccc}
+size  & python  &  R       & python / R \\
+  \hline
+2500  & 0.0040 & 0.0523 & 0.0765 \\
+3750  & 0.0060 & 0.0772 & 0.0777 \\
+5000  & 0.0070 & 0.1030 & 0.0680 \\
+7500  & 0.0100 & 0.1519 & 0.0658 \\
+12500 & 0.0160 & 0.2514 & 0.0636 \\
+\end{tabular}
+\end{center}
+
+
+
+\end{document}
+
