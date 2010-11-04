@@ -74,38 +74,3 @@ function [] = write_weights_matrix(W, alph, out_ext)
   dlmwrite(file, W);
   disp('w');
 end
-
-
-function x = training_example(sample_size, data, img_size)
-  img = random_image(data, img_size);
-
-  patch_i = ceil(rand(2, 1) * (img_size - sample_size + 1));
-
-  % obtaining a random sample patch
-  r_i = patch_i(1);
-  r_f = r_i + sample_size - 1;
-
-  c_i = patch_i(2);
-  c_f = c_i + sample_size - 1;
-
-  r_patch = img(r_i:r_f, c_i:c_f);
-
-  % vectorizing r_patch
-  x = r_patch(:);
-end
-
-
-function m = random_image(data, img_size)
-  random_index = ceil(rand(1) * 10);
-  m = image_matrix(random_index, data, img_size);
-end
-
-
-% returns matrix m containing raw pixel values for image
-% assumes img_size is the row count of a single image
-% assumes data contains the concatenation of all images
-function m = image_matrix(i, data, img_size)
-  start_row = (i - 1) * img_size + 1;
-  end_row = start_row + img_size - 1;
-  m = data(start_row:end_row,:);
-end
