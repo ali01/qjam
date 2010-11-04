@@ -8,8 +8,8 @@ function h_x = ncode(data, alph)
 
   % general variables
   img_size = 512;
-  sample_size = 8; % 8x8 patch of image
-  iterations = 1e8;
+  sample_size = 8;  % 8x8 patch of image
+  iterations = 4e6;
   status_output_interval = 1e3;
   file_output_interval = iterations / 100;
   out_path = 'bases/';
@@ -27,7 +27,7 @@ function h_x = ncode(data, alph)
 
   for i = 1:iterations
     % -- feedforward pass (computing activations) --
-    x = training_example(sample_size, data, img_size);
+    x = random_training_example(data, sample_size);
 
     % hidden layer
     z_2 = W_1 * x + b_1;
@@ -67,7 +67,6 @@ function h_x = ncode(data, alph)
 end
 
 
-
 function [] = write_weights_matrix(W, alph, out_ext)
   file = ['bases' filesep ...
           'weights1-a(' num2str(alph) ')-' ...
@@ -94,7 +93,6 @@ function x = training_example(sample_size, data, img_size)
   % vectorizing r_patch
   x = r_patch(:);
 end
-
 
 
 function m = random_image(data, img_size)
