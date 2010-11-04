@@ -6,7 +6,6 @@ input_units = 64
 hidden_units = 30
 
 # other constants
-img_size = 512
 sample_size = 8 # 8x8 patch of image
 
 status_output_interval = 1e3
@@ -34,7 +33,7 @@ ncode = function(data, alph, iterations=1e4) {
 
   for (i in 1:iterations) {
     # -- feedforward pass (computing activations) --
-    x = training_example(sample_size, data, img_size)
+    x = training_example(sample_size, data)
 
     # hidden layer
     z_2 = W_1 %*% x + b_1
@@ -71,33 +70,20 @@ ncode = function(data, alph, iterations=1e4) {
   }
 }
 
-training_example = function(sample_size, data, img_size) {
-  img = random_image(data, img_size);
+training_example = function(sample_size, data) {
+  img_size = dim(data)[2]
+  num_images = dim(data)[1] / img_size
 
-  patch_i = ceiling(runif(2) * (img_size - sample_size + 1))
+  img_row = sample(0:(num_images - 1), 1) * img_size
+  
+  x_row_i = img_row + sample(1:(img_size - sample_size + 1))
+  x_col_i = sample(1:(img_size - sample_size + 1))
 
-  # obtaining a random sample patch
-  r_i = patch_i[1]
-  r_f = r_i + sample_size - 1
+  x_row_f = x_row_i + sample_size - 1
+  x_col_f = x_col_i + sample_size - 1
 
-  c_i = patch_i[2]
-  c_f = c_i + sample_size - 1
-
-  r_patch = img[r_i:r_f,c_i:c_f]
-
-  # vectorizing r_patch and returning
-  c(r_patch)
-}
-
-random_image = function(data, img_size) {
-  random_index = ceiling(runif(1) * 10)
-  image_matrix(random_index, data, img_size)
-}
-
-image_matrix = function(i, data, img_size) {
-  start_row = (i - 1) * img_size + 1
-  end_row = start_row + img_size - 1
-  data[start_row:end_row,]
+  sample = data[x_row_i:x_row_f, x_col_i:x_col_f]
+  c(sample)
 }
 
 write_weights_matrix = function(W, alph, out_ext) {
