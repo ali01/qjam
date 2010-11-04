@@ -11,18 +11,20 @@ function [ sample ] = random_training_example(images, sample_size)
   %   sample: a sample_size * sample_size vector constructed
   %           in row major order from a random sample_size x
   %           sample_size image patch
-  image_size = size(images,2);
-  num_images = size(images,1) / image_size;
-  num_samples = image_size / sample_size;
+  image_size = size(images, 2);
+  num_images = size(images, 1) / image_size;
 
-  image_index = randi(num_images);
-  sample_row = randi(num_samples);
-  sample_col = randi(num_samples);
+  % Find first row of a random image within the image set.
+  image_row = (randi(num_images) - 1) * image_size + 1;
 
-  start_row = (image_index - 1) * image_size + sample_row;
-  start_col = sample_col;
+  % Find row and column of random example within the image set.
+  sample_row_i = image_row + randi(image_size - sample_size + 1) - 1;
+  sample_col_i = randi(image_size - sample_size + 1);
 
-  sample = images(start_row:start_row + sample_size - 1, ...
-      sample_col:start_col + sample_size - 1);
+  % End row and column of random example.
+  sample_row_f = sample_row_i + sample_size - 1;
+  sample_col_f = sample_col_i + sample_size - 1;
+
+  sample = images(sample_row_i:sample_row_f, sample_col_i:sample_col_f);
   sample = reshape(sample, sample_size * sample_size, 1);
 end
