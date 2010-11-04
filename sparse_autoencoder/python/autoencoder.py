@@ -42,15 +42,16 @@ class SparseAutoencoder(object):
   FEATURES = 64
   HIDDEN = 30
 
-  def __init__(self, trainingSet):
+  def __init__(self, trainingSet, outputFile):
     self.trainingSet_ = trainingSet
+    self.outputFile_ = outputFile
 
     # initialize weights
     self.weights1_ = matlib.rand(self.HIDDEN, self.FEATURES)
-    self.weights1_ /= matlib.sqrt(self.FEATURES)
+    self.weights1_ = self.weights1_ / matlib.sqrt(self.FEATURES)
 
     self.weights2_ = matlib.rand(self.FEATURES, self.HIDDEN)
-    self.weights2_ /= matlib.sqrt(self.HIDDEN)
+    self.weights2_ = self.weights2_ / matlib.sqrt(self.HIDDEN)
 
     # initialize bias
     self.bias1_ = matlib.zeros((self.HIDDEN, ))
@@ -74,12 +75,19 @@ class SparseAutoencoder(object):
     for i in xrange(0, iterations):
       if i % 10000 == 0:
         printProgress(float(i) / iterations)
+        if i % 100000 == 0:
+          self.output()
+
       self.iteration_()
     printProgress(1)
 
-  def outputWeights(self):
-    '''Returns the learned output weights matrix.'''
-    return self.weights1_;
+  def output(self):
+    '''Outputs the current weights to the outputFile'''
+    with open(self.outputFile_, 'w') as f:
+      for row in xrange(0, self.weights1_.shape[0]):
+        for col in xrange(0, self.weights1_.shape[1]):
+          f.write('%f ' % self.weights1_[row, col])
+        f.write('\n')
 
   def iteration_(self):
     '''Runs one iteration of the Sparse Autoencoder Algorithm.'''
@@ -107,20 +115,21 @@ class SparseAutoencoder(object):
 
   def gradientDescent_(self):
     '''Gradient Descent (updating parameters).'''
-    self.weights1_ -= (self.ALPHA *
+    self.weights1_ = self.weights1_ - (self.ALPHA *
       (self.d2__ * self.x__.T + self.LAMBDA * self.weights1_))
-    self.bias1_ -= self.ALPHA * self.d2__.T
+    self.bias1_ = self.bias1_ - self.ALPHA * self.d2__.T
 
-    self.weights2_ -= (self.ALPHA *
+    self.weights2_ = self.weights2_ - (self.ALPHA *
       (self.d3__ * self.a2__.T + self.LAMBDA * self.weights2_))
-    self.bias2_ -= self.ALPHA * self.d3__.T
+    self.bias2_ = self.bias2_ - self.ALPHA * self.d3__.T
 
   def rhoUpdate_(self):
     '''Updating running rho estimate vector.'''
     self.rho_est_ = 0.999 * self.rho_est_ + 0.001 * self.a2__
 
     # updating hidden layer intercept terms based on rho estimate vector
-    self.bias1_ -= self.ALPHA * self.LR_BT * (self.rho_est_.T - self.RHO)
+    self.bias1_ = self.bias1_ - (self.ALPHA *
+      self.LR_BT * (self.rho_est_.T - self.RHO))
 
 
 def main():
@@ -139,13 +148,9 @@ def main():
       print 'Error loading training set: %s' % e
       return
 
-    sa = SparseAutoencoder(ts)
+    sa = SparseAutoencoder(ts, outputFile)
     sa.run(iterations)
-    with open(outputFile, 'w') as f:
-      for row in xrange(0, sa.outputWeights().shape[0]):
-        for col in xrange(0, sa.outputWeights().shape[1]):
-          f.write('%f ' % sa.outputWeights()[row, col])
-        f.write('\n')
+    sa.output()
 
   else:
     print 'Usage: ', sys.argv[0],
