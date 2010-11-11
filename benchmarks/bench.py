@@ -2,7 +2,7 @@ import timeit, sys
 
 import numpy_linalg
 
-std_sizes = [50,75,100,150,250]
+std_sizes = [10,100,1000,10000, 100000, 1000000]
 benchmarks = {
     'matrix_multiplication': std_sizes,
     'elementwise_multiplication': [i*3 for i in std_sizes],
