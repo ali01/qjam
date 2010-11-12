@@ -176,9 +176,9 @@ To start the job, call:
 \end{verbatim}
 
 This instructs the master to serialize the map function, training data, and
-initial parameters, and send them to the slaves. Each slave will run the {\tt
-  mymap} function, with the parameters in {\tt params} and some portion of the
-training set available in {\tt examples}.
+initial parameters, and send them to the slaves, each of which is listening for
+jobs. Each slave will run the {\tt mymap} function, with the parameters in {\tt
+  params} and some portion of the training set available in {\tt examples}.
 
 This call will block until all slaves respond with their partial sums. The {\tt
   run} method will apply the {\tt sum} reduce function to each slave's response
@@ -191,13 +191,34 @@ with the main program being run; if the main program dies, the master dies with
 it, and vice versa. Thus, we do not need replicated masters or anything
 similarly sophisticated.
 
-\subsection{Serialization and Local Storage}
+\subsection{Serialization and Slave-Local Storage}
 
-Some notes here about pickling functions and managing local storage at each
-node.
+We initially aim to support training sets around 30 GB, so we must have a way
+to distribute this data to the nodes without having to send it to each node for
+each iteration. In the MapReduce model, {\tt map} function only relies on data
+given to it; there is no global data. This lets the master control distribution
+of the data using its superior knowledge about the cluster size and
+capabilities, and it reduces data transmission overhead.
 
-The master divides the data and ships to each slave its share of the examples
-(or whatever other data is needed).
+When the master runs a job on $n$ slaves, it creates $n$ equal slices of the
+training set and assigns one to each slave. On subsequent iterations, each
+slave will be assigned the same data slice, as long as no slaves join or leave
+the cluster. The master then sends the data slice to the slave, but only if the
+slave doesn't already have the data.
+
+We expect that the initial serialization and transmission of the training set
+to each slave will take quite a while. This is an area ripe for future
+optimization. However, we won't naively succumb to the vice of premature
+optimization unless this is a major bottleneck.
+
+Each slave will know what data slice it has, and will use that data slice as
+arguments to the {\tt map} function.
+
+This is similar to the SlaveRefs in Adam Coates' Matlab parallel framework, but
+we are able to use Python's superior syntax to hide the implementation details
+of references to data on slaves. Also, our system as described will only send
+portions of the data to each slave, which will decrease data transmission
+overhead.
 
 % do the biliography:
 %\bibliographystyle{IEEEbib}
