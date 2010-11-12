@@ -144,24 +144,52 @@ Fig. \ref{diagram}.
   \label{diagram}
 \end{figure}
 
-Description of the library here. The rapidly prototyped algorithms call into it
-and tell it to do work.
-
-\subsection{Library Semantics}
-
-Calls to the library are blocking. A call like,
-
+First, on the master, you define a Python map function with the following prototype:
 \begin{verbatim}
-    master.execute(func, theta, local_data)
+    def mymap(examples, params):
+        psum = 0
+        for (xi,yi) in examples:
+            psum += (yi - g(params.theta.T * xi)) * xi
+        return psum
 \end{verbatim}
 
-will not return until all work has been performed.
+Then, also on the master, you specify your training examples and initial parameters:
+\begin{verbatim}
+    examples = ((x1, y1), (x2, y2), (x3, y3))
+    params   = (0, 0, 0)
+\end{verbatim}
 
-Our failure semantics are simple. Initially, we are not focusing on slave
-failure. However, it is easy to add in later (reship the local data, rerun dead
-slave's work). The master shares fate with the main program being run; if the
-main program dies, the master dies with it, and vice versa. Thus, we do not
-need replicated masters or anything similarly sophisticated.
+The difference between examples and parameters is that examples will not be
+resent on each iteration. We will check whether the slave already has the {\tt
+  examples} object (with the same hash) and only resend it if needed. The
+parameters data, however, will be resent for each iteration. These two objects
+can be arbitrarily typed, as long as they are serializable. For example, for
+large datasets, we might implement a list/dictionary proxy (that behaves like
+its standard Python counterpart but doesn't store everything in memory). Also,
+typically they will hold {\tt numpy} arrays and matrices instead of Python
+tuples as shown in the example above.
+
+To start the job, call:
+
+\begin{verbatim}
+    master.run(mymap, examples, params)
+\end{verbatim}
+
+This instructs the master to serialize the map function, training data, and
+initial parameters, and send them to the slaves. Each slave will run the {\tt
+  mymap} function, with the parameters in {\tt params} and some portion of the
+training set available in {\tt examples}.
+
+This call will block until all slaves respond with their partial sums. The {\tt
+  run} method will apply the {\tt sum} reduce function to each slave's response
+and will return the total sum. (For easy local testing, the {\tt mymap}
+function can also be run on the local machine in the same Python process.)
+
+We will initially ignore slave failures. Failure tolerance can be added
+later (reship the local data, rerun dead slave's work). The master shares its fate
+with the main program being run; if the main program dies, the master dies with
+it, and vice versa. Thus, we do not need replicated masters or anything
+similarly sophisticated.
 
 \subsection{Serialization and Local Storage}
 
