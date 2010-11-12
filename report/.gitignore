@@ -2,3 +2,9 @@
 *.aux
 *.ent
 *.pdf
+*.fls
+*.fmt
+*.ini
+*.log
+*.watcher_pid
+.*.tex

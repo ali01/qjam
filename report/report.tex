@@ -85,8 +85,10 @@ between the nodes. If communication between nodes is excessive, the overhead of
 distributing the work becomes dominant and the any potential performance gained
 by running in parallel is lost.
 
-More here about batch gradient descent as an example algorithm that can be
-easily distributed.
+A significant fraction of learning algorithms work in an iterative manner and
+depend on generic optimization routines like gradient descent, conjugate
+gradient, or L-BFGS. Many of these routines are well suited for parallelization.
+As an example, let's consider batch gradient descent.
 
 \section{Rapid Prototyping}
 
