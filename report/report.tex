@@ -24,27 +24,11 @@
 % \documentclass[submission,anonymous,narroweqnarray,inline]{ieee}
 % \documentclass[final,narroweqnarray,inline]{ieee}
 
-% Use the `endfloat' package to move figures and tables to the end
-% of the paper. Useful for `submission' mode.
-%\usepackage {endfloat}
-
-% Use the `times' package to use Helvetica and Times-Roman fonts
-% instead of the standard Computer Modern fonts. Useful for the
-% IEEE Computer Society transactions.
-% (Note: If you have the commercial package `mathtime,' it is much
-% better, but the `times' package works too).
-%\usepackage {times}
-
-% In order to use the figure-defining commands in ieeefig.sty...
-\usepackage{ieeefig,url}
+\usepackage{ieeefig,url,enumerate}
 
 \begin{document}
 
-%----------------------------------------------------------------------
-% Title Information, Abstract and Keywords
-%----------------------------------------------------------------------
-\title[Scaling Machine Learning Algorithms]{%
-       Scaling Machine Learning Algorithms}
+\title{Scaling Machine Learning Algorithms}
 
 % format author this way for journal articles.
 \author[SHORT NAMES]{
@@ -66,23 +50,19 @@
 % Or, specify the conference place and date.
 %\confplacedate{Ottawa, Canada, May 19--21, 1997}
 
-% make the title
 \maketitle
 
-% do the abstract
 \begin{abstract}
-Our premise is ...
+We wish to provide a portable framework for the rapid prototyping of machine
+learning algorithms on a cluster of computers.
 \end{abstract}
 
 % do the keywords
-\begin{keywords}
-keyword 1, keyword 2 ...
-\end{keywords}
+%\begin{keywords}
+%keyword 1, keyword 2 ...
+%\end{keywords}
 
 \section{Introduction}
-
-\PARstart Use the PARstart macro only for the first paragraph in
-the entire paper...
 
 % try out a theorem...
 \newtheorem{theorem}{Theorem}
@@ -95,9 +75,101 @@ the entire paper...
   The proof is trivial.
 \end{proof}
 
-\section{Another Section}
+\section{Distributing Work}
 
-foo bar
+In order for an algorithm to be run in parallel on several machines, some part
+of it must be amenable to parallelization. More specifically, some component or
+step of the algorithm must be able to be subdivided into \emph{workunits} that
+can be processed in parallel by multiple nodes with little or no communication
+between the nodes. If communication between nodes is excessive, the overhead of
+distributing the work becomes dominant and the any potential performance gained
+by running in parallel is lost.
+
+More here about batch gradient descent as an example algorithm that can be
+easily distributed.
+
+\section{Rapid Prototyping}
+
+Previous work has been done in distributing Matlab. However, due to licensing
+constraints, this is not feasible for large clusters. We needed to choose
+another environment in which to develop and test machine learning
+algorithms. For this project, we considered Python and R as alternatives to
+Matlab.
+
+\subsection{Requirements}
+
+Words here about why R and Python might be good choices. (Packages available
+for matrix manipulations, highly general, free, easy to pick up and use,
+portable?)
+
+\subsection{Benchmarks}
+
+Benchmark data for Python vs R (vs Matlab?)
+
+Perhaps also some words here about why Python is still acceptable even if it is
+significantly slower than Matlab. In particular, we are doing rapid
+prototyping, so peak CPU performance isn't the deciding factor. We are more
+interested in processing lots of data by distributing it to enough nodes such
+that the data can fit in memory and be processed effectively.
+
+\section{Framework Design}
+
+\subsection{Conventional Approaches}
+
+Some words here about how the batch gradient descent example easily lends
+itself to a straight mapreduce workflow. Because of this workflow, we first
+considered using an existing mapreduce framework for our project.
+
+One such framework we considered is Hadoop MapReduce. Some words here about why
+Hadoop doesn't apply well to our problem. Consider the batch gradient decent
+example again. Each iteration is essentially a mapreduce operation: the
+examples are split up and distributed, the individual sums are calculated at
+each node, and the reduce operation is calculating the final sum. The examples
+considered at each node must remain stored locally at that node, ideally in
+memory, for later recall during the next mapreduce operation for the subsequent
+iteration.
+
+Some words here about Disco and its attempt to solve this problem?
+
+\subsection{Our design}
+
+Our design consists of a single master and one or more slaves, as shown in
+Fig. \ref{diagram}.
+
+\begin{figure}[hb]
+  \begin{center}
+    \includegraphics[width=2.5in]{fwk_diagram/fwk_diagram.pdf}
+  \end{center}
+  \caption{Diagram of our framework.}
+  \label{diagram}
+\end{figure}
+
+Description of the library here. The rapidly prototyped algorithms call into it
+and tell it to do work.
+
+\subsection{Library Semantics}
+
+Calls to the library are blocking. A call like,
+
+\begin{verbatim}
+    master.execute(func, theta, local_data)
+\end{verbatim}
+
+will not return until all work has been performed.
+
+Our failure semantics are simple. Initially, we are not focusing on slave
+failure. However, it is easy to add in later (reship the local data, rerun dead
+slave's work). The master shares fate with the main program being run; if the
+main program dies, the master dies with it, and vice versa. Thus, we do not
+need replicated masters or anything similarly sophisticated.
+
+\subsection{Serialization and Local Storage}
+
+Some notes here about pickling functions and managing local storage at each
+node.
+
+The master divides the data and ships to each slave its share of the examples
+(or whatever other data is needed).
 
 % do the biliography:
 %\bibliographystyle{IEEEbib}
