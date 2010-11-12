@@ -41,7 +41,7 @@ for (i in 1:n) {
 
 
 
-std_sizes <- c(10,100,1000,10000, 100000, 1000000)
+std_sizes <- c(10,50,100,500,1000)
 n <- 10000
 benchmarks <- c(matrix_multiplication)
 benchmark_names = c('matrix_multiplication')
