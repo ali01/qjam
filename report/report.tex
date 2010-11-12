@@ -286,20 +286,18 @@ This call will block until all slaves respond with their partial sums. The {\tt
 and will return the total sum. (For easy local testing, the {\tt mymap}
 function can also be run on the local machine in the same Python process.)
 
-We will initially ignore slave failures. Failure tolerance can be added
-later (reship the local data, rerun dead slave's work). The master shares its fate
-with the main program being run; if the main program dies, the master dies with
-it, and vice versa. Thus, we do not need replicated masters or anything
-similarly sophisticated.
+We will not address slave/network failure tolerance for now. This can be added
+later, and we don't anticipate it being a major problem for the small clusters
+we are initially targeting.
 
 \subsection{Serialization and Slave-Local Storage}
 
 We initially aim to support training sets around 30 GB, so we must have a way
-to distribute this data to the nodes without having to send it to each node for
-each iteration. In the MapReduce model, {\tt map} function only relies on data
-given to it; there is no global data. This lets the master control distribution
-of the data using its superior knowledge about the cluster size and
-capabilities, and it reduces data transmission overhead.
+to distribute this dataset to the slaves without having to send it to each slave on
+each iteration. In the MapReduce model we're adopting, {\tt map} function only
+relies on data given to it; there is no global data. This lets the master
+control distribution of the data using its superior knowledge about the cluster
+size and capabilities, and it reduces data transmission overhead.
 
 When the master runs a job on $n$ slaves, it creates $n$ equal slices of the
 training set and assigns one to each slave. On subsequent iterations, each
