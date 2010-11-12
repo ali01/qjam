@@ -21,9 +21,9 @@
 
 \maketitle
 
-\paragraph{} In order to determine the viability of the R Programming Language for efficient computation of machine learning algorithms, we compared benchmarks against Python (using the numpy package). In order to avoid implementation or algorithm-specific bias, we decided to benchmark common linear algebra functions (e.g. matrix multiplication) ubiquitous in learning algorithms.
+ In order to determine the viability of the R Programming Language for efficient computation of machine learning algorithms, we compared benchmarks against Python (using the numpy package). In order to avoid implementation or algorithm-specific bias, we decided to benchmark common linear algebra functions (e.g. matrix multiplication) ubiquitous in learning algorithms.
 
-\paragraph{} The following tables show the running times of python and R on various operations using different sizes, as well as the time ratio of python / R. Interestingly, python outperforms R in every case, most of the time by an order of magnitude. In the worst case, Python takes 0.8 the time of R.
+The following tables show the running times of python and R on various operations using different sizes, as well as the time ratio of python / R. Interestingly, python outperforms R in every case, most of the time by an order of magnitude. In the worst case, Python takes 0.8 the time of R.
 
 \begin{center}
     \textbf{Matrix Addition} \\
@@ -36,10 +36,7 @@ size  & python  &  R       & python / R \\
 150 & 0.0350 & 0.1161 & 0.3015 \\
 250 & 0.0950 & 0.3396 & 0.2797 \\
 \end{tabular}
-\end{center}
 
-
-\begin{center}
     \textbf{Matrix Multiplication} \\
 \begin{tabular}{cccc}
 size  & python  &  R       & python / R \\
@@ -50,9 +47,7 @@ size  & python  &  R       & python / R \\
 150 & 4.2350  & 5.2311  & 0.8096 \\
 250 & 18.9190 & 22.9759 & 0.8234 \\
 \end{tabular}
-\end{center}
 
-\begin{center}
     \textbf{Element-Wise Matrix Multiplication} \\
 \begin{tabular}{cccc}
 size  & python  &  R       & python / R \\
@@ -63,10 +58,7 @@ size  & python  &  R       & python / R \\
 450   & 0.9310  &  2.0938  &  0.4446 \\
 750   & 3.3010  &  5.4117  &  0.6100 \\
 \end{tabular}
-\end{center}
 
-
-\begin{center}
     \textbf{Matrix Transpose} \\
 \begin{tabular}{cccc}
 size  & python  &  R       & python / R \\
@@ -77,11 +69,8 @@ size  & python  &  R       & python / R \\
 150 & 0.0010  & 0.2196 & 0.0046 \\
 250 & 0.0010  & 0.6119 & 0.0016 \\
 \end{tabular}
-\end{center}
 
-
-\begin{center}
-    \textbf{Vector inner product} \\
+\textbf{Vector inner product} \\
 \begin{tabular}{cccc}
 size  & python  &  R       & python / R \\
   \hline
@@ -91,6 +80,7 @@ size  & python  &  R       & python / R \\
 7500  & 0.0100 & 0.1519 & 0.0658 \\
 12500 & 0.0160 & 0.2514 & 0.0636 \\
 \end{tabular}
+
 \end{center}
 
 
