@@ -1,18 +1,3 @@
-%======================================================================
-%----------------------------------------------------------------------
-%               XX                              X
-%                                               X
-%               XX    XXX   XXX   XXX      XXX  X  XXXX
-%                X   X   X X   X X   X    X   X X X
-%                X   XXXXX XXXXX XXXXX    X     X  XXX
-%                X   X     X     X     XX X   X X     X
-%               XXX   XXX   XXX   XXX  XX  XXX  X XXXX
-%----------------------------------------------------------------------
-%  	         A SKELETON FILE FOR IEEE PAPER GENERATION
-%----------------------------------------------------------------------
-%======================================================================
-
-% first, uncomment the desired options:
 \documentclass[%
         %draft,
         %submission,
@@ -44,7 +29,7 @@
 %\usepackage {endfloat}
 
 % Use the `times' package to use Helvetica and Times-Roman fonts
-% instead of the standard Computer Modern fonts. Useful for the 
+% instead of the standard Computer Modern fonts. Useful for the
 % IEEE Computer Society transactions.
 % (Note: If you have the commercial package `mathtime,' it is much
 % better, but the `times' package works too).
@@ -82,7 +67,7 @@
 %\confplacedate{Ottawa, Canada, May 19--21, 1997}
 
 % make the title
-\maketitle               
+\maketitle
 
 % do the abstract
 \begin{abstract}
@@ -96,7 +81,7 @@ keyword 1, keyword 2 ...
 
 \section{Introduction}
 
-\PARstart Use the PARstart macro only for the first paragraph in 
+\PARstart Use the PARstart macro only for the first paragraph in
 the entire paper...
 
 % try out a theorem...
@@ -112,7 +97,7 @@ the entire paper...
 
 \section{Another Section}
 
-foo bar 
+foo bar
 
 % do the biliography:
 %\bibliographystyle{IEEEbib}
@@ -126,7 +111,7 @@ foo bar
 %
 % The outdated packages epsfig and psfig allow you to insert figures
 % like: \psfig{filename.eps} These should really be done now using the
-% \includegraphics{filename.eps} command.  
+% \includegraphics{filename.eps} command.
 %
 % i.e.,
 %
@@ -140,9 +125,9 @@ foo bar
 % the sides of the figure. You can also force LaTeX to clip the EPS file
 % to the bounding box in the file. I find that I often use the scale,
 % trim and clip commands.
-% 
+%
 % \includegraphics[scale=0.6,trim=0 0 0 0,clip=]{file.eps}
-% 
+%
 % which magnifies the graphics by 0.6 (If I create a graphics for an
 % overhead projector transparency, I find that a magnification of 0.6
 % makes it look much better in a paper), trims 0 points off
@@ -150,32 +135,32 @@ foo bar
 % trim numbers are negative, space is added around the figure. This can
 % be useful to help center the graphics, if the EPS file bounding box is
 % not quite right.
-% 
+%
 % To center the graphics,
-% 
+%
 % \begin{center}
 % \includegraphics...
 % \end{center}
-% 
-% I have not yet written good documentation for this, but another 
+%
+% I have not yet written good documentation for this, but another
 % package which helps in figure management is the package ieeefig.sty,
 % available at: http://www-isl.stanford.edu/people/glp/ieee.shtml
 % Specify:
-% 
-%\usepackage{ieeefig} 
-% 
+%
+%\usepackage{ieeefig}
+%
 % in the preamble, and whenever you want a figure,
-% 
+%
 %\figdef{filename}
-% 
+%
 % where, filename.tex is a LaTeX file which defines what the figure is.
 % It may be as simple as
-% 
+%
 % \inserteps{filename.eps}
 %
 % or
 % \inserteps[includegraphics options]{filename.eps}
-% 
-% or may be a very complicated LaTeX file. 
+%
+% or may be a very complicated LaTeX file.
 
 \end{document}
