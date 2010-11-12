@@ -104,6 +104,17 @@ Words here about why R and Python might be good choices. (Packages available
 for matrix manipulations, highly general, free, easy to pick up and use,
 portable?)
 
+
+\subsection{Style Benchmarks}
+
+When prototyping algorithms, the clarity of a language plays a significant role.  Matlab's simplicity and conciseness, yielding very clear and readable code, can significantly reduce implementation bugs and ads minimal overhead to expressing the algorithm in code. This is not the case for languages like C++, where performance and reliability are more important than readability.
+
+In terms of style, Python synax is often praised for its simplicity. For our purposes, Python's Numpy package includes Matlib, an interface that attempts to emulate Matlab's syntax. It is designed  specifically for Matlab programmers and to ease the porting of Matlab code. Some syntax is still overly verbose (e.g. M.transpose() vs M') and hinders the clarity of the language, but overall seems clear enough, and makes porting existing Matlab implementations easy.
+
+Some words about R syntax (looks weird at first glance, but others know best.)
+
+Conclusion on style. Is python better than R? seems to me.
+
 \subsection{Performance Benchmarks}
 
 We benchmarked the performance of R against Python's (using the numpy package). In order to avoid implementation or algorithm-specific bias, we decided to benchmark common linear algebra functions (e.g. matrix multiplication) ubiquitous in learning algorithms.
