@@ -88,7 +88,11 @@ by running in parallel is lost.
 A significant fraction of learning algorithms work in an iterative manner and
 depend on generic optimization routines like gradient descent, conjugate
 gradient, or L-BFGS. Many of these routines are well suited for parallelization.
-As an example, let's consider batch gradient descent.
+As an example, each iteration of batch gradient descent evaluates a function on
+every input vector and then sums their results. Consequently, each iteration of
+batch gradient descent can easily be parallelized by dividing the sum into $n$
+disjoint partial sums, computing each partial sum on a separate slave machine,
+and aggregating the results to compute the full sum.
 
 \section{Rapid Prototyping}
 
@@ -107,9 +111,18 @@ portable?)
 
 \subsection{Style Benchmarks}
 
-When prototyping algorithms, the clarity of a language plays a significant role.  Matlab's simplicity and conciseness, yielding very clear and readable code, can significantly reduce implementation bugs and ads minimal overhead to expressing the algorithm in code. This is not the case for languages like C++, where performance and reliability are more important than readability.
+When prototyping algorithms, the clarity of a language plays a significant role.
+Matlab's simplicity and conciseness, yielding very clear and readable code, can
+significantly reduce implementation bugs and ads minimal overhead to expressing
+the algorithm in code. This is not the case for languages like C++, where
+performance and reliability are more important than readability.
 
-In terms of style, Python synax is often praised for its simplicity. For our purposes, Python's Numpy package includes Matlib, an interface that attempts to emulate Matlab's syntax. It is designed  specifically for Matlab programmers and to ease the porting of Matlab code. Some syntax is still overly verbose (e.g. M.transpose() vs M') and hinders the clarity of the language, but overall seems clear enough, and makes porting existing Matlab implementations easy.
+In terms of style, Python synax is often praised for its simplicity. For our
+purposes, Python's Numpy package includes Matlib, an interface that attempts to
+emulate Matlab's syntax. It is designed specifically for Matlab programmers and
+to ease the porting of Matlab code. Some syntax is still overly verbose (e.g.
+M.transpose() vs M') and hinders the clarity of the language, but overall seems
+clear enough, and makes porting existing Matlab implementations easy.
 
 Some words about R syntax (looks weird at first glance, but others know best.)
 
@@ -117,9 +130,14 @@ Conclusion on style. Is python better than R? seems to me.
 
 \subsection{Performance Benchmarks}
 
-We benchmarked the performance of R against Python's (using the numpy package). In order to avoid implementation or algorithm-specific bias, we decided to benchmark common linear algebra functions (e.g. matrix multiplication) ubiquitous in learning algorithms.
+We benchmarked the performance of R against Python's (using the numpy package).
+In order to avoid implementation or algorithm-specific bias, we decided to
+benchmark common linear algebra functions (e.g. matrix multiplication)
+ubiquitous in learning algorithms.
 
-The following tables show the running times of python and R on various operations using different matrix or vector sizes, as well as the time ratio of python / R. Every test ran 10000 operations.
+The following tables show the running times of python and R on various
+operations using different matrix or vector sizes, as well as the time ratio of
+python / R. Every test ran 10000 operations.
 
 \begin{center}
   \vspace{1em}
@@ -185,7 +203,9 @@ size  & python  &  R       & python / R \\
 
 \end{center}
 
-In terms of performance, Python is the clear winner. It outperforms R in every case, most of the cases by an order of magnitude. In the worst case, Python takes 80\% of the time that R takes.
+In terms of performance, Python is the clear winner. It outperforms R in every
+case, most of the cases by an order of magnitude. In the worst case, Python
+takes 80\% of the time that R takes.
 
 Perhaps also some words here about why Python is still acceptable even if it is
 significantly slower than Matlab. In particular, we are doing rapid
