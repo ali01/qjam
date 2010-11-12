@@ -1,0 +1,238 @@
+\documentclass[%
+        %draft,
+        %submission,
+        %compressed,
+        final,
+        %
+        %technote,
+        %internal,
+        %submitted,
+        %inpress,
+        %reprint,
+        %
+        %titlepage,
+        notitlepage,
+        %anonymous,
+        narroweqnarray,
+        inline,
+        %twoside,
+        ]{ieee}
+%
+% some standard modes are:
+%
+% \documentclass[draft,narroweqnarray,inline]{ieee}
+% \documentclass[submission,anonymous,narroweqnarray,inline]{ieee}
+% \documentclass[final,narroweqnarray,inline]{ieee}
+
+\usepackage{ieeefig,url,enumerate}
+
+\begin{document}
+
+\title{Scaling Machine Learning Algorithms}
+
+% format author this way for journal articles.
+\author[SHORT NAMES]{
+  Juan Batiz-Benet \\
+  \and{\quad\quad}
+  Quinn Slack \\
+  \and{\quad\quad}
+  Matt Sparks \\
+  \and{\quad\quad}
+  Ali Yahya
+}
+
+% specifiy the journal name
+%\journal{IEEE Transactions on Something, 1997}
+
+% Or, when the paper is a preprint, try this...
+%\journal{IEEE Transactions on Something, 1997, TN\#9999.}
+
+% Or, specify the conference place and date.
+%\confplacedate{Ottawa, Canada, May 19--21, 1997}
+
+\maketitle
+
+\begin{abstract}
+We wish to provide a portable framework for the rapid prototyping of machine
+learning algorithms on a cluster of computers.
+\end{abstract}
+
+% do the keywords
+%\begin{keywords}
+%keyword 1, keyword 2 ...
+%\end{keywords}
+
+\section{Introduction}
+
+% try out a theorem...
+\newtheorem{theorem}{Theorem}
+
+\begin{theorem}[Theorem name]
+  Consider the system ...
+\end{theorem}
+
+\begin{proof}
+  The proof is trivial.
+\end{proof}
+
+\section{Distributing Work}
+
+In order for an algorithm to be run in parallel on several machines, some part
+of it must be amenable to parallelization. More specifically, some component or
+step of the algorithm must be able to be subdivided into \emph{workunits} that
+can be processed in parallel by multiple nodes with little or no communication
+between the nodes. If communication between nodes is excessive, the overhead of
+distributing the work becomes dominant and the any potential performance gained
+by running in parallel is lost.
+
+More here about batch gradient descent as an example algorithm that can be
+easily distributed.
+
+\section{Rapid Prototyping}
+
+Previous work has been done in distributing Matlab. However, due to licensing
+constraints, this is not feasible for large clusters. We needed to choose
+another environment in which to develop and test machine learning
+algorithms. For this project, we considered Python and R as alternatives to
+Matlab.
+
+\subsection{Requirements}
+
+Words here about why R and Python might be good choices. (Packages available
+for matrix manipulations, highly general, free, easy to pick up and use,
+portable?)
+
+\subsection{Benchmarks}
+
+Benchmark data for Python vs R (vs Matlab?)
+
+Perhaps also some words here about why Python is still acceptable even if it is
+significantly slower than Matlab. In particular, we are doing rapid
+prototyping, so peak CPU performance isn't the deciding factor. We are more
+interested in processing lots of data by distributing it to enough nodes such
+that the data can fit in memory and be processed effectively.
+
+\section{Framework Design}
+
+\subsection{Conventional Approaches}
+
+Some words here about how the batch gradient descent example easily lends
+itself to a straight mapreduce workflow. Because of this workflow, we first
+considered using an existing mapreduce framework for our project.
+
+One such framework we considered is Hadoop MapReduce. Some words here about why
+Hadoop doesn't apply well to our problem. Consider the batch gradient decent
+example again. Each iteration is essentially a mapreduce operation: the
+examples are split up and distributed, the individual sums are calculated at
+each node, and the reduce operation is calculating the final sum. The examples
+considered at each node must remain stored locally at that node, ideally in
+memory, for later recall during the next mapreduce operation for the subsequent
+iteration.
+
+Some words here about Disco and its attempt to solve this problem?
+
+\subsection{Our design}
+
+Our design consists of a single master and one or more slaves, as shown in
+Fig. \ref{diagram}.
+
+\begin{figure}[hb]
+  \begin{center}
+    \includegraphics[width=2.5in]{fwk_diagram/fwk_diagram.pdf}
+  \end{center}
+  \caption{Diagram of our framework.}
+  \label{diagram}
+\end{figure}
+
+Description of the library here. The rapidly prototyped algorithms call into it
+and tell it to do work.
+
+\subsection{Library Semantics}
+
+Calls to the library are blocking. A call like,
+
+\begin{verbatim}
+    master.execute(func, theta, local_data)
+\end{verbatim}
+
+will not return until all work has been performed.
+
+Our failure semantics are simple. Initially, we are not focusing on slave
+failure. However, it is easy to add in later (reship the local data, rerun dead
+slave's work). The master shares fate with the main program being run; if the
+main program dies, the master dies with it, and vice versa. Thus, we do not
+need replicated masters or anything similarly sophisticated.
+
+\subsection{Serialization and Local Storage}
+
+Some notes here about pickling functions and managing local storage at each
+node.
+
+The master divides the data and ships to each slave its share of the examples
+(or whatever other data is needed).
+
+% do the biliography:
+%\bibliographystyle{IEEEbib}
+%\bibliography{my-bibliography-file}
+
+%----------------------------------------------------------------------
+% FIGURES
+%----------------------------------------------------------------------
+% There are many ways to include figures in the text. We will assume
+% that the figure is some sort of EPS file.
+%
+% The outdated packages epsfig and psfig allow you to insert figures
+% like: \psfig{filename.eps} These should really be done now using the
+% \includegraphics{filename.eps} command.
+%
+% i.e.,
+%
+% \includegraphics{file.eps}
+%
+% whenever you want to include the EPS file 'file.eps'. There are many
+% options for the includegraphics command, and are outlined in the
+% on-line documentation for the "graphics bundle". Using the options,
+% you can specify the height, total height (height+depth), width, scale,
+% angle, origin, bounding box "bb",view port, and can trim from around
+% the sides of the figure. You can also force LaTeX to clip the EPS file
+% to the bounding box in the file. I find that I often use the scale,
+% trim and clip commands.
+%
+% \includegraphics[scale=0.6,trim=0 0 0 0,clip=]{file.eps}
+%
+% which magnifies the graphics by 0.6 (If I create a graphics for an
+% overhead projector transparency, I find that a magnification of 0.6
+% makes it look much better in a paper), trims 0 points off
+% of the left, bottom, right and top, and clips the graphics. If the
+% trim numbers are negative, space is added around the figure. This can
+% be useful to help center the graphics, if the EPS file bounding box is
+% not quite right.
+%
+% To center the graphics,
+%
+% \begin{center}
+% \includegraphics...
+% \end{center}
+%
+% I have not yet written good documentation for this, but another
+% package which helps in figure management is the package ieeefig.sty,
+% available at: http://www-isl.stanford.edu/people/glp/ieee.shtml
+% Specify:
+%
+%\usepackage{ieeefig}
+%
+% in the preamble, and whenever you want a figure,
+%
+%\figdef{filename}
+%
+% where, filename.tex is a LaTeX file which defines what the figure is.
+% It may be as simple as
+%
+% \inserteps{filename.eps}
+%
+% or
+% \inserteps[includegraphics options]{filename.eps}
+%
+% or may be a very complicated LaTeX file.
+
+\end{document}
