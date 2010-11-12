@@ -1,3 +1,4 @@
+
 \documentclass[%
         %draft,
         %submission,
@@ -65,15 +66,15 @@ learning algorithms on a cluster of computers.
 \section{Introduction}
 
 % try out a theorem...
-\newtheorem{theorem}{Theorem}
-
-\begin{theorem}[Theorem name]
-  Consider the system ...
-\end{theorem}
-
-\begin{proof}
-  The proof is trivial.
-\end{proof}
+% \newtheorem{theorem}{Theorem}
+% 
+% \begin{theorem}[Theorem name]
+%   Consider the system ...
+% \end{theorem}
+% 
+% \begin{proof}
+%   The proof is trivial.
+% \end{proof}
 
 \section{Distributing Work}
 
@@ -96,37 +97,20 @@ and aggregating the results to compute the full sum.
 
 \section{Rapid Prototyping}
 
-Previous work has been done in distributing Matlab. However, due to licensing
+Previous work has been done in distributing MATLAB. However, due to licensing
 constraints, this is not feasible for large clusters. We needed to choose
 another environment in which to develop and test machine learning
 algorithms. For this project, we considered Python and R as alternatives to
-Matlab.
+MATLAB.
 
 \subsection{Requirements}
+
+At a high level, both 
 
 Words here about why R and Python might be good choices. (Packages available
 for matrix manipulations, highly general, free, easy to pick up and use,
 portable?)
 
-
-\subsection{Style Benchmarks}
-
-When prototyping algorithms, the clarity of a language plays a significant role.
-Matlab's simplicity and conciseness, yielding very clear and readable code, can
-significantly reduce implementation bugs and ads minimal overhead to expressing
-the algorithm in code. This is not the case for languages like C++, where
-performance and reliability are more important than readability.
-
-In terms of style, Python synax is often praised for its simplicity. For our
-purposes, Python's Numpy package includes Matlib, an interface that attempts to
-emulate Matlab's syntax. It is designed specifically for Matlab programmers and
-to ease the porting of Matlab code. Some syntax is still overly verbose (e.g.
-M.transpose() vs M') and hinders the clarity of the language, but overall seems
-clear enough, and makes porting existing Matlab implementations easy.
-
-Some words about R syntax (looks weird at first glance, but others know best.)
-
-Conclusion on style. Is python better than R? seems to me.
 
 \subsection{Performance Benchmarks}
 
@@ -208,10 +192,35 @@ case, most of the cases by an order of magnitude. In the worst case, Python
 takes 80\% of the time that R takes.
 
 Perhaps also some words here about why Python is still acceptable even if it is
-significantly slower than Matlab. In particular, we are doing rapid
+significantly slower than MATLAB. In particular, we are doing rapid
 prototyping, so peak CPU performance isn't the deciding factor. We are more
 interested in processing lots of data by distributing it to enough nodes such
 that the data can fit in memory and be processed effectively.
+
+\subsection{Style Benchmarks}
+
+When prototyping algorithms, the clarity of a language plays a significant role.
+MATLAB's simplicity and conciseness, yielding very clear and readable code, can
+significantly reduce implementation bugs and ads minimal overhead to expressing
+the algorithm in code. This is not the case for languages like C++, where
+performance and reliability are more important than readability.
+
+On one hand, R is stylistically very similar to MATLAB. Matrix and list
+operations are just as straightforward, and it provides inbuilt equivalents of
+most of MATLAB's probability and statistics packages. Further, the R interpreter
+makes it just as easy as MATLAB to plot and visualize data structures.
+
+On the other hand, Python's syntax is less suited for matrix operations.
+However, Python's Numpy package includes Matlib, an interface that attempts to
+emulate MATLAB's syntax. It is designed specifically for MATLAB programmers and
+to ease the porting of MATLAB code. Certain syntactic elements are still overly
+verbose (e.g. M.transpose() vs M') and may hinder the readability of any given
+algorithm.
+
+Strictly from a syntactic and stylistic perspective, R may be preferable to
+Python because of its simplicity and closeness to MATLAB. However, because
+of the results of the performance and functionality benchmarks presented above,
+Python continues to be the best contender.
 
 \section{Framework Design}
 
