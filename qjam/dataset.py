@@ -18,3 +18,5 @@ class ListDataSet(BaseDataSet):
         slice_size = (len(self.list)+n_nodes) / n_nodes # round up in division
         return self.list[slice_size*i:slice_size*(i+1)]
 
+    def slices(self, n_nodes):
+        return [self.slice(n_nodes, i) for i in range(n_nodes)]
