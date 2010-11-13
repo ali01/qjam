@@ -237,22 +237,22 @@ Python continues to be the best contender.
 
 \section{Framework Design}
 
-\subsection{Conventional Approaches}
-
-Some words here about how the batch gradient descent example easily lends
-itself to a straight mapreduce workflow. Because of this workflow, we first
-considered using an existing mapreduce framework for our project.
-
-One such framework we considered is Hadoop MapReduce. Some words here about why
-Hadoop doesn't apply well to our problem. Consider the batch gradient decent
-example again. Each iteration is essentially a mapreduce operation: the
-examples are split up and distributed, the individual sums are calculated at
-each node, and the reduce operation is calculating the final sum. The examples
-considered at each node must remain stored locally at that node, ideally in
-memory, for later recall during the next mapreduce operation for the subsequent
-iteration.
-
-Some words here about Disco and its attempt to solve this problem?
+% \subsection{Conventional Approaches}
+% 
+% Some words here about how the batch gradient descent example easily lends
+% itself to a straight mapreduce workflow. Because of this workflow, we first
+% considered using an existing mapreduce framework for our project.
+% 
+% One such framework we considered is Hadoop MapReduce. Some words here about why
+% Hadoop doesn't apply well to our problem. Consider the batch gradient decent
+% example again. Each iteration is essentially a mapreduce operation: the
+% examples are split up and distributed, the individual sums are calculated at
+% each node, and the reduce operation is calculating the final sum. The examples
+% considered at each node must remain stored locally at that node, ideally in
+% memory, for later recall during the next mapreduce operation for the subsequent
+% iteration.
+% 
+% Some words here about Disco and its attempt to solve this problem?
 
 \subsection{Our design}
 
