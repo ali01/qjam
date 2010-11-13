@@ -29,7 +29,7 @@
 
 \begin{document}
 
-\title{Scaling Machine Learning Algorithms}
+\title{Parallelizing Machine Learning Algorithms}
 
 % format author this way for journal articles.
 \author[SHORT NAMES]{
@@ -95,37 +95,34 @@ batch gradient descent can easily be parallelized by dividing the sum into $n$
 disjoint partial sums, computing each partial sum on a separate slave machine,
 and aggregating the results to compute the full sum.
 
-\section{Rapid Prototyping}
+\section{Language \& Framework}
 
 Previous work has been done in distributing MATLAB. However, due to licensing
 constraints, this is not feasible for large clusters. We needed to choose
 another environment in which to develop and test machine learning
-algorithms. For this project, we considered Python and R as alternatives to
-MATLAB.
+algorithms.
 
-\subsection{Requirements}
+For the implementation of this project, Python and Numpy have been the language
+and framework of choice. Our selection criteria included three points: First,
+clarity and ease of use; second, networking libraries to enable the
+implementation of a distributed framework; and third, performance.
+% I really wanted to find a fourth point to avoid being Cheritonistic...
 
-At a high level, both
-
-Words here about why R and Python might be good choices. (Packages available
-for matrix manipulations, highly general, free, easy to pick up and use,
-portable?)
-
-Python is not a mathematical language, but it is easily extensible and provides
-numerous packages that provide mathematics specific support (numpy is the most
-popular of these packages). Though interpreted, Python can easily call down to C
-and offload computationally intensive operations (e.g. numpy's matrix
-multiplication is in C), yielding very good performance without sacrificing ease
-of use. As a general-purpose programming language, python is much better suited
-to implement systems than either Matlab or R, making communication between
-multiple processes simple. Python is highly portable, and, unlike both R and
-Matlab, most popular OS distributions come with the interpreter pre installed.
-Python is also free.
+As an alternative, we also considered the use of R for the implementation of
+this project. The following is our comparison of Python vs. R and our rationale
+for selecting Python.
 
 
 \subsection{Performance Benchmarks}
 
-We benchmarked the performance of R against Python's (using the numpy package).
+Python is not a mathematical language, but it is easily extensible and provides
+numerous packages that provide mathematics specific support; numpy is the most
+popular of these packages. Though interpreted, Python can easily call down to C
+and offload computationally intensive operations (e.g. numpy's matrix
+multiplication is in C), yielding very good performance without sacrificing ease
+of use or readability.
+
+We benchmarked the performance of R against Python's (using the Numpy package).
 In order to avoid implementation or algorithm-specific bias, we decided to
 benchmark common linear algebra functions (e.g. matrix multiplication)
 ubiquitous in learning algorithms.
@@ -207,6 +204,18 @@ prototyping, so peak CPU performance isn't the deciding factor. We are more
 interested in processing lots of data by distributing it to enough nodes such
 that the data can fit in memory and be processed effectively.
 
+
+\subsection{Functionality Benchmarks}
+
+In order to avoid reinventing the wheel, one important consideration in our
+selection of a language/framework for this project was the availability of hooks
+to existing frameworks for distributed computing (like Hadoop or Disco) and the
+existence of networking libraries. Because Python is a far more general
+scripting language than R, it is by far the better choice when it comes to
+functionality. R is primarily a language for statistical computing, and
+therefore lacks a lot of the functionality that may be critical in the
+implementation of a distributed system.
+
 \subsection{Style Benchmarks}
 
 When prototyping algorithms, the clarity of a language plays a significant role.
@@ -234,22 +243,22 @@ Python continues to be the best contender.
 
 \section{Framework Design}
 
-\subsection{Conventional Approaches}
-
-Some words here about how the batch gradient descent example easily lends
-itself to a straight mapreduce workflow. Because of this workflow, we first
-considered using an existing mapreduce framework for our project.
-
-One such framework we considered is Hadoop MapReduce. Some words here about why
-Hadoop doesn't apply well to our problem. Consider the batch gradient decent
-example again. Each iteration is essentially a mapreduce operation: the
-examples are split up and distributed, the individual sums are calculated at
-each node, and the reduce operation is calculating the final sum. The examples
-considered at each node must remain stored locally at that node, ideally in
-memory, for later recall during the next mapreduce operation for the subsequent
-iteration.
-
-Some words here about Disco and its attempt to solve this problem?
+% \subsection{Conventional Approaches}
+%
+% Some words here about how the batch gradient descent example easily lends
+% itself to a straight mapreduce workflow. Because of this workflow, we first
+% considered using an existing mapreduce framework for our project.
+%
+% One such framework we considered is Hadoop MapReduce. Some words here about why
+% Hadoop doesn't apply well to our problem. Consider the batch gradient decent
+% example again. Each iteration is essentially a mapreduce operation: the
+% examples are split up and distributed, the individual sums are calculated at
+% each node, and the reduce operation is calculating the final sum. The examples
+% considered at each node must remain stored locally at that node, ideally in
+% memory, for later recall during the next mapreduce operation for the subsequent
+% iteration.
+%
+% Some words here about Disco and its attempt to solve this problem?
 
 \subsection{Our design}
 
@@ -330,8 +339,8 @@ to each slave will take quite a while. This is an area ripe for future
 optimization. However, we won't naively succumb to the vice of premature
 optimization unless this is a major bottleneck.
 
-Each slave will know what data slice it has, and will use that data slice as
-arguments to the {\tt map} function.
+Each slave will know what data slice it has, and will use that data slice as an
+argument to the {\tt map} function.
 
 This is similar to the SlaveRefs in Adam Coates' Matlab parallel framework, but
 we are able to use Python's superior syntax to hide the implementation details
