@@ -201,8 +201,14 @@ that the data can fit in memory and be processed effectively.
 
 \subsection{Functionality Benchmarks}
 
-
-
+In order to avoid reinventing the wheel, one important consideration in our
+selection of a language/framework for this project was the availability of hooks
+to existing frameworks for distributed computing (like Hadoop or Disco) and the
+existence of networking libraries. Because Python is a far more general
+scripting language than R, it is by far the better choice when it comes to
+functionality. R is primarily a language for statistical computing, and
+therefore lacks a lot of the functionality that may be critical in the
+implementation of a distributed system.
 
 \subsection{Style Benchmarks}
 
