@@ -3,7 +3,7 @@ from . import fixture
 from qjam import Job, Master
 
 class TestMultiplySum(unittest.TestCase):
-    """Test with map function `lambda x -> theta[0]*x`, where `theta` is some
+    """Test with map function `lambda x -> theta*x`, where `theta` is some
     coefficient and the input `x` values are numbers. Expects the sum of the
     `x` values times `theta` as output."""
     
