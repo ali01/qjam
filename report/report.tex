@@ -67,11 +67,11 @@ learning algorithms on a cluster of computers.
 
 % try out a theorem...
 % \newtheorem{theorem}{Theorem}
-% 
+%
 % \begin{theorem}[Theorem name]
 %   Consider the system ...
 % \end{theorem}
-% 
+%
 % \begin{proof}
 %   The proof is trivial.
 % \end{proof}
@@ -105,11 +105,22 @@ MATLAB.
 
 \subsection{Requirements}
 
-At a high level, both 
+At a high level, both
 
 Words here about why R and Python might be good choices. (Packages available
 for matrix manipulations, highly general, free, easy to pick up and use,
 portable?)
+
+Python is not a mathematical language, but it is easily extensible and provides
+numerous packages that provide mathematics specific support (numpy is the most
+popular of these packages). Though interpreted, Python can easily call down to C
+and offload computationally intensive operations (e.g. numpy's matrix
+multiplication is in C), yielding very good performance without sacrificing ease
+of use. As a general-purpose programming language, python is much better suited
+to implement systems than either Matlab or R, making communication between
+multiple processes simple. Python is highly portable, and, unlike both R and
+Matlab, most popular OS distributions come with the interpreter pre installed.
+Python is also free.
 
 
 \subsection{Performance Benchmarks}
@@ -134,7 +145,6 @@ size  & python  &  R       & python / R \\
 100 & 0.0170 & 0.0519 & 0.3276 \\
 150 & 0.0350 & 0.1161 & 0.3015 \\
 250 & 0.0950 & 0.3396 & 0.2797 \\
-\hline
 \end{tabular}
 
 \vspace{1em}
