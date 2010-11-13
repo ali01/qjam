@@ -27,5 +27,4 @@ class TestLocalNode(unittest.TestCase):
 
         
 class TestRemoteNode(unittest.TestCase):
-    def test_data_slices(self):
-        pass
+    pass
