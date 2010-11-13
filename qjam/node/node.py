@@ -31,7 +31,6 @@ class LocalNode(BaseNode):
     def init_root(self):
         try:
             os.mkdir(self.root)
-            self.inited_root = True
         except OSError:
             pass
         
