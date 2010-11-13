@@ -247,17 +247,17 @@ Fig. \ref{diagram}.
 
 First, on the master, you define a Python map function with the following prototype:
 \begin{verbatim}
-    def mymap(examples, params):
-        psum = 0
-        for (xi,yi) in examples:
-            psum += (yi - g(params.theta.T * xi)) * xi
-        return psum
+ def mymap(examples, params):
+   psum = 0
+   for (xi,yi) in examples:
+       psum += (yi - g(params.theta.T * xi)) * xi
+   return psum
 \end{verbatim}
 
 Then, also on the master, you specify your training examples and initial parameters:
 \begin{verbatim}
-    examples = ((x1, y1), (x2, y2), (x3, y3))
-    params   = (0, 0, 0)
+ examples = ((x1, y1), (x2, y2), (x3, y3))
+ params   = (0, 0, 0)
 \end{verbatim}
 
 The difference between examples and parameters is that examples will not be
@@ -273,7 +273,7 @@ tuples as shown in the example above.
 To start the job, call:
 
 \begin{verbatim}
-    master.run(mymap, examples, params)
+ master.run(mymap, examples, params)
 \end{verbatim}
 
 This instructs the master to serialize the map function, training data, and
