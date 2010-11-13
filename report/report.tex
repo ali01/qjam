@@ -311,8 +311,8 @@ to each slave will take quite a while. This is an area ripe for future
 optimization. However, we won't naively succumb to the vice of premature
 optimization unless this is a major bottleneck.
 
-Each slave will know what data slice it has, and will use that data slice as
-arguments to the {\tt map} function.
+Each slave will know what data slice it has, and will use that data slice as an
+argument to the {\tt map} function.
 
 This is similar to the SlaveRefs in Adam Coates' Matlab parallel framework, but
 we are able to use Python's superior syntax to hide the implementation details
