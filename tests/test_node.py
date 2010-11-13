@@ -28,6 +28,10 @@ class TestLocalNode(unittest.TestCase):
         self.localnode.slices.put('slice2', 'hello')
         self.assertEqual(['slice1', 'slice2'], sorted(self.localnode.slices.list()))
 
+    def test_rpc_run(self):
+        def func():
+            return 7 * 11
+        self.assertEqual(77, self.localnode.rpc_run(func))
         
 class TestRemoteNode(unittest.TestCase):
     pass

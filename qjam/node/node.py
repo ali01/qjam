@@ -27,6 +27,10 @@ class BaseNode(object):
     def fs_put(self, abspath, buf):
         raise NotImplementedError
 
+    # RPC interface
+    def rpc_run(self, func):
+        raise NotImplementedError
+
 class LocalNode(BaseNode):
     def init_root(self):
         try:
@@ -47,6 +51,9 @@ class LocalNode(BaseNode):
         f = open(abspath, 'wb')
         f.write(buf)
         f.close()
+
+    def rpc_run(self, func, *args, **kwargs):
+        return func(*args, **kwargs)
 
 class RemoteNode(BaseNode):
     pass
