@@ -1,3 +1,4 @@
+import os
 
 class Slices(object):
     def __init__(self, node, root):
@@ -6,4 +7,8 @@ class Slices(object):
 
     def list(self):
         return self.node.fs_ls(self.root)
+
+    def put(self, slicename, buf):
+        abspath = os.path.join(self.root, slicename)
+        self.node.fs_put(abspath, buf)
     

@@ -24,6 +24,9 @@ class BaseNode(object):
     def fs_ls(self, dirname):
         raise NotImplementedError
 
+    def fs_put(self, abspath, buf):
+        raise NotImplementedError
+
 class LocalNode(BaseNode):
     def init_root(self):
         try:
@@ -40,6 +43,11 @@ class LocalNode(BaseNode):
 
     def fs_ls(self, dirname):
         return os.listdir(dirname)
+
+    def fs_put(self, abspath, buf):
+        f = open(abspath, 'wb')
+        f.write(buf)
+        f.close()
 
 class RemoteNode(BaseNode):
     pass

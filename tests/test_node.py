@@ -17,6 +17,14 @@ class TestLocalNode(unittest.TestCase):
     
     def test_list_slices_empty(self):
         self.assertEqual([], self.localnode.slices.list())
+
+    def test_slice_put(self):
+        self.assertEqual([], self.localnode.slices.list())
+        self.localnode.slices.put('slice1', 'hello')
+        self.assertEqual(['slice1'], self.localnode.slices.list())
+        self.localnode.slices.put('slice2', 'hello')
+        self.assertEqual(['slice1', 'slice2'], sorted(self.localnode.slices.list()))
+
         
 class TestRemoteNode(unittest.TestCase):
     def test_data_slices(self):
