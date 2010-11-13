@@ -250,6 +250,7 @@ First, on the master, you define a Python map function with the following protot
  def mymap(examples, params):
    psum = 0
    for (xi,yi) in examples:
+       # ...
        psum += (yi - g(params.theta.T * xi)) * xi
    return psum
 \end{verbatim}
