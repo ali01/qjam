@@ -1,3 +1,5 @@
+"""DataSet objects are wrappers for some underlying data that expose an
+interface for slicing up the underlying data into slices for single nodes."""
 
 def DataSet(o):
     if isinstance(o, BaseDataSet):
