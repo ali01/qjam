@@ -29,7 +29,7 @@
 
 \begin{document}
 
-\title{Scaling Machine Learning Algorithms}
+\title{Parallelizing Machine Learning Algorithms}
 
 % format author this way for journal articles.
 \author[SHORT NAMES]{
@@ -95,26 +95,27 @@ batch gradient descent can easily be parallelized by dividing the sum into $n$
 disjoint partial sums, computing each partial sum on a separate slave machine,
 and aggregating the results to compute the full sum.
 
-\section{Rapid Prototyping}
+\section{Language \& Framework}
 
 Previous work has been done in distributing MATLAB. However, due to licensing
 constraints, this is not feasible for large clusters. We needed to choose
 another environment in which to develop and test machine learning
-algorithms. For this project, we considered Python and R as alternatives to
-MATLAB.
+algorithms.
 
-\subsection{Requirements}
+For the implementation of this project, Python and Numpy have been the language
+and framework of choice. Our selection criteria included three points: First,
+clarity and ease of use; second, networking libraries to enable the
+implementation of a distributed framework; and third, performance.
+% I really wanted to find a fourth point to avoid being Cheritonistic...
 
-At a high level, both 
-
-Words here about why R and Python might be good choices. (Packages available
-for matrix manipulations, highly general, free, easy to pick up and use,
-portable?)
+As an alternative, we also considered the use of R for the implementation of
+this project. The following is our comparison of Python vs. R and our rationale
+for selecting Python.
 
 
 \subsection{Performance Benchmarks}
 
-We benchmarked the performance of R against Python's (using the numpy package).
+We benchmarked the performance of R against Python's (using the Numpy package).
 In order to avoid implementation or algorithm-specific bias, we decided to
 benchmark common linear algebra functions (e.g. matrix multiplication)
 ubiquitous in learning algorithms.
@@ -196,6 +197,12 @@ significantly slower than MATLAB. In particular, we are doing rapid
 prototyping, so peak CPU performance isn't the deciding factor. We are more
 interested in processing lots of data by distributing it to enough nodes such
 that the data can fit in memory and be processed effectively.
+
+
+\subsection{Functionality Benchmarks}
+
+
+
 
 \subsection{Style Benchmarks}
 
