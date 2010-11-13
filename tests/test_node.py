@@ -11,6 +11,9 @@ class TestNode(unittest.TestCase):
     def test_root(self):
         self.assertEqual('/tmp/qjam2', Node('localhost', root='/tmp/qjam2').root)
 
+    def test_node_id(self):
+        self.assertEqual('localhost_tmp_qjam', Node('localhost').node_id)
+
 class TestLocalNode(unittest.TestCase):
     def setUp(self):
         self.localnode = Node('localhost', root='/tmp/qjam/')

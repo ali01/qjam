@@ -14,6 +14,12 @@ class BaseNode(object):
         self.init_root()
         self.slices = SliceStorage(self, self.root)
 
+    @property
+    def node_id(self):
+        """Returns a unique identifier for this node that can be used as part
+        of a filename."""
+        return (self.name + self.root).replace('/', '_')
+        
     def init_root(self):
         raise NotImplementedError
 
