@@ -1,5 +1,5 @@
 import os, shutil
-from .slices import Slices
+from .slices import SliceStorage
 
 def Node(name, root='/tmp/qjam'):
     if name == 'localhost':
@@ -12,7 +12,7 @@ class BaseNode(object):
         self.name = name
         self.root = root
         self.init_root()
-        self.slices = Slices(self, self.root)
+        self.slices = SliceStorage(self, self.root)
 
     def init_root(self):
         raise NotImplementedError

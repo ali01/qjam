@@ -1,6 +1,6 @@
 import os
 
-class Slices(object):
+class SliceStorage(object):
     def __init__(self, node, root):
         self.node = node
         self.root = root
