@@ -1,5 +1,6 @@
-import os, shutil, cPickle as pickle
+import threading, os, shutil, cPickle as pickle
 from .slices import SliceStorage
+from .task import NodeTaskThread
 
 def Node(name, root='/tmp/qjam'):
     if name == 'localhost':
@@ -51,8 +52,9 @@ class BaseNode(object):
         
     def run_task(self, job, slicename):
         self.task_output_clear(slicename)
-        r = self.rpc_map_slice(job.mapfunc, slicename, job.params)
-        self.task_output_set(slicename, pickle.dumps(r))
+        nt = NodeTaskThread(self, job, slicename)
+        nt.start()
+        return None
     
     # Abstract FS interface exposed to Slices
     def fs_ls(self, dirname):
