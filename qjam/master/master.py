@@ -30,10 +30,11 @@ class Master(object):
         return result
 
     def __slice_name(self, job_name, slice_num):
-        return "%s_slice%d" % (job_name, slice_num)
+        return "%s_slice%dof%d" % (job_name, slice_num, len(self.nodes))
 
     def __distribute_data(self, job_name, dataset):
         for i,node in enumerate(self.nodes):
             slice = dataset.slice(len(self.nodes), i)
             slice_name = self.__slice_name(job_name, i)
-            node.slices.put(slice_name, pickle.dumps(slice))
+            if slice_name not in node.slices.list():
+                node.slices.put(slice_name, pickle.dumps(slice))
