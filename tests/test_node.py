@@ -35,6 +35,13 @@ class TestLocalNode(unittest.TestCase):
         def func():
             return 7 * 11
         self.assertEqual(77, self.localnode.rpc_run(func))
+
+    def test_task_status(self):
+        self.assertEqual(False, self.localnode.task_status('job1'))
+        self.localnode.task_status_finished('job1')
+        self.assertEqual(True, self.localnode.task_status('job1'))
+        self.localnode.task_status_unfinished('job1')
+        self.assertEqual(False, self.localnode.task_status('job1'))
         
 class TestRemoteNode(unittest.TestCase):
     pass

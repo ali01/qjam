@@ -26,6 +26,29 @@ class BaseNode(object):
     def clear_root(self):
         raise NotImplementedError
 
+    # Task interface
+    #
+    #     A task is an instance of a Job on a single node; a Job has many
+    #     tasks. If the task status file exists, then the job is finished; if
+    #     it does not exist, then the job is not finished.
+    def __task_status_file(self, job_name):
+        return os.path.join(self.root, "%s_%s_status" % (job_name, self.node_id))
+    
+    def task_status(self, job_name):
+        return self.fs_exists(self.__task_status_file(job_name))
+
+    def task_status_unfinished(self, job_name):
+        self.fs_rm(self.__task_status_file(job_name))
+
+    def task_status_finished(self, job_name):
+        self.fs_put(self.__task_status_file(job_name), '')
+    
+    def run_task(self, job_name, func, slicename, params):
+        self.task_status_unfinished(job_name)
+        r = self.rpc_map(func, slicename, params)
+        self.task_status_finished(job_name)
+        return r
+    
     # Abstract FS interface exposed to Slices
     def fs_ls(self, dirname):
         raise NotImplementedError
@@ -34,6 +57,12 @@ class BaseNode(object):
         raise NotImplementedError
 
     def fs_get(self, abspath):
+        raise NotImplementedError
+
+    def fs_exists(self, abspath):
+        raise NotImplementedError
+
+    def fs_rm(self, abspath):
         raise NotImplementedError
 
     # RPC interface
@@ -67,6 +96,12 @@ class LocalNode(BaseNode):
     def fs_get(self, abspath):
         with open(abspath, 'rb') as f:
             return f.read()
+
+    def fs_exists(self, abspath):
+        return os.path.isfile(abspath)
+
+    def fs_rm(self, abspath):
+        return os.unlink(abspath)
 
     def rpc_run(self, func, *args, **kwargs):
         return func(*args, **kwargs)
