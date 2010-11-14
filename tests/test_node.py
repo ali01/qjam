@@ -38,10 +38,14 @@ class TestLocalNode(unittest.TestCase):
 
     def test_task_status(self):
         self.assertEqual(False, self.localnode.task_status('job1'))
-        self.localnode.task_status_finished('job1')
+        self.localnode.task_status_set_finished('job1')
         self.assertEqual(True, self.localnode.task_status('job1'))
-        self.localnode.task_status_unfinished('job1')
+        self.localnode.task_status_set_unfinished('job1')
         self.assertEqual(False, self.localnode.task_status('job1'))
+
+    def test_task_status_set_unfinished_no_raise_if_already_unfinished(self):
+        self.localnode.task_status_set_unfinished('job1') # shouldn't raise
+        
         
 class TestRemoteNode(unittest.TestCase):
     pass

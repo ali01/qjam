@@ -37,16 +37,17 @@ class BaseNode(object):
     def task_status(self, job_name):
         return self.fs_exists(self.__task_status_file(job_name))
 
-    def task_status_unfinished(self, job_name):
-        self.fs_rm(self.__task_status_file(job_name))
+    def task_status_set_unfinished(self, job_name):
+        if self.task_status(job_name):
+            self.fs_rm(self.__task_status_file(job_name))
 
-    def task_status_finished(self, job_name):
+    def task_status_set_finished(self, job_name):
         self.fs_put(self.__task_status_file(job_name), '')
     
-    def run_task(self, job_name, func, slicename, params):
-        self.task_status_unfinished(job_name)
-        r = self.rpc_map(func, slicename, params)
-        self.task_status_finished(job_name)
+    def run_task(self, job, slicename):
+        self.task_status_set_unfinished(job.name)
+        r = self.rpc_map_slice(job.mapfunc, slicename, job.params)
+        self.task_status_set_finished(job.name)
         return r
     
     # Abstract FS interface exposed to Slices
@@ -69,7 +70,7 @@ class BaseNode(object):
     def rpc_run(self, func, *args, **kwargs):
         raise NotImplementedError
 
-    def rpc_map(self, func, slicename, params):
+    def rpc_map_slice(self, func, slicename, params):
         raise NotImplementedError
 
 class LocalNode(BaseNode):
@@ -106,7 +107,7 @@ class LocalNode(BaseNode):
     def rpc_run(self, func, *args, **kwargs):
         return func(*args, **kwargs)
 
-    def rpc_map(self, func, slicename, params):
+    def rpc_map_slice(self, func, slicename, params):
         slice = pickle.loads(self.slices.get(slicename))
         return self.rpc_run(func, slice, params)
 
