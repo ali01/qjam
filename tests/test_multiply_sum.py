@@ -19,6 +19,7 @@ class TestMultiplySum(unittest.TestCase):
         self.assertEqual(84, result)
 
     def test_slow_multiply_sum(self):
+        """This test exercises the polling mechanism in Master.run."""
         def slow_multiply_sum(xs, theta):
             import time
             time.sleep(0.6)
