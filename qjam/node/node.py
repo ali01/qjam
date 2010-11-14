@@ -56,7 +56,7 @@ class BaseNode(object):
         nt.start()
         return None
     
-    # Abstract FS interface exposed to Slices
+    # Abstract FS interface implemented by {Local,Remote}Node
     def fs_ls(self, dirname):
         raise NotImplementedError
 
@@ -72,7 +72,7 @@ class BaseNode(object):
     def fs_rm(self, abspath):
         raise NotImplementedError
 
-    # RPC interface
+    # RPC interface implemented by {Local,Remote}Node
     def rpc_run(self, func, *args, **kwargs):
         raise NotImplementedError
 
