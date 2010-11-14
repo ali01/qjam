@@ -118,4 +118,6 @@ class LocalNode(BaseNode):
         return self.rpc_run(func, slice, params)
 
 class RemoteNode(BaseNode):
+    # TODO: for RemoteNode, need to implement the fs_* and rpc_* interface
+    # methods using an ssh/scp library.
     pass
