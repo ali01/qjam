@@ -1,4 +1,4 @@
-import os, shutil
+import os, shutil, cPickle as pickle
 from .slices import SliceStorage
 
 def Node(name, root='/tmp/qjam'):
@@ -37,7 +37,10 @@ class BaseNode(object):
         raise NotImplementedError
 
     # RPC interface
-    def rpc_run(self, func):
+    def rpc_run(self, func, *args, **kwargs):
+        raise NotImplementedError
+
+    def rpc_map(self, func, slicename, params):
         raise NotImplementedError
 
 class LocalNode(BaseNode):
@@ -67,6 +70,10 @@ class LocalNode(BaseNode):
 
     def rpc_run(self, func, *args, **kwargs):
         return func(*args, **kwargs)
+
+    def rpc_map(self, func, slicename, params):
+        slice = pickle.loads(self.slices.get(slicename))
+        return self.rpc_run(func, slice, params)
 
 class RemoteNode(BaseNode):
     pass

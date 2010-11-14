@@ -11,10 +11,8 @@ class Master(object):
         
         result = 0
         for i,node in enumerate(self.nodes):
-            slicename = self.__slice_name(job.name, i)
-            slice = pickle.loads(node.slices.get(slicename))
-            result += node.rpc_run(job.mapfunc,
-                                   slice,
+            result += node.rpc_map(job.mapfunc,
+                                   self.__slice_name(job.name, i),
                                    job.params)
         return result
 
