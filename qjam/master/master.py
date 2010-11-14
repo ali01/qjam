@@ -16,7 +16,7 @@ class Master(object):
             task_name = self.__slice_name(job.name, i)
             node.run_task(job, task_name)
 
-        # reduce task outputs
+        # poll for and reduce task outputs
         result = 0
         for i,node in enumerate(self.nodes):
             task_name = self.__slice_name(job.name, i)
