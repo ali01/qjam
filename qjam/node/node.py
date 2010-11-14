@@ -33,6 +33,9 @@ class BaseNode(object):
     def fs_put(self, abspath, buf):
         raise NotImplementedError
 
+    def fs_get(self, abspath):
+        raise NotImplementedError
+
     # RPC interface
     def rpc_run(self, func):
         raise NotImplementedError
@@ -57,6 +60,10 @@ class LocalNode(BaseNode):
         f = open(abspath, 'wb')
         f.write(buf)
         f.close()
+        
+    def fs_get(self, abspath):
+        with open(abspath, 'rb') as f:
+            return f.read()
 
     def rpc_run(self, func, *args, **kwargs):
         return func(*args, **kwargs)

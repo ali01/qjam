@@ -6,6 +6,10 @@ class TestMultiplySum(unittest.TestCase):
     """Test with map function `lambda x -> theta*x`, where `theta` is some
     coefficient and the input `x` values are numbers. Expects the sum of the
     `x` values times `theta` as output."""
+
+    def tearDown(self):
+        for nd in fixture.localhost_nodes:
+            nd.clear_root()
     
     def test_multiply_sum(self):
         master = Master(fixture.localhost_nodes)
