@@ -8,12 +8,19 @@ class Master(object):
         """Distributes data to nodes and then runs `job` on all nodes. Returns
         the sum of the nodes' responses."""
         self.__distribute_data(job.name, job.dataset)
-        
+
+        # run tasks
+        for i,node in enumerate(self.nodes):
+            task_name = self.__slice_name(job.name, i)
+            node.run_task(job, task_name)
+
+        # reduce task outputs
         result = 0
         for i,node in enumerate(self.nodes):
-            result += node.rpc_map(job.mapfunc,
-                                   self.__slice_name(job.name, i),
-                                   job.params)
+            task_name = self.__slice_name(job.name, i)
+            task_output = node.task_output(task_name)
+            result += pickle.loads(task_output)
+        
         return result
 
     def __slice_name(self, job_name, slice_num):

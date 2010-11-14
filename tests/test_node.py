@@ -36,15 +36,15 @@ class TestLocalNode(unittest.TestCase):
             return 7 * 11
         self.assertEqual(77, self.localnode.rpc_run(func))
 
-    def test_task_status(self):
-        self.assertEqual(False, self.localnode.task_status('job1'))
-        self.localnode.task_status_set_finished('job1')
-        self.assertEqual(True, self.localnode.task_status('job1'))
-        self.localnode.task_status_set_unfinished('job1')
-        self.assertEqual(False, self.localnode.task_status('job1'))
+    def test_task_is_finished(self):
+        self.assertEqual(False, self.localnode.task_is_finished('job1'))
+        self.localnode.task_output_set('job1', 'somedata')
+        self.assertEqual(True, self.localnode.task_is_finished('job1'))
+        self.localnode.task_output_clear('job1')
+        self.assertEqual(False, self.localnode.task_is_finished('job1'))
 
-    def test_task_status_set_unfinished_no_raise_if_already_unfinished(self):
-        self.localnode.task_status_set_unfinished('job1') # shouldn't raise
+    def test_task_output_clear_no_raise_if_not_exists(self):
+        self.localnode.task_output_clear('job_that_doesnt_exist') # shouldn't raise
         
         
 class TestRemoteNode(unittest.TestCase):

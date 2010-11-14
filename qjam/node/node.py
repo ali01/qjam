@@ -29,26 +29,30 @@ class BaseNode(object):
     # Task interface
     #
     #     A task is an instance of a Job on a single node; a Job has many
-    #     tasks. If the task status file exists, then the job is finished; if
-    #     it does not exist, then the job is not finished.
-    def __task_status_file(self, job_name):
-        return os.path.join(self.root, "%s_%s_status" % (job_name, self.node_id))
+    #     tasks. If the task output file exists, then the task is finished; if
+    #     it does not exist, then the task is not finished. The task name is
+    #     the same as the slice name, since it represents an operation on that
+    #     slice of data.
+    def __task_output_file(self, task_name):
+        return os.path.join(self.root, "%s_%s_output" % (task_name, self.node_id))
     
-    def task_status(self, job_name):
-        return self.fs_exists(self.__task_status_file(job_name))
+    def task_is_finished(self, task_name):
+        return self.fs_exists(self.__task_output_file(task_name))
 
-    def task_status_set_unfinished(self, job_name):
-        if self.task_status(job_name):
-            self.fs_rm(self.__task_status_file(job_name))
+    def task_output_clear(self, task_name):
+        if self.task_is_finished(task_name):
+            self.fs_rm(self.__task_output_file(task_name))
 
-    def task_status_set_finished(self, job_name):
-        self.fs_put(self.__task_status_file(job_name), '')
-    
+    def task_output(self, task_name):
+        return self.fs_get(self.__task_output_file(task_name))
+
+    def task_output_set(self, task_name, buf):
+        self.fs_put(self.__task_output_file(task_name), buf)
+        
     def run_task(self, job, slicename):
-        self.task_status_set_unfinished(job.name)
+        self.task_output_clear(slicename)
         r = self.rpc_map_slice(job.mapfunc, slicename, job.params)
-        self.task_status_set_finished(job.name)
-        return r
+        self.task_output_set(slicename, pickle.dumps(r))
     
     # Abstract FS interface exposed to Slices
     def fs_ls(self, dirname):
