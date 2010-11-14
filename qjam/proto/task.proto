@@ -1,7 +1,0 @@
-package qjam;
-
-message Task {
-    required Job job = 1;
-    optional bytes trainset_py = 2;
-    optional bytes params_py = 3;
-}

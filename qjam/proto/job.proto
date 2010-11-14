@@ -1,6 +1,0 @@
-package qjam;
-
-message Job {
-    required string name = 1;
-    required bytes mapfunc_py = 2;
-}
