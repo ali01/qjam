@@ -18,12 +18,16 @@ class Master(object):
 
         # poll for and reduce task outputs
         result = 0
+        polled = False
         for i,node in enumerate(self.nodes):
             task_name = self.__slice_name(job.name, i)
             while not node.task_is_finished(task_name):
                 time.sleep(POLL_INTERVAL)
-                print "poll for %s, try again in %.1f sec" % \
-                    (task_name, POLL_INTERVAL)
+                if polled:
+                    print "poll for %s, try again in %.1f sec" % \
+                        (task_name, POLL_INTERVAL)
+                else:
+                    polled = True # print msg next time
             task_output = node.task_output(task_name)
             result += pickle.loads(task_output)
         
