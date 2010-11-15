@@ -31,7 +31,6 @@
 
 \title{Parallelizing Machine Learning Algorithms}
 
-% format author this way for journal articles.
 \author[SHORT NAMES]{
   Juan Batiz-Benet \\
   \and{\quad\quad}
@@ -248,16 +247,16 @@ that the data can fit in memory and be processed effectively.
 % itself to a straight mapreduce workflow. Because of this workflow, we first
 % considered using an existing mapreduce framework for our project.
 %
-% One such framework we considered is Hadoop MapReduce. Some words here about why
-% Hadoop doesn't apply well to our problem. Consider the batch gradient decent
-% example again. Each iteration is essentially a mapreduce operation: the
-% examples are split up and distributed, the individual sums are calculated at
-% each node, and the reduce operation is calculating the final sum. The examples
-% considered at each node must remain stored locally at that node, ideally in
-% memory, for later recall during the next mapreduce operation for the subsequent
-% iteration.
-%
-% Some words here about Disco and its attempt to solve this problem?
+
+% One such framework we considered is Hadoop MapReduce. Some words here about
+% why Hadoop doesn't apply well to our problem. Consider the batch gradient
+% decent example again. Each iteration is essentially a mapreduce operation:
+% the examples are split up and distributed, the individual sums are calculated
+% at each node, and the reduce operation is calculating the final sum. The
+% examples considered at each node must remain stored locally at that node,
+% ideally in memory, for later recall during the next mapreduce operation for
+% the subsequent iteration.  Some words here about Disco and its attempt to
+% solve this problem?
 
 \subsection{Our design}
 
@@ -272,7 +271,8 @@ Fig. \ref{diagram}.
   \label{diagram}
 \end{figure}
 
-First, on the master, you define a Python map function with the following prototype:
+First, on the master, you define a Python map function with the following
+prototype:
 \begin{verbatim}
  def mymap(examples, params):
    psum = 0
@@ -282,7 +282,8 @@ First, on the master, you define a Python map function with the following protot
    return psum
 \end{verbatim}
 
-Then, also on the master, you specify your training examples and initial parameters:
+Then, also on the master, you specify your training examples and initial
+parameters:
 \begin{verbatim}
  examples = ((x1, y1), (x2, y2), (x3, y3))
  params   = (0, 0, 0)
@@ -321,11 +322,11 @@ we are initially targeting.
 \subsection{Serialization and Slave-Local Storage}
 
 We initially aim to support training sets around 30 GB, so we must have a way
-to distribute this dataset to the slaves without having to send it to each slave on
-each iteration. In the MapReduce model we're adopting, {\tt map} function only
-relies on data given to it; there is no global data. This lets the master
-control distribution of the data using its superior knowledge about the cluster
-size and capabilities, and it reduces data transmission overhead.
+to distribute this dataset to the slaves without having to send it to each
+slave on each iteration. In the MapReduce model we're adopting, {\tt map}
+function only relies on data given to it; there is no global data. This lets
+the master control distribution of the data using its superior knowledge about
+the cluster size and capabilities, and it reduces data transmission overhead.
 
 When the master runs a job on $n$ slaves, it creates $n$ equal slices of the
 training set and assigns one to each slave. On subsequent iterations, each
