@@ -22,7 +22,7 @@ class Master(object):
             task_name = self.__slice_name(job.name, i)
             while not node.task_is_finished(task_name):
                 time.sleep(POLL_INTERVAL)
-                print "poll for %s, try again in %d sec" % \
+                print "poll for %s, try again in %.1f sec" % \
                     (task_name, POLL_INTERVAL)
             task_output = node.task_output(task_name)
             result += pickle.loads(task_output)
