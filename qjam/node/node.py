@@ -121,7 +121,12 @@ class LocalNode(BaseNode):
         slice = pickle.loads(self.slices.get(slicename))
         return self.rpc_run(func, slice, params)
 
-class RemoteNode(BaseNode):
-    # TODO: for RemoteNode, need to implement the fs_* and rpc_* interface
-    # methods using an ssh/scp library.
-    pass
+class RemoteNode(LocalNode):
+    def rpc_run(self, func, *args, **kwargs):
+        if kwargs:
+            raise RuntimeError("kwargs not supported")
+        import pp
+        job_server = pp.Server(ppservers=(self.name,), secret='cs229qjam')
+        f = job_server.submit(func, args)
+        return f()
+    
