@@ -1,4 +1,6 @@
 import threading, os, shutil, cPickle as pickle
+import paramiko
+
 from .slices import SliceStorage
 from .task import NodeTaskThread
 
@@ -14,18 +16,22 @@ class BaseNode(object):
         self.root = root
         self.init_root()
         self.slices = SliceStorage(self, self.root)
-
+        
     @property
     def node_id(self):
         """Returns a unique identifier for this node that can be used as part
         of a filename."""
         return (self.name + self.root).replace('/', '_')
-        
+
     def init_root(self):
-        raise NotImplementedError
+        if not self.fs_exists(self.root):
+            self.fs_mkdir(self.root)
 
     def clear_root(self):
-        raise NotImplementedError
+        if self.fs_exists(self.root):
+            for e in self.fs_ls(self.root):
+                self.fs_rm(os.path.join(self.root, e))
+            self.fs_rmdir(self.root)
 
     # Task interface
     #
@@ -60,6 +66,9 @@ class BaseNode(object):
     def fs_ls(self, dirname):
         raise NotImplementedError
 
+    def fs_mkdir(self, dirname):
+        raise NotImplementedError
+
     def fs_put(self, abspath, buf):
         raise NotImplementedError
 
@@ -70,6 +79,9 @@ class BaseNode(object):
         raise NotImplementedError
 
     def fs_rm(self, abspath):
+        raise NotImplementedError
+
+    def fs_rmdir(self, dirname):
         raise NotImplementedError
 
     # RPC interface implemented by {Local,Remote}Node
@@ -84,20 +96,11 @@ class BaseNode(object):
         return "%s:%s" % (self.name, self.root)
 
 class LocalNode(BaseNode):
-    def init_root(self):
-        try:
-            os.mkdir(self.root)
-        except OSError:
-            pass
-        
-    def clear_root(self):
-        try:
-            shutil.rmtree(self.root)
-        except OSError:
-            pass
-
     def fs_ls(self, dirname):
         return os.listdir(dirname)
+
+    def fs_mkdir(self, dirname):
+        os.mkdir(dirname)
 
     def fs_put(self, abspath, buf):
         f = open(abspath, 'wb')
@@ -109,10 +112,13 @@ class LocalNode(BaseNode):
             return f.read()
 
     def fs_exists(self, abspath):
-        return os.path.isfile(abspath)
+        return os.path.exists(abspath)
 
     def fs_rm(self, abspath):
         return os.unlink(abspath)
+
+    def fs_rmdir(self, dirname):
+        return os.rmdir(dirname)
 
     def rpc_run(self, func, *args, **kwargs):
         return func(*args, **kwargs)
@@ -121,12 +127,52 @@ class LocalNode(BaseNode):
         slice = pickle.loads(self.slices.get(slicename))
         return self.rpc_run(func, slice, params)
 
-class RemoteNode(LocalNode):
+class RemoteNode(BaseNode):
+    def __init__(self, name, root):
+        self.ssh = paramiko.SSHClient()
+        self.ssh.load_host_keys(os.path.expanduser(os.path.join("~", ".ssh", "known_hosts")))
+        self.ssh.connect(name, username=os.getenv('USER'))
+        self.sftp = self.ssh.open_sftp()
+        super(RemoteNode, self).__init__(name, root)
+        
+    def fs_ls(self, dirname):
+        return self.sftp.listdir(dirname)
+
+    def fs_put(self, abspath, buf):
+        f = self.sftp.open(abspath, 'wb')
+        f.write(buf)
+        f.close()
+
+    def fs_mkdir(self, dirname):
+        self.sftp.mkdir(dirname)
+
+    def fs_get(self, abspath):
+        f = self.sftp.open(abspath, 'rb')
+        s = f.read()
+        f.close()
+        return s
+
+    def fs_exists(self, abspath):
+        try:
+            self.sftp.stat(abspath)
+            return True
+        except IOError:
+            return False
+
+    def fs_rm(self, abspath):
+        return self.sftp.unlink(abspath)
+
+    def fs_rmdir(self, dirname):
+        return self.sftp.rmdir(dirname)
+    
     def rpc_run(self, func, *args, **kwargs):
         if kwargs:
             raise RuntimeError("kwargs not supported")
         import pp
-        job_server = pp.Server(ppservers=(self.name,), secret='cs229qjam')
+        job_server = pp.Server(0, ppservers=("koi:1234",), secret='cs229qjam')
         f = job_server.submit(func, args)
-        return f()
+        val = f()
+        print val
+        job_server.print_stats()
+        return val
     
