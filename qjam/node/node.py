@@ -79,6 +79,10 @@ class BaseNode(object):
     def rpc_map_slice(self, func, slicename, params):
         raise NotImplementedError
 
+    # Introspection
+    def __str__(self):
+        return "%s:%s" % (self.name, self.root)
+
 class LocalNode(BaseNode):
     def init_root(self):
         try:
