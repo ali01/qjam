@@ -16,7 +16,7 @@ class TestNode(unittest.TestCase):
 
 class TestLocalNode(unittest.TestCase):
     def setUp(self):
-        self.localnode = Node('localhost', root='/tmp/qjam/')
+        self.localnode = Node('localhost', root='/tmp/qjam_test/')
 
     def tearDown(self):
         self.localnode.clear_root()
