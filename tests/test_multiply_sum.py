@@ -18,7 +18,7 @@ class MultiplySumBase(object):
     def test_slow_multiply_sum(self):
         def slow_multiply_sum(xs, theta):
             import time
-            time.sleep(0.2)
+            time.sleep(0.1)
             return sum([theta*x for x in xs])
         job = Job(slow_multiply_sum, name='slow_multiply_sum',
                   dataset=(1,2,3,4,5,6,7), params=3)
