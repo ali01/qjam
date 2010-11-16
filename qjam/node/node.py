@@ -1,15 +1,13 @@
 import threading, os, shutil, cPickle as pickle
-import paramiko
 
 from .slices import SliceStorage
-from .task import NodeTaskThread
 
 def Node(name, port=2000, root=None):
     root = root if root else "/tmp/qjam%d" % port
     if name == 'localhost':
         return LocalNode(name, port, root)
     else:
-        return RemoteNode(name, port, root)
+        return SSHRemoteNode(name, port, root)
 
 class BaseNode(object):
     def __init__(self, name, port, root):
@@ -30,6 +28,10 @@ class BaseNode(object):
         of a filename."""
         return "%s_%d" % (self.name, self.port)
 
+    def path_for_file(self, filename):
+        """Returns the absolute path for `filename` under this node's root."""
+        return os.path.join(self.root, filename)
+
     def init_root(self):
         if not self.fs_exists(self.root):
             self.fs_mkdir(self.root)
@@ -40,36 +42,21 @@ class BaseNode(object):
                 self.fs_rm(os.path.join(self.root, e))
             self.fs_rmdir(self.root)
 
-    # Task interface
-    #
-    #     A task is an instance of a Job on a single node; a Job has many
-    #     tasks. If the task output file exists, then the task is finished; if
-    #     it does not exist, then the task is not finished. The task name is
-    #     the same as the slice name, since it represents an operation on that
-    #     slice of data.
-    def __task_output_file(self, task_name):
-        return os.path.join(self.root, "%s_%s_output" % (task_name, self.node_id))
+    def mapfunc_for_task(self):
+        """Create a callable that we can send to a remote node for it to run,
+        loading its locally stored data. The args are passed from the
+        `job_server.submit` call in `Master.run."""
+        def remote_mapfunc(job_name, mapfunc_file, slice_abspath=None, params=None):
+                slice = None
+                if slice_abspath:
+                    with open(slice_abspath, 'rb') as slicefile:
+                        slice = pickle.load(slicefile)
+                mapfunc_module = imp.load_source('mapfunc_mod', mapfunc_file)
+                mapfunc = getattr(mapfunc_module, job_name)
+                return mapfunc(slice, params)
+        return remote_mapfunc
     
-    def task_is_finished(self, task_name):
-        return self.fs_exists(self.__task_output_file(task_name))
-
-    def task_output_clear(self, task_name):
-        if self.task_is_finished(task_name):
-            self.fs_rm(self.__task_output_file(task_name))
-
-    def task_output(self, task_name):
-        return self.fs_get(self.__task_output_file(task_name))
-
-    def task_output_set(self, task_name, buf):
-        self.fs_put(self.__task_output_file(task_name), buf)
-        
-    def run_task(self, job, slicename):
-        self.task_output_clear(slicename)
-        nt = NodeTaskThread(self, job, slicename)
-        nt.start()
-        return None
-    
-    # Abstract FS interface implemented by {Local,Remote}Node
+    # Abstract FS interface implemented by {Local,SSHRemote}Node
     def fs_ls(self, dirname):
         raise NotImplementedError
 
@@ -91,12 +78,10 @@ class BaseNode(object):
     def fs_rmdir(self, dirname):
         raise NotImplementedError
 
-    # RPC interface implemented by {Local,Remote}Node
-    def rpc_run(self, func, *args, **kwargs):
-        raise NotImplementedError
-
-    def rpc_map_slice(self, func, slicename, params):
-        raise NotImplementedError
+    def close(self):
+        """Destructor for Node object. Only used for SSHRemoteNode, where it
+        disconnects the SSH connection."""
+        pass
 
     # Introspection
     def __str__(self):
@@ -127,20 +112,14 @@ class LocalNode(BaseNode):
     def fs_rmdir(self, dirname):
         return os.rmdir(dirname)
 
-    def rpc_run(self, func, *args, **kwargs):
-        return func(*args, **kwargs)
-
-    def rpc_map_slice(self, func, slicename, params):
-        slice = pickle.loads(self.slices.get(slicename))
-        return self.rpc_run(func, slice, params)
-
-class RemoteNode(BaseNode):
+class SSHRemoteNode(BaseNode):
     def __init__(self, name, port, root):
+        import paramiko
         self.ssh = paramiko.SSHClient()
         self.ssh.load_host_keys(os.path.expanduser(os.path.join("~", ".ssh", "known_hosts")))
         self.ssh.connect(name, username=os.getenv('USER'))
         self.sftp = self.ssh.open_sftp()
-        super(RemoteNode, self).__init__(name, port, root)
+        super(SSHRemoteNode, self).__init__(name, port, root)
         
     def fs_ls(self, dirname):
         return self.sftp.listdir(dirname)
@@ -171,15 +150,8 @@ class RemoteNode(BaseNode):
 
     def fs_rmdir(self, dirname):
         return self.sftp.rmdir(dirname)
-    
-    def rpc_run(self, func, *args, **kwargs):
-        if kwargs:
-            raise RuntimeError("kwargs not supported")
-        import pp
-        job_server = pp.Server(0, ppservers=(self.host_port,), secret='cs229qjam')
-        f = job_server.submit(func, args)
-        val = f()
-        print val
-        job_server.print_stats()
-        return val
+
+    def close(self):
+        self.sftp.close()
+        self.ssh.close()
     

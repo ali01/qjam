@@ -1,15 +1,12 @@
 import unittest
 from . import fixture
-from qjam import Job, Master
+from qjam import Job, Master, Node
 
-class TestMultiplySum(unittest.TestCase):
+class MultiplySumBase(object):
     """Test with map function `lambda x -> theta*x`, where `theta` is some
     coefficient and the input `x` values are numbers. Expects the sum of the
     `x` values times `theta` as output."""
 
-    def setUp(self):
-        self.master = Master(fixture.localhost_nodes)
-        
     def test_multiply_sum(self):
         def multiply_sum(xs, theta):
             return sum([theta*x for x in xs])
@@ -19,7 +16,6 @@ class TestMultiplySum(unittest.TestCase):
         self.assertEqual(84, result)
 
     def test_slow_multiply_sum(self):
-        """This test exercises the polling mechanism in Master.run."""
         def slow_multiply_sum(xs, theta):
             import time
             time.sleep(0.6)
@@ -29,4 +25,11 @@ class TestMultiplySum(unittest.TestCase):
         result = self.master.run(job)
         self.assertEqual(84, result)
         
-
+class TestLocalMultiplySum(MultiplySumBase, unittest.TestCase):
+    def setUp(self):
+        self.master = Master(fixture.localhost_nodes)
+        
+class TestRemoteMultiplySum(MultiplySumBase, unittest.TestCase):
+    def setUp(self):
+        self.master = Master([Node('127.0.0.1')])
+        

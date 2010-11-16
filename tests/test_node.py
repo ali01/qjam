@@ -1,4 +1,5 @@
 import unittest
+import cPickle as pickle
 from qjam.node import Node
 
 class TestNode(unittest.TestCase):
@@ -34,21 +35,18 @@ class NodeBaseTest(object):
         self.node.slices.put('slice2', 'hello')
         self.assertEqual(['slice1', 'slice2'], sorted(self.node.slices.list()))
 
-    def test_rpc_run(self):
-        def func():
+    def __test_mapfunc_for_task_without_slice(self):
+        def func(*ignore):
             return 7 * 11
-        self.assertEqual(77, self.node.rpc_run(func))
+        self.assertEqual(77, self.node.mapfunc_for_task(func)())
 
-    def test_task_is_finished(self):
-        self.assertEqual(False, self.node.task_is_finished('job1'))
-        self.node.task_output_set('job1', 'somedata')
-        self.assertEqual(True, self.node.task_is_finished('job1'))
-        self.node.task_output_clear('job1')
-        self.assertEqual(False, self.node.task_is_finished('job1'))
-
-    def test_task_output_clear_no_raise_if_not_exists(self):
-        self.node.task_output_clear('job_that_doesnt_exist') # shouldn't raise
-
+    def __test_mapfunc_for_task(self):
+        def func(slice, x):
+            return sum(slice) * x
+        self.node.slices.put('onetwothree', pickle.dumps([1,2,3]))
+        slice_abspath = self.node.slices.abspath_for_slicename('onetwothree')
+        self.assertEqual(12, self.node.mapfunc_for_task(func)(slice_abspath, 2))
+            
 class TestNode(NodeBaseTest, unittest.TestCase):
     def setUp(self):
         self.node = Node('localhost', 2001)

@@ -46,7 +46,8 @@ def main():
     # TODO: allow user to specify params - through a separate .py file?
     mapfunc = resolve_module_attr(mapfunc_name)
     dataset = resolve_module_attr(dataset_name)
-    job = Job(mapfunc, name=mapfunc_name, dataset=dataset, params=3)
+    job_name = mapfunc_name.rsplit('.', 1)[1]
+    job = Job(mapfunc, name=job_name, dataset=dataset, params=3)
 
     # run
     result = master.run(job)
