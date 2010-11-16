@@ -14,10 +14,6 @@ class Master(object):
         the sum of the nodes' responses."""
 
         # distribute data and run tasks
-        nlocalnodes = sum([1 for n in self.nodes if isinstance(n, LocalNode)])
-        job_server = pp.Server(nlocalnodes,
-                               ppservers=tuple([n.host_port for n in self.nodes]),
-                               secret='cs229qjam')
         tasks = []
         for i,node in enumerate(self.nodes):
             # distribute data
@@ -32,6 +28,14 @@ class Master(object):
             node.fs_put(mapfunc_file, mapfunc_src)
             node.close()
 
+            # use 1 job server per node so we can have data locality --
+            # parallel python doesn't know about our data at all, so its
+            # scheduling algorithm won't give jobs to nodes with the right
+            # data. this is a TODO - maybe patch pp?
+            job_server = pp.Server(0,
+                                   ppservers=(node.host_port,),
+                                   secret='cs229qjam')
+            
             # run task
             slice_abspath = node.slices.abspath_for_slicename(slice_name)
             task = job_server.submit(node.mapfunc_for_task(),
