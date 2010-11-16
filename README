@@ -7,10 +7,10 @@ DEPENDENCIES
 EXAMPLES
 --------------------------------
 # First, you have to start the Parallel Python server (ppserver).
-$ ppserver -d -s cs229qjam -p 2000
+ppserver -d -s cs229qjam -p 2000
 
 # Run qjam locally
-$ bin/qjam-run.py examples.multiply_sum.multiply_sum examples.sequences.onetoten
+bin/qjam-run.py examples.multiply_sum.multiply_sum examples.sequences.onetoten
 # should print 84
 
 # Run qjam as though you're using a remote node
@@ -20,4 +20,8 @@ bin/qjam-run.py -n 127.0.0.1 examples.multiply_sum.multiply_sum examples.sequenc
 
 TESTS
 --------------------------------
-$ nosetests tests/
+# You have to have 3 ppservers running:
+ppserver -d -s cs229qjam -p 2000
+ppserver -d -s cs229qjam -p 2001
+ppserver -d -s cs229qjam -p 2002
+nosetests tests/
