@@ -38,7 +38,7 @@ def main():
     (options, mapfunc_name, dataset_name) = parse_args()
 
     # set up cluster
-    nodes = [Node(host) for host in options.nodes]
+    nodes = [Node(host) for host in options.nodes.split()]
     print_nodes(nodes)
     master = Master(nodes)
 
