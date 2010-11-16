@@ -41,6 +41,7 @@ class BaseNode(object):
             for e in self.fs_ls(self.root):
                 self.fs_rm(os.path.join(self.root, e))
             self.fs_rmdir(self.root)
+        self.init_root() # remake root dir
 
     def mapfunc_for_task(self):
         """Create a callable that we can send to a remote node for it to run,

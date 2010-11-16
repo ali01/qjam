@@ -34,24 +34,14 @@ class NodeBaseTest(object):
         self.assertEqual(['slice1'], self.node.slices.list())
         self.node.slices.put('slice2', 'hello')
         self.assertEqual(['slice1', 'slice2'], sorted(self.node.slices.list()))
-
-    def __test_mapfunc_for_task_without_slice(self):
-        def func(*ignore):
-            return 7 * 11
-        self.assertEqual(77, self.node.mapfunc_for_task(func)())
-
-    def __test_mapfunc_for_task(self):
-        def func(slice, x):
-            return sum(slice) * x
-        self.node.slices.put('onetwothree', pickle.dumps([1,2,3]))
-        slice_abspath = self.node.slices.abspath_for_slicename('onetwothree')
-        self.assertEqual(12, self.node.mapfunc_for_task(func)(slice_abspath, 2))
             
 class TestNode(NodeBaseTest, unittest.TestCase):
     def setUp(self):
-        self.node = Node('localhost', 2001)
+        self.node = Node('localhost', 2000)
+        self.node.clear_root()
 
 class TestRemoteNode(NodeBaseTest, unittest.TestCase):
     def setUp(self):
-        self.node = Node('koi', 2002)
+        self.node = Node('127.0.0.1', 2000)
+        self.node.clear_root()
 

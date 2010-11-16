@@ -18,9 +18,20 @@ class MultiplySumBase(object):
     def test_slow_multiply_sum(self):
         def slow_multiply_sum(xs, theta):
             import time
-            time.sleep(0.6)
+            time.sleep(0.2)
             return sum([theta*x for x in xs])
         job = Job(slow_multiply_sum, name='slow_multiply_sum',
+                  dataset=(1,2,3,4,5,6,7), params=3)
+        result = self.master.run(job)
+        self.assertEqual(84, result)
+
+    def test_differential_sleep_multiply_sum(self):
+        def differential_sleep_multiply_sum(xs, theta):
+            import time
+            time.sleep(0.05 * xs[0])
+            return sum([theta*x for x in xs])
+        job = Job(differential_sleep_multiply_sum,
+                  name='differential_sleep_multiply_sum',
                   dataset=(1,2,3,4,5,6,7), params=3)
         result = self.master.run(job)
         self.assertEqual(84, result)
@@ -33,3 +44,8 @@ class TestRemoteMultiplySum(MultiplySumBase, unittest.TestCase):
     def setUp(self):
         self.master = Master([Node('127.0.0.1')])
         
+class TestClusterMultiplySum(MultiplySumBase, unittest.TestCase):
+    def setUp(self):
+        self.master = Master([Node('127.0.0.1', 2000),
+                              Node('127.0.0.1', 2001),
+                              Node('127.0.0.1', 2002)])
