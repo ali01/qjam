@@ -5,14 +5,20 @@ class TestNode(unittest.TestCase):
     def test_name(self):
         self.assertEqual('localhost', Node('localhost').name)
 
+    def test_default_port(self):
+        self.assertEqual(2000, Node('localhost').port)
+
+    def test_port(self):
+        self.assertEqual(2123, Node('localhost', 2123).port)
+        
     def test_default_root(self):
-        self.assertEqual('/tmp/qjam', Node('localhost').root)
+        self.assertEqual('/tmp/qjam2000', Node('localhost').root)
 
     def test_root(self):
         self.assertEqual('/tmp/qjam2', Node('localhost', root='/tmp/qjam2').root)
 
     def test_node_id(self):
-        self.assertEqual('localhost_tmp_qjam', Node('localhost').node_id)
+        self.assertEqual('localhost:2144', Node('localhost', 2144).node_id)
 
 class NodeBaseTest(object):
     def tearDown(self):
@@ -45,9 +51,9 @@ class NodeBaseTest(object):
 
 class TestNode(NodeBaseTest, unittest.TestCase):
     def setUp(self):
-        self.node = Node('localhost', root='/tmp/qjam_test_local/')
+        self.node = Node('localhost', 2001)
 
 class TestRemoteNode(NodeBaseTest, unittest.TestCase):
     def setUp(self):
-        self.node = Node('koi', root='/tmp/qjam_test_remote/')
+        self.node = Node('koi', 2002)
 

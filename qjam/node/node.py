@@ -4,24 +4,31 @@ import paramiko
 from .slices import SliceStorage
 from .task import NodeTaskThread
 
-def Node(name, root='/tmp/qjam'):
+def Node(name, port=2000, root=None):
+    root = root if root else "/tmp/qjam%d" % port
     if name == 'localhost':
-        return LocalNode(name, root)
+        return LocalNode(name, port, root)
     else:
-        return RemoteNode(name, root)
+        return RemoteNode(name, port, root)
 
 class BaseNode(object):
-    def __init__(self, name, root):
+    def __init__(self, name, port, root):
         self.name = name
+        self.port = port
         self.root = root
         self.init_root()
         self.slices = SliceStorage(self, self.root)
+
+    @property
+    def host_port(self):
+        """Returns `host`:`port` for this node."""
+        return "%s:%d" % (self.name, self.port)
         
     @property
     def node_id(self):
         """Returns a unique identifier for this node that can be used as part
         of a filename."""
-        return (self.name + self.root).replace('/', '_')
+        return "%s_%d" % (self.name, self.port)
 
     def init_root(self):
         if not self.fs_exists(self.root):
@@ -128,12 +135,12 @@ class LocalNode(BaseNode):
         return self.rpc_run(func, slice, params)
 
 class RemoteNode(BaseNode):
-    def __init__(self, name, root):
+    def __init__(self, name, port, root):
         self.ssh = paramiko.SSHClient()
         self.ssh.load_host_keys(os.path.expanduser(os.path.join("~", ".ssh", "known_hosts")))
         self.ssh.connect(name, username=os.getenv('USER'))
         self.sftp = self.ssh.open_sftp()
-        super(RemoteNode, self).__init__(name, root)
+        super(RemoteNode, self).__init__(name, port, root)
         
     def fs_ls(self, dirname):
         return self.sftp.listdir(dirname)
@@ -169,7 +176,7 @@ class RemoteNode(BaseNode):
         if kwargs:
             raise RuntimeError("kwargs not supported")
         import pp
-        job_server = pp.Server(0, ppservers=("koi:1234",), secret='cs229qjam')
+        job_server = pp.Server(0, ppservers=(self.host_port,), secret='cs229qjam')
         f = job_server.submit(func, args)
         val = f()
         print val
