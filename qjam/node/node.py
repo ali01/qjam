@@ -4,17 +4,13 @@ from .slices import SliceStorage
 
 def Node(name, port=2000, root=None):
     root = root if root else "/tmp/qjam%d" % port
-    if name == 'localhost':
-        return LocalNode(name, port, root)
-    else:
-        return SSHRemoteNode(name, port, root)
+    return SSHRemoteNode(name, port, root)
 
 class BaseNode(object):
     def __init__(self, name, port, root):
         self.name = name
         self.port = port
         self.root = root
-        self.init_root()
         self.slices = SliceStorage(self, self.root)
 
     @property
@@ -43,19 +39,79 @@ class BaseNode(object):
             self.fs_rmdir(self.root)
         self.init_root() # remake root dir
 
-    def mapfunc_for_task(self):
-        """Create a callable that we can send to a remote node for it to run,
-        loading its locally stored data. The args are passed from the
-        `job_server.submit` call in `Master.run."""
-        def remote_mapfunc(job_name, mapfunc_file, slice_abspath=None, params=None):
-                slice = None
-                if slice_abspath:
-                    with open(slice_abspath, 'rb') as slicefile:
-                        slice = pickle.load(slicefile)
-                mapfunc_module = imp.load_source('mapfunc_mod', mapfunc_file)
-                mapfunc = getattr(mapfunc_module, job_name)
-                return mapfunc(slice, params)
-        return remote_mapfunc
+        
+    ########### Putting code file
+        
+    def __mapfunc_source(self, mapfunc):
+        import inspect
+        srclines = inspect.getsourcelines(mapfunc)[0]
+        srclines[0] = srclines[0].lstrip() # un-indent first line
+        return "\n".join(srclines)
+        
+    def put_code_file(self, job, task_name):
+        # distribute mapfunc code file to node
+        runner_py_abspath = self.path_for_file(job.name + '.py')
+        mapfunc_src = self.__mapfunc_source(job.mapfunc)
+        runner_py = """
+import sys, pickle
+from numpy import *
+
+%(mapfunc_src)s
+
+def main():
+    slice_abspath = sys.argv[1]
+    slice = None
+    if slice_abspath:
+        with open(slice_abspath, 'rb') as slicefile:
+            slice = pickle.load(slicefile)
+    mapfunc = %(mapfunc_name)s
+    result = mapfunc(slice, %(params)r) # TODO: params
+    with open(%(task_output_abspath)r, 'w') as outfile:
+        pickle.dump(result, outfile)
+    print "DONE"
+
+main()
+""" % dict(mapfunc_src=mapfunc_src, mapfunc_name=job.name, task_output_abspath=self.__task_output_file(task_name), params=job.params)
+
+        self.fs_put(runner_py_abspath, runner_py)
+        return runner_py_abspath
+
+    # Task interface
+    #
+    #     A task is an instance of a Job on a single node; a Job has many
+    #     tasks. If the task output file exists, then the task is finished; if
+    #     it does not exist, then the task is not finished. The task name is
+    #     the same as the slice name, since it represents an operation on that
+    #     slice of data.
+    def __task_output_file(self, task_name):
+        return os.path.join(self.root, "%s_%s_output" % (task_name, self.node_id))
+    
+    def task_is_finished(self, task_name):
+        return self.fs_exists(self.__task_output_file(task_name))
+
+    def task_output_clear(self, task_name):
+        if self.task_is_finished(task_name):
+            self.fs_rm(self.__task_output_file(task_name))
+
+    def task_output(self, task_name):
+        return self.fs_get(self.__task_output_file(task_name))
+
+    def task_output_set(self, task_name, buf):
+       self.fs_put(self.__task_output_file(task_name), buf)
+        
+    def run_task(self, job, slicename):
+        self.task_output_clear(slicename)
+        runner_py_abspath = self.put_code_file(job, slicename)
+        slice_abspath = self.slices.abspath_for_slicename(slicename)
+        self.rpc_map_slice(runner_py_abspath, slice_abspath)
+        return None # must poll node for return values of mapfunc
+
+    # RPC interface implemented by {Local,SSHRemote}Node
+    def rpc_run(self, func, *args, **kwargs):
+        raise NotImplementedError
+
+    def rpc_map_slice(self, func, slicename, params):
+        raise NotImplementedError
     
     # Abstract FS interface implemented by {Local,SSHRemote}Node
     def fs_ls(self, dirname):
@@ -88,58 +144,52 @@ class BaseNode(object):
     def __str__(self):
         return "%s:%s" % (self.name, self.root)
 
-class LocalNode(BaseNode):
-    def fs_ls(self, dirname):
-        return os.listdir(dirname)
-
-    def fs_mkdir(self, dirname):
-        os.mkdir(dirname)
-
-    def fs_put(self, abspath, buf):
-        f = open(abspath, 'wb')
-        f.write(buf)
-        f.close()
-        
-    def fs_get(self, abspath):
-        with open(abspath, 'rb') as f:
-            return f.read()
-
-    def fs_exists(self, abspath):
-        return os.path.exists(abspath)
-
-    def fs_rm(self, abspath):
-        return os.unlink(abspath)
-
-    def fs_rmdir(self, dirname):
-        return os.rmdir(dirname)
-
 class SSHRemoteNode(BaseNode):
     def __init__(self, name, port, root):
+        self.__connected = False
+        super(SSHRemoteNode, self).__init__(name, port, root)
+
+    def __connect(self):
         import paramiko
         self.ssh = paramiko.SSHClient()
         self.ssh.load_host_keys(os.path.expanduser(os.path.join("~", ".ssh", "known_hosts")))
-        self.ssh.connect(name, username=os.getenv('USER'))
+        self.ssh.connect(self.name, username=os.getenv('USER'))
         self.sftp = self.ssh.open_sftp()
-        super(SSHRemoteNode, self).__init__(name, port, root)
+        self.__connected = True
+        self.init_root()
+
+    def rpc_map_slice(self, runner_py_abspath, slice_abspath):
+        cmd = "python %s %s" % (runner_py_abspath, slice_abspath)
+        self.ssh.exec_command(cmd)
         
     def fs_ls(self, dirname):
+        if not self.__connected:
+            self.__connect()
         return self.sftp.listdir(dirname)
 
     def fs_put(self, abspath, buf):
+        if not self.__connected:
+            self.__connect()
         f = self.sftp.open(abspath, 'wb')
         f.write(buf)
         f.close()
 
     def fs_mkdir(self, dirname):
+        if not self.__connected:
+            self.__connect()
         self.sftp.mkdir(dirname)
 
     def fs_get(self, abspath):
+        if not self.__connected:
+            self.__connect()
         f = self.sftp.open(abspath, 'rb')
         s = f.read()
         f.close()
         return s
 
     def fs_exists(self, abspath):
+        if not self.__connected:
+            self.__connect()
         try:
             self.sftp.stat(abspath)
             return True
@@ -147,12 +197,18 @@ class SSHRemoteNode(BaseNode):
             return False
 
     def fs_rm(self, abspath):
+        if not self.__connected:
+            self.__connect()
         return self.sftp.unlink(abspath)
 
     def fs_rmdir(self, dirname):
+        if not self.__connected:
+            self.__connect()
         return self.sftp.rmdir(dirname)
 
     def close(self):
-        self.sftp.close()
-        self.ssh.close()
+        if self.__connected:
+            self.sftp.close()
+            self.ssh.close()
+            self.__connected = False
     

@@ -21,9 +21,14 @@ class TestNode(unittest.TestCase):
     def test_node_id(self):
         self.assertEqual('localhost:2144', Node('localhost', 2144).node_id)
 
-class NodeBaseTest(object):
+class TestNode(unittest.TestCase):
+    def setUp(self):
+        self.node = Node('127.0.0.1', 2000)
+        self.node.clear_root()
+
     def tearDown(self):
         self.node.clear_root()
+        self.node.close()
     
     def test_list_slices_empty(self):
         self.assertEqual([], self.node.slices.list())
@@ -34,14 +39,13 @@ class NodeBaseTest(object):
         self.assertEqual(['slice1'], self.node.slices.list())
         self.node.slices.put('slice2', 'hello')
         self.assertEqual(['slice1', 'slice2'], sorted(self.node.slices.list()))
-            
-class TestNode(NodeBaseTest, unittest.TestCase):
-    def setUp(self):
-        self.node = Node('localhost', 2000)
-        self.node.clear_root()
 
-class TestRemoteNode(NodeBaseTest, unittest.TestCase):
-    def setUp(self):
-        self.node = Node('127.0.0.1', 2000)
-        self.node.clear_root()
+    def test_task_is_finished(self):
+        self.assertEqual(False, self.node.task_is_finished('job1'))
+        self.node.task_output_set('job1', 'somedata')
+        self.assertEqual(True, self.node.task_is_finished('job1'))
+        self.node.task_output_clear('job1')
+        self.assertEqual(False, self.node.task_is_finished('job1'))
 
+    def test_task_output_clear_no_raise_if_not_exists(self):
+        self.node.task_output_clear('job_that_doesnt_exist') # shouldn't raise

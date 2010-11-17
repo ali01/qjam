@@ -7,6 +7,10 @@ class MultiplySumBase(object):
     coefficient and the input `x` values are numbers. Expects the sum of the
     `x` values times `theta` as output."""
 
+    def tearDown(self):
+        for node in self.master.nodes:
+            node.close()
+    
     def test_multiply_sum(self):
         def multiply_sum(xs, theta):
             return sum([theta*x for x in xs])
@@ -36,16 +40,12 @@ class MultiplySumBase(object):
         result = self.master.run(job)
         self.assertEqual(84, result)
         
-class TestLocalMultiplySum(MultiplySumBase, unittest.TestCase):
+class TestMultiplySum(MultiplySumBase, unittest.TestCase):
     def setUp(self):
-        self.master = Master(fixture.localhost_nodes)
+        self.master = Master([Node('localhost')])
         
-class TestRemoteMultiplySum(MultiplySumBase, unittest.TestCase):
-    def setUp(self):
-        self.master = Master([Node('127.0.0.1')])
-        
-class TestClusterMultiplySum(MultiplySumBase, unittest.TestCase):
-    def setUp(self):
-        self.master = Master([Node('127.0.0.1', 2000),
-                              Node('127.0.0.1', 2001),
-                              Node('127.0.0.1', 2002)])
+#class TestClusterMultiplySum(MultiplySumBase, unittest.TestCase):
+#    def setUp(self):
+#        self.master = Master([Node('127.0.0.1', 2000),
+#                              Node('127.0.0.1', 2001),
+#                              Node('127.0.0.1', 2002)])
