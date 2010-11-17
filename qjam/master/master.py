@@ -1,5 +1,5 @@
 import os, inspect, time, cPickle as pickle
-import pp
+
 
 POLL_INTERVAL = 0.5 # seconds
 
@@ -35,10 +35,8 @@ class Master(object):
                     polled = True # print msg next time
             task_output = node.task_output(task_name)
             result += pickle.loads(task_output)
-            
+
         return result
-            
+
     def __slice_name(self, job_name, slice_num):
         return "%s_slice%dof%d" % (job_name, slice_num+1, len(self.nodes))
-
-        
