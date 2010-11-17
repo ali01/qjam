@@ -39,6 +39,6 @@ class Master(object):
         return result
             
     def __slice_name(self, job_name, slice_num):
-        return "%s_slice%dof%d" % (job_name, slice_num, len(self.nodes))
+        return "%s_slice%dof%d" % (job_name, slice_num+1, len(self.nodes))
 
         
