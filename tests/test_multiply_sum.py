@@ -43,9 +43,4 @@ class MultiplySumBase(object):
 class TestMultiplySum(MultiplySumBase, unittest.TestCase):
     def setUp(self):
         self.master = Master([Node('localhost')])
-        
-#class TestClusterMultiplySum(MultiplySumBase, unittest.TestCase):
-#    def setUp(self):
-#        self.master = Master([Node('127.0.0.1', 2000),
-#                              Node('127.0.0.1', 2001),
-#                              Node('127.0.0.1', 2002)])
+
