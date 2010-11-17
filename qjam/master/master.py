@@ -1,4 +1,4 @@
-import os, inspect, time, cPickle as pickle
+import time, cPickle as pickle
 
 
 POLL_INTERVAL = 0.5 # seconds
