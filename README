@@ -1,27 +1,22 @@
 DEPENDENCIES
 --------------------------------
-* Parallel Python (python-pp)
+* Python paramiko (python-paramiko)
 * Python Nose (python-nose)
 
 
 EXAMPLES
 --------------------------------
-# First, you have to start the Parallel Python server (ppserver).
-ppserver -d -s cs229qjam -p 2000
-
-# Run qjam locally
-bin/qjam-run.py examples.multiply_sum.multiply_sum examples.sequences.onetoten
-# should print 84
-
-# Run qjam as though you're using a remote node
-bin/qjam-run.py -n 127.0.0.1 examples.multiply_sum.multiply_sum examples.sequences.onetoten
-# should also print 84
+# You need to have passwordless ssh access to localhost as your current username.
+# Run qjam on localhost
+bin/qjam-run.py -n localhost examples.multiply_sum.multiply_sum examples.sequences.onetoten
+# should print 165
 
 
 TESTS
 --------------------------------
-# You have to have 3 ppservers running:
-ppserver -d -s cs229qjam -p 2000
-ppserver -d -s cs229qjam -p 2001
-ppserver -d -s cs229qjam -p 2002
 nosetests tests/
+
+LINKS
+--------------------------------
+We should check these out.
+

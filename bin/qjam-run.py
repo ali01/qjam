@@ -9,7 +9,7 @@ logger = logging.getLogger('qjam')
 
 def parse_args():
     parser = OptionParser(usage="%prog [opts] <mapfunc> <dataset>")
-    parser.add_option("-n", "--nodes", dest="nodes", default=["localhost"],
+    parser.add_option("-n", "--nodes", dest="nodes", default="localhost",
                       help="list of nodes, e.g. 'node1 node2'")
     parser.add_option("-q", "--quiet", dest="verbose",
                       action="store_false",
