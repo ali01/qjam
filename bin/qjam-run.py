@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 from optparse import OptionParser # should use argparse for Python 2.7
-import sys, logging
+import logging
+import os
+import sys
+
+# Add parent directory to path.
+sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..'))
 
 from qjam import Node, Master, Job
 
