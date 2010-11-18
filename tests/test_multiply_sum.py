@@ -11,10 +11,10 @@ class MultiplySumBase(object):
         for node in self.master.nodes:
             node.close()
     
-    def test_multiply_sum(self):
-        def multiply_sum(xs, theta):
+    def test_multiply_sum_simple(self):
+        def multiply_sum_simple(xs, theta):
             return sum([theta*x for x in xs])
-        job = Job(multiply_sum, name='multiply_sum',
+        job = Job(multiply_sum_simple, name='multiply_sum_simple',
                   dataset=(1,2,3,4,5,6,7), params=3)
         result = self.master.run(job)
         self.assertEqual(84, result)
@@ -25,9 +25,9 @@ class MultiplySumBase(object):
             time.sleep(0.1)
             return sum([theta*x for x in xs])
         job = Job(slow_multiply_sum, name='slow_multiply_sum',
-                  dataset=(1,2,3,4,5,6,7), params=3)
+                  dataset=(1,2,3,4,5,6,7), params=4)
         result = self.master.run(job)
-        self.assertEqual(84, result)
+        self.assertEqual(112, result)
 
     def test_differential_sleep_multiply_sum(self):
         def differential_sleep_multiply_sum(xs, theta):
@@ -36,16 +36,11 @@ class MultiplySumBase(object):
             return sum([theta*x for x in xs])
         job = Job(differential_sleep_multiply_sum,
                   name='differential_sleep_multiply_sum',
-                  dataset=(1,2,3,4,5,6,7), params=3)
+                  dataset=(1,2,3,4,5,6,7), params=5)
         result = self.master.run(job)
-        self.assertEqual(84, result)
+        self.assertEqual(140, result)
         
 class TestMultiplySum(MultiplySumBase, unittest.TestCase):
     def setUp(self):
         self.master = Master([Node('localhost')])
-        
-#class TestClusterMultiplySum(MultiplySumBase, unittest.TestCase):
-#    def setUp(self):
-#        self.master = Master([Node('127.0.0.1', 2000),
-#                              Node('127.0.0.1', 2001),
-#                              Node('127.0.0.1', 2002)])
+

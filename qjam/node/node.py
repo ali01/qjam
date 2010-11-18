@@ -54,24 +54,31 @@ class BaseNode(object):
         mapfunc_src = self.__mapfunc_source(job.mapfunc)
         runner_py = """
 import sys, pickle
-from numpy import *
 
 %(mapfunc_src)s
 
 def main():
     slice_abspath = sys.argv[1]
+    params_abspath = sys.argv[2]
+
     slice = None
     if slice_abspath:
         with open(slice_abspath, 'rb') as slicefile:
             slice = pickle.load(slicefile)
+
+    params = None
+    if params_abspath:
+        with open(params_abspath, 'rb') as paramfile:
+            params = pickle.load(paramfile)
+
     mapfunc = %(mapfunc_name)s
-    result = mapfunc(slice, %(params)r) # TODO: params
+    result = mapfunc(slice, params)
     with open(%(task_output_abspath)r, 'w') as outfile:
         pickle.dump(result, outfile)
     print "DONE"
 
 main()
-""" % dict(mapfunc_src=mapfunc_src, mapfunc_name=job.name, task_output_abspath=self.__task_output_file(task_name), params=job.params)
+""" % dict(mapfunc_src=mapfunc_src, mapfunc_name=job.name, task_output_abspath=self.__task_output_file(task_name))
 
         self.fs_put(runner_py_abspath, runner_py)
         return runner_py_abspath
@@ -103,7 +110,9 @@ main()
         self.task_output_clear(slicename)
         runner_py_abspath = self.put_code_file(job, slicename)
         slice_abspath = self.slices.abspath_for_slicename(slicename)
-        self.rpc_map_slice(runner_py_abspath, slice_abspath)
+        params_abspath = self.path_for_file(slicename + '_params')
+        self.fs_put(params_abspath, pickle.dumps(job.params))
+        self.rpc_map_slice(runner_py_abspath, slice_abspath, params_abspath)
         return None # must poll node for return values of mapfunc
 
     # RPC interface implemented by {Local,SSHRemote}Node
@@ -158,8 +167,8 @@ class SSHRemoteNode(BaseNode):
         self.__connected = True
         self.init_root()
 
-    def rpc_map_slice(self, runner_py_abspath, slice_abspath):
-        cmd = "python %s %s" % (runner_py_abspath, slice_abspath)
+    def rpc_map_slice(self, runner_py_abspath, slice_abspath, params_abspath):
+        cmd = "python %s %s %s" % (runner_py_abspath, slice_abspath, params_abspath)
         self.ssh.exec_command(cmd)
         
     def fs_ls(self, dirname):
