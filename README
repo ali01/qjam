@@ -1,0 +1,22 @@
+DEPENDENCIES
+--------------------------------
+* Python paramiko (python-paramiko)
+* Python Nose (python-nose)
+
+
+EXAMPLES
+--------------------------------
+# You need to have passwordless ssh access to localhost as your current username.
+# Run qjam on localhost
+bin/qjam-run.py -n localhost examples.multiply_sum.multiply_sum examples.sequences.onetoten
+# should print 165
+
+
+TESTS
+--------------------------------
+nosetests tests/
+
+LINKS
+--------------------------------
+We should check these out.
+
