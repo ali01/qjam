@@ -22,6 +22,14 @@ def read_message_string():
 
 
 def print_message(msg):
+  '''Log a message object.
+
+  Args:
+    msg: message object
+
+  Returns:
+    None
+  '''
   logging.debug('received message: %s' % msg)
 
 
