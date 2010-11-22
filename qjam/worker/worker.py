@@ -38,7 +38,7 @@ def handle_task_message(msg):
 
   code = marshal.loads(base64.b64decode(msg['callable']))
   callable = types.FunctionType(code, globals(), 'foo')
-  params = msg['params']
+  params = pickle.loads(base64.b64decode(msg['params']))
   dataset = msg['dataset']
 
   # For now, assume no dataset.

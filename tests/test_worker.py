@@ -14,6 +14,10 @@ def constant(params, dataset):
   return 42
 
 
+def sum_params(params, dataset):
+  return sum(list(params))
+
+
 class Test_Worker:
   def setup(self):
     _path = qjam.worker.worker.__file__
@@ -44,7 +48,10 @@ class Test_Worker:
   def encode_callable(self, callable):
     return base64.b64encode(marshal.dumps(callable.func_code))
 
-  def decode_result(self, data):
+  def encode(self, data):
+    return base64.b64encode(pickle.dumps(data))
+
+  def decode(self, data):
     return pickle.loads(base64.b64decode(data))
 
   def test_process(self):
@@ -75,8 +82,8 @@ class Test_Worker:
 
   def test_simple_task(self):
     msg = {'callable': self.encode_callable(constant),
-           'params': None,
-           'dataset': None}
+           'params': self.encode(None),
+           'dataset': []}
     self.write_command('task', msg)
 
     state_msg = self.read_message()
@@ -87,5 +94,16 @@ class Test_Worker:
 
     result_msg = self.read_message()
     assert_true('result' in result_msg)
-    result = self.decode_result(result_msg['result'])
+    result = self.decode(result_msg['result'])
     assert_equals(42, result)
+
+  def test_sum(self):
+    params = [1, 2, 3, 6, 7, 9]
+    msg = {'callable': self.encode_callable(sum_params),
+           'params': self.encode(params),
+           'dataset': []}
+    self.write_command('task', msg)
+    self.read_message()  # state
+    result_msg = self.read_message()
+    result = self.decode(result_msg['result'])
+    assert_equals(sum(params), result)
