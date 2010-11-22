@@ -34,11 +34,23 @@ def print_message(msg):
 
 
 def handle_message(msg):
+  '''Dispatch a message object to the appropriate handler.
+
+  Args:
+    msg: message object
+
+  Raises:
+    ValueError if message is ill-formed or contains an unexpected type.
+
+  Returns:
+    None
+  '''
+  print_message(msg)
+
   if 'type' not in msg:
     # Ill-formed message.
-    raise ValueError
-
-  print_message(msg)
+    logging.warning('message is missing type, ignoring')
+    raise ValueError, 'message is missing type'
 
   msg_type = msg['type']
   if msg_type == 'task':
@@ -46,15 +58,18 @@ def handle_message(msg):
   elif msg_type == 'refs':
     handle_refs_message(msg)
   else:
-    logging.warning('unexpected message type: %s' % msg_type)
+    exc_msg = 'unexpected message type: %s' % msg_type
+    logging.warning(exc_msg)
+    raise ValueError, exc_msg
 
 
 def handle_task_message(msg):
   # Sanity check.
   for key in ('module', 'params', 'dataset'):
     if key not in msg:
-      logging.warning('incomplete message: missing key "%s"' % key)
-      return
+      exc_msg = 'incomplete message: missing key "%s"' % key
+      logging.warning(exc_msg)
+      raise ValueError, exc_msg
 
   code = pickle.loads(base64.b64decode(msg['module']))
 
@@ -86,6 +101,18 @@ def handle_refs_message(msg):
   pass
 
 
+def send_error(err_str):
+  '''Send an error message to stdout.
+
+  Args:
+    err_str: error string
+
+  Returns:
+    None
+  '''
+  send_message('error', {'error': err_str})
+
+
 def send_message(msg_type, msg):
   msg['type'] = msg_type
   sys.stdout.write('%s\n' % json.dumps(msg))
@@ -106,7 +133,7 @@ def main():
       msg = json.loads(msg_str)
       handle_message(msg)
     except ValueError, e:
-      logging.warning('received ill-formed message: %s (%s)' % (msg_str, e))
+      send_error(str(e))
 
 
 if __name__ == '__main__':
