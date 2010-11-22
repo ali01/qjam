@@ -1,7 +1,6 @@
 from nose.tools import *
 import base64
 import cPickle as pickle
-import inspect
 import json
 import os
 import subprocess
@@ -20,6 +19,14 @@ def source(module):
   filename = filename.replace('.pyc', '.py')
   with open(filename, 'r') as fh:
     return fh.read()
+
+
+def encode(data):
+  return base64.b64encode(pickle.dumps(data))
+
+
+def decode(data):
+  return pickle.loads(base64.b64decode(data))
 
 
 class Test_Worker:
@@ -50,12 +57,6 @@ class Test_Worker:
     data['type'] = cmd
     self.write_message(data)
 
-  def encode(self, data):
-    return base64.b64encode(pickle.dumps(data))
-
-  def decode(self, data):
-    return pickle.loads(base64.b64decode(data))
-
   def test_process(self):
     assert_not_equals(self._worker.stdin, None)
     assert_not_equals(self._worker.stdout, None)
@@ -70,7 +71,7 @@ class Test_Worker:
     assert_true('unexpected message type' in self.read_stderr())
 
   def test_incomplete_task(self):
-    c = self.encode(source(constant))
+    c = encode(source(constant))
     msg1 = {'module': c,
             'params': ()}
     msg2 = {'module': c,
@@ -83,8 +84,8 @@ class Test_Worker:
       assert_true('missing key' in self.read_stderr())
 
   def test_simple_task(self):
-    msg = {'module': self.encode(source(constant)),
-           'params': self.encode(None),
+    msg = {'module': encode(source(constant)),
+           'params': encode(None),
            'dataset': []}
     self.write_command('task', msg)
 
@@ -96,17 +97,16 @@ class Test_Worker:
 
     result_msg = self.read_message()
     assert_true('result' in result_msg)
-    result = self.decode(result_msg['result'])
+    result = decode(result_msg['result'])
     assert_equals(42, result)
 
   def test_sum(self):
     params = [1, 2, 3, 6, 7, 9]
-    import inspect
-    msg = {'module': self.encode(source(sum_params)),
-           'params': self.encode(params),
+    msg = {'module': encode(source(sum_params)),
+           'params': encode(params),
            'dataset': []}
     self.write_command('task', msg)
     self.read_message()  # state
     result_msg = self.read_message()
-    result = self.decode(result_msg['result'])
+    result = decode(result_msg['result'])
     assert_equals(sum(params), result)
