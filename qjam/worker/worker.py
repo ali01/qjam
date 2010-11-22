@@ -34,6 +34,12 @@ def print_message(msg):
 
 
 def handle_message(msg):
+  if 'type' not in msg:
+    # Ill-formed message.
+    raise ValueError
+
+  print_message(msg)
+
   msg_type = msg['type']
   if msg_type == 'task':
     handle_task_message(msg)
@@ -80,15 +86,6 @@ def handle_refs_message(msg):
   pass
 
 
-def process_message(msg):
-  if 'type' not in msg:
-    # Ill-formed message.
-    raise ValueError
-
-  print_message(msg)
-  handle_message(msg)
-
-
 def send_message(msg_type, msg):
   msg['type'] = msg_type
   sys.stdout.write('%s\n' % json.dumps(msg))
@@ -107,7 +104,7 @@ def main():
 
     try:
       msg = json.loads(msg_str)
-      process_message(msg)
+      handle_message(msg)
     except ValueError, e:
       logging.warning('received ill-formed message: %s (%s)' % (msg_str, e))
 
