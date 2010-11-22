@@ -1,11 +1,12 @@
 #!/usr/bin/python2.6
 import base64
 import cPickle as pickle
+import imp
 import json
 import logging
-import marshal
 import os
 import sys
+import tempfile
 import types
 
 
@@ -31,13 +32,23 @@ def handle_message(msg):
 
 def handle_task_message(msg):
   # Sanity check.
-  for key in ('callable', 'params', 'dataset'):
+  for key in ('module', 'params', 'dataset'):
     if key not in msg:
       logging.warning('incomplete message: missing key "%s"' % key)
       return
 
-  code = marshal.loads(base64.b64decode(msg['callable']))
-  callable = types.FunctionType(code, globals(), 'foo')
+  code = pickle.loads(base64.b64decode(msg['module']))
+
+  # TODO(ms): Writing the code to a file is a hack to get the module
+  #   object. Built-in functions like compile(), exec(), and eval() seem like a
+  #   step in the right direction, but I haven't figured out a complete
+  #   solution that doesn't involve the filesystem yet.
+  temp_file = tempfile.NamedTemporaryFile()
+  temp_file.write(code)
+  temp_file.flush()
+  module = imp.load_source('workermodule', temp_file.name)
+
+  callable = getattr(module, 'run', None)
   params = pickle.loads(base64.b64decode(msg['params']))
   dataset = msg['dataset']
 

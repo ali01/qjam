@@ -1,21 +1,25 @@
 from nose.tools import *
 import base64
 import cPickle as pickle
+import inspect
 import json
-import marshal
 import os
 import subprocess
 import sys
 
 import qjam.worker.worker
 
+# Test modules. These are serialized and sent to the worker to execute.
+import constant
+import sum_params
 
-def constant(params, dataset):
-  return 42
 
-
-def sum_params(params, dataset):
-  return sum(list(params))
+def source(module):
+  '''Return the source code for a given module object.'''
+  filename = module.__file__
+  filename = filename.replace('.pyc', '.py')
+  with open(filename, 'r') as fh:
+    return fh.read()
 
 
 class Test_Worker:
@@ -39,14 +43,12 @@ class Test_Worker:
     return json.loads(msg_str.strip())
 
   def write_message(self, msg):
+    print '\nSending: %s' % json.dumps(msg)
     self._worker.stdin.write('%s\n' % json.dumps(msg))
 
   def write_command(self, cmd, data):
     data['type'] = cmd
     self.write_message(data)
-
-  def encode_callable(self, callable):
-    return base64.b64encode(marshal.dumps(callable.func_code))
 
   def encode(self, data):
     return base64.b64encode(pickle.dumps(data))
@@ -68,10 +70,10 @@ class Test_Worker:
     assert_true('unexpected message type' in self.read_stderr())
 
   def test_incomplete_task(self):
-    c = self.encode_callable(constant)
-    msg1 = {'callable': c,
+    c = self.encode(source(constant))
+    msg1 = {'module': c,
             'params': ()}
-    msg2 = {'callable': c,
+    msg2 = {'module': c,
             'dataset': None}
     msg3 = {'dataset': None,
             'params': ()}
@@ -81,7 +83,7 @@ class Test_Worker:
       assert_true('missing key' in self.read_stderr())
 
   def test_simple_task(self):
-    msg = {'callable': self.encode_callable(constant),
+    msg = {'module': self.encode(source(constant)),
            'params': self.encode(None),
            'dataset': []}
     self.write_command('task', msg)
@@ -99,7 +101,8 @@ class Test_Worker:
 
   def test_sum(self):
     params = [1, 2, 3, 6, 7, 9]
-    msg = {'callable': self.encode_callable(sum_params),
+    import inspect
+    msg = {'module': self.encode(source(sum_params)),
            'params': self.encode(params),
            'dataset': []}
     self.write_command('task', msg)
