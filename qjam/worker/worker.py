@@ -20,6 +20,8 @@ def handle_message(msg):
     handle_task_message(msg)
   elif msg['cmd'] == 'refs':
     handle_refs_message(msg)
+  else:
+    logging.warning('unexpected command: %s' % msg['cmd'])
 
 
 def process_message(msg):
