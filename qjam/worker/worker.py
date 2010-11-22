@@ -21,18 +21,6 @@ def read_message_string():
   return line
 
 
-def print_message(msg):
-  '''Log a message object.
-
-  Args:
-    msg: message object
-
-  Returns:
-    None
-  '''
-  logging.debug('received message: %s' % msg)
-
-
 def handle_message(msg):
   '''Dispatch a message object to the appropriate handler.
 
@@ -64,6 +52,17 @@ def handle_message(msg):
 
 
 def handle_task_message(msg):
+  '''Message handler for "task" messages.
+
+  Args:
+    msg: mesage object
+
+  Raises:
+    ValueError on incomplete messages
+
+  Returns:
+    None
+  '''
   # Sanity check.
   for key in ('module', 'params', 'dataset'):
     if key not in msg:
@@ -71,6 +70,7 @@ def handle_task_message(msg):
       logging.warning(exc_msg)
       raise ValueError, exc_msg
 
+  # Python source code for the runnable module.
   code = pickle.loads(base64.b64decode(msg['module']))
 
   # TODO(ms): Writing the code to a file is a hack to get the module
@@ -80,16 +80,21 @@ def handle_task_message(msg):
   temp_file = tempfile.NamedTemporaryFile()
   temp_file.write(code)
   temp_file.flush()
+  # Don't close the temp_file yet; need to load it below.
+
+  # Load the module object.
   module = imp.load_source('workermodule', temp_file.name)
 
+  # Entry point in the module.
   callable = getattr(module, 'run', None)
-  params = pickle.loads(base64.b64decode(msg['params']))
-  dataset = msg['dataset']
 
-  # For now, assume no dataset.
+  # TODO(ms): For now, assume no dataset. The status may be 'blocked' if we
+  #   don't have all of the local refs here.
   send_message('state', {'status': 'running'})
 
   # Run the callable.
+  params = pickle.loads(base64.b64decode(msg['params']))
+  dataset = msg['dataset']
   result = callable(params, dataset)
 
   # Send the result to the master.
@@ -114,9 +119,30 @@ def send_error(err_str):
 
 
 def send_message(msg_type, msg):
+  '''Send a message to stdout.
+
+  Args:
+    msg_type: message type ('error', 'state', 'result')
+    msg: dictionary of other parameters to include in outgoing message
+
+  Returns:
+    None
+  '''
   msg['type'] = msg_type
   sys.stdout.write('%s\n' % json.dumps(msg))
   sys.stdout.flush()
+
+
+def print_message(msg):
+  '''Log a message object.
+
+  Args:
+    msg: message object
+
+  Returns:
+    None
+  '''
+  logging.debug('received message: %s' % msg)
 
 
 def main():
