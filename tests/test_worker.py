@@ -120,3 +120,10 @@ class Test_Worker:
     params = [1, 2, 3, 6, 7, 9]
     result = self.run_task(sum_params, params, [])
     assert_equals(sum(params), result)
+
+  def test_multiple_tasks(self):
+    '''Run multiple tasks on the same worker instance.'''
+    self.test_constant()
+    self.test_sum()
+    self.test_constant()
+    self.test_sum()
