@@ -83,30 +83,29 @@ class Test_Worker:
       self.write_command('task', msg)
       assert_true('missing key' in self.read_stderr())
 
-  def test_simple_task(self):
-    msg = {'module': encode(source(constant)),
-           'params': encode(None),
-           'dataset': []}
+  def run_task(self, module, params, dataset):
+    msg = {'module': encode(source(module)),
+           'params': encode(params),
+           'dataset': dataset}
     self.write_command('task', msg)
 
     state_msg = self.read_message()
     assert_true('type' in state_msg)
     assert_equal('state', state_msg['type'])
     assert_true('status' in state_msg)
+    # TODO(ms): This assumes worker has all refs.
     assert_equal('running', state_msg['status'])
 
     result_msg = self.read_message()
     assert_true('result' in result_msg)
     result = decode(result_msg['result'])
+    return result
+
+  def test_constant(self):
+    result = self.run_task(constant, None, [])
     assert_equals(42, result)
 
   def test_sum(self):
     params = [1, 2, 3, 6, 7, 9]
-    msg = {'module': encode(source(sum_params)),
-           'params': encode(params),
-           'dataset': []}
-    self.write_command('task', msg)
-    self.read_message()  # state
-    result_msg = self.read_message()
-    result = decode(result_msg['result'])
+    result = self.run_task(sum_params, params, [])
     assert_equals(sum(params), result)
