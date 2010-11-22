@@ -10,7 +10,12 @@ import tempfile
 import types
 
 
-def read_message():
+def read_message_string():
+  '''Read message from stdin.
+
+  Returns:
+    Message string without newline.
+  '''
   line = sys.stdin.readline()
   line = line.strip()
   return line
@@ -88,7 +93,7 @@ def main():
   logging.basicConfig(level=logging.WARNING, format=_fmt)
 
   while True:
-    msg_str = read_message()
+    msg_str = read_message_string()
     if not msg_str:
       return
 
