@@ -71,6 +71,13 @@ class Task(object):
     self._params = params
     self._dataset = dataset
 
+    # Compute id.
+    hash = hashlib.sha1()
+    hash.update(inspect.getsource(self._module))
+    hash.update(str(self._params))
+    hash.update(str(self._dataset))
+    self._id = hash.hexdigest()
+
   def __eq__(self, other):
     return (self.id() == other.id())
 
@@ -92,11 +99,7 @@ class Task(object):
     Returns:
       ID string
     '''
-    hash = hashlib.sha1()
-    hash.update(inspect.getsource(self._module))
-    hash.update(str(self._params))
-    hash.update(str(self._dataset))
-    return hash.hexdigest()
+    return self._id
 
 
 class TaskQueue(object):
@@ -256,8 +259,7 @@ def process_tasks():
   if task is None:
     return  # Nothing to do
 
-  # TODO(ms): include task id here.
-  send_message('state', status='running')
+  send_message('state', id=task.id(), status='running')
 
   # Entry point in the module.
   callable = getattr(task.module(), 'run')
@@ -267,8 +269,7 @@ def process_tasks():
 
   # Send the result to the master.
   enc_result = base64.b64encode(pickle.dumps(result))
-  # TODO(ms): id here too
-  send_message('result', result=enc_result)
+  send_message('result', id=task.id(), result=enc_result)
 
 
 def send_error(err_str):
