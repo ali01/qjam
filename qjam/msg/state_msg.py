@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import json
 
 from base_msg import BaseMsg, encode_msg_field, decode_msg_field

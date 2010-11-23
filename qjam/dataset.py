@@ -32,5 +32,3 @@ class NumPyMatrixDataSet(BaseDataSet):
         nrows = numpy.size(self.matrix, 0)
         slice_rows = (nrows + n_nodes) / n_nodes # round up in division
         return self.matrix[slice_rows*i:slice_rows*(i+1)]
-
-    

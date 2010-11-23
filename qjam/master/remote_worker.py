@@ -1,4 +1,3 @@
-#!/usr/bin/python
 import json
 import logging
 import os
