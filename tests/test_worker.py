@@ -34,6 +34,17 @@ class Test_Worker:
     msg_str = self._worker.stdout.readline()
     return json.loads(msg_str.strip())
 
+  def read_error_string(self):
+    '''Read a line from stdout, expecting to see an error.
+
+    Returns:
+      error string
+    '''
+    msg = self.read_message()
+    assert_true('type' in msg)
+    assert_equals('error', msg['type'], 'expecting error message type')
+    return msg['error']
+
   def write_message(self, msg):
     print '\nSending: %s' % json.dumps(msg)
     self._worker.stdin.write('%s\n' % json.dumps(msg))
@@ -49,11 +60,11 @@ class Test_Worker:
 
   def test_bad_message(self):
     self.write_message({'bogus_key': 1234})
-    assert_true('ill-formed' in self.read_stderr())
+    assert_true('missing type' in self.read_error_string())
 
   def test_bad_type(self):
     self.write_command('bogus_command', {})
-    assert_true('unexpected message type' in self.read_stderr())
+    assert_true('unexpected message type' in self.read_error_string())
 
   def test_incomplete_task(self):
     c = encode(source(constant))
@@ -66,7 +77,7 @@ class Test_Worker:
 
     for msg in (msg1, msg2, msg3):
       self.write_command('task', msg)
-      assert_true('missing key' in self.read_stderr())
+      assert_true('missing key' in self.read_error_string())
 
   def run_task(self, module, params, dataset):
     msg = {'module': encode(source(module)),
@@ -94,3 +105,10 @@ class Test_Worker:
     params = [1, 2, 3, 6, 7, 9]
     result = self.run_task(sum_params, params, [])
     assert_equals(sum(params), result)
+
+  def test_multiple_tasks(self):
+    '''Run multiple tasks on the same worker instance.'''
+    self.test_constant()
+    self.test_sum()
+    self.test_constant()
+    self.test_sum()
