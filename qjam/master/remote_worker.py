@@ -4,14 +4,13 @@ import os
 import paramiko
 import threading
 
+from qjam.exceptions.remote_worker_error import RemoteWorkerError
 from qjam.msg.base_msg import BaseMsg
 from qjam.msg.state_msg import StateMsg, StateMsgFromDict
 from qjam.msg.result_msg import ResultMsg, ResultMsgFromDict
 from qjam.msg.error_msg import ErrorMsg, ErrorMsgFromDict
-from qjam.exceptions.remote_worker_error import RemoteWorkerError
+from qjam.utils import module_path
 
-# TODO(ali01): remove hard coded path; use source of module instead
-LOCAL_WORKER_PATH  = os.path.join('..', 'qjam', 'worker', 'worker.py')
 REMOTE_WORKER_PATH = os.path.join(os.sep, 'tmp', 'worker.py')
 
 # TODO(ali01): logging
@@ -65,10 +64,11 @@ class RemoteWorker(object):
   def __bootstrap_remote_worker(self):
     '''transfers worker/worker.py to the remote worker executes it on the
        remote'''
-
     # transferring worker code
     sftp = self.__ssh_client.open_sftp()
-    sftp.put(LOCAL_WORKER_PATH, REMOTE_WORKER_PATH)
+    from qjam.worker import worker
+    sftp.put(module_path(worker), REMOTE_WORKER_PATH)
+    sftp.close()
 
     # executing worker code
     cmd = 'python %s' % (REMOTE_WORKER_PATH)

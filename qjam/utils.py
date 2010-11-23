@@ -1,7 +1,11 @@
 
-def module_src(module):
-  '''Return the source code for a given module object.'''
+def module_path(module):
+  '''returns the file path of the source code for a given module object'''
   filename = module.__file__
-  filename = filename.replace('.pyc', '.py')
+  return filename.replace('.pyc', '.py')
+
+def module_src(module):
+  '''return the source code for a given module object.'''
+  filename = module_path(module)
   with open(filename, 'r') as fh:
     return fh.read()
