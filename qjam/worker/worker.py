@@ -127,15 +127,20 @@ class TaskQueue(object):
     self._queue.remove(task)
 
   def dequeue(self):
-    '''Get next unblocked Task object from queue. If all tasks are blocked
-    (waiting on refs), None is returned.
+    '''Get and remove next unblocked Task object from queue. If all tasks are
+    blocked (waiting on refs), None is returned.
 
     Returns:
       Task object or None
     '''
+    to_return = None
     for task in self._queue:
       if not self._refstore.missing(task.dataset()):
-        return task
+        to_return = task
+        break
+    if to_return is not None:
+      self.task_del(to_return)
+    return to_return
 
 
 def read_message_string():
@@ -214,6 +219,7 @@ def handle_task_message(msg):
   module = imp.load_source('workermodule', temp_file.name)
 
   # Entry point in the module.
+  # TODO(ms): raise error here if there is no point of entry
   callable = getattr(module, 'run', None)
 
   # Params are passed directly to the callable.
@@ -241,22 +247,30 @@ def handle_task_message(msg):
     # TODO(ms): Don't bail if we're missing some refs.
     send_message('state', {'status': 'blocked',
                            'missing_refs': missing})
-    return
-
-  # TODO(ms): For now, assume no dataset. The status may be 'blocked' if we
-  #   don't have all of the local refs here.
-  send_message('state', {'status': 'running'})
-
-  # Run the callable.
-  result = callable(params, dataset)
-
-  # Send the result to the master.
-  enc_result = base64.b64encode(pickle.dumps(result))
-  send_message('result', {'result': enc_result})
 
 
 def handle_refs_message(msg):
   pass
+
+
+def process_tasks():
+  task = taskqueue.dequeue()
+  if task is None:
+    return  # Nothing to do
+
+  # TODO(ms): include task id here.
+  send_message('state', {'status': 'running'})
+
+  # Entry point in the module.
+  callable = getattr(task.module(), 'run')
+
+  # Run the callable.
+  result = callable(task.params(), task.dataset())
+
+  # Send the result to the master.
+  enc_result = base64.b64encode(pickle.dumps(result))
+  # TODO(ms): id here too
+  send_message('result', {'result': enc_result})
 
 
 def send_error(err_str):
@@ -310,15 +324,24 @@ def main():
   logging.basicConfig(level=logging.WARNING, format=_fmt)
 
   while True:
+    # Read incoming message.
     msg_str = read_message_string()
     if not msg_str:
       return
 
+    # Process message.
     try:
       msg = json.loads(msg_str)
+    except ValueError, e:
+      send_error('error parsing incoming message')
+
+    try:
       handle_message(msg)
     except ValueError, e:
       send_error(str(e))
+
+    # Run any ready tasks.
+    process_tasks()
 
 
 if __name__ == '__main__':

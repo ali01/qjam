@@ -47,7 +47,10 @@ class Test_Worker:
 
   def read_message(self):
     msg_str = self._worker.stdout.readline()
-    return json.loads(msg_str.strip())
+    try:
+      return json.loads(msg_str.strip())
+    except ValueError, e:
+      raise ValueError, 'error parsing message: "%s"' % msg_str.strip()
 
   def read_error_string(self):
     '''Read a line from stdout, expecting to see an error.
