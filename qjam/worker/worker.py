@@ -244,8 +244,7 @@ def handle_task_message(msg):
   # Determine if any refs are missing.
   missing = refstore.missing(dataset)
   if missing:
-    send_message('state', {'status': 'blocked',
-                           'missing_refs': missing})
+    send_message('state', status='blocked', missing_refs=missing)
 
 
 def handle_refs_message(msg):
@@ -258,7 +257,7 @@ def process_tasks():
     return  # Nothing to do
 
   # TODO(ms): include task id here.
-  send_message('state', {'status': 'running'})
+  send_message('state', status='running')
 
   # Entry point in the module.
   callable = getattr(task.module(), 'run')
@@ -269,7 +268,7 @@ def process_tasks():
   # Send the result to the master.
   enc_result = base64.b64encode(pickle.dumps(result))
   # TODO(ms): id here too
-  send_message('result', {'result': enc_result})
+  send_message('result', result=enc_result)
 
 
 def send_error(err_str):
@@ -281,10 +280,10 @@ def send_error(err_str):
   Returns:
     None
   '''
-  send_message('error', {'error': err_str})
+  send_message('error', error=err_str)
 
 
-def send_message(msg_type, msg):
+def send_message(msg_type, **kwargs):
   '''Send a message to stdout.
 
   Args:
@@ -294,6 +293,7 @@ def send_message(msg_type, msg):
   Returns:
     None
   '''
+  msg = kwargs
   msg['type'] = msg_type
   sys.stdout.write('%s\n' % json.dumps(msg))
   sys.stdout.flush()
