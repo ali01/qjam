@@ -138,9 +138,13 @@ class TaskQueue(object):
     '''
     to_return = None
     for task in self._queue:
-      if not self._refstore.missing(task.dataset()):
+      missing = self._refstore.missing(task.dataset())
+      if not missing:
         to_return = task
         break
+      else:
+        logging.info('task %s is missing: %s' % (task.id(), str(missing)))
+
     if to_return is not None:
       self.task_del(to_return)
     return to_return
@@ -264,10 +268,10 @@ def handle_refs_message(msg):
 
   # Ensure all refs are (str, obj).
   for tup in refs:
-    if (not isinstance(tup, tuple) or
+    if (not isinstance(tup, list) or
         len(tup) != 2 or
         not isinstance(tup[0], unicode)):
-      exc_msg = 'expected list of (str, obj) for refs'
+      exc_msg = 'expected list of [str, obj] for refs'
       logging.warning(exc_msg)
       raise ValueError, exc_msg
 
@@ -287,7 +291,13 @@ def process_tasks():
   callable = getattr(task.module(), 'run')
 
   # Run the callable.
-  result = callable(task.params(), task.dataset())
+  dataset = task.dataset()
+  if len(dataset) == 0:
+    result = callable(task.params(), dataset)
+  else:
+    # TODO(ms): run callable once for each chunk and coalesce the results
+    chunk = refstore.ref(task.dataset()[0])
+    result = callable(task.params(), chunk)
 
   # Send the result to the master.
   enc_result = base64.b64encode(pickle.dumps(result))
@@ -343,7 +353,7 @@ def main():
 
   # Set up logging.
   _fmt = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
-  logging.basicConfig(level=logging.WARNING, format=_fmt)
+  logging.basicConfig(level=logging.DEBUG, format=_fmt)
 
   while True:
     # Read incoming message.

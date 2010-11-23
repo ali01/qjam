@@ -11,6 +11,7 @@ import qjam.worker.worker
 # Test modules. These are serialized and sent to the worker to execute.
 import constant
 import no_poe
+import sum_dataset
 import sum_params
 
 
@@ -185,3 +186,24 @@ class Test_Worker:
     assert_true('expected' in self.read_error_string())
     self.send_refs([(1234, None)])
     assert_true('expected' in self.read_error_string())
+
+  def test_sum_dataset_one_ref(self):
+    '''Sum the elements of a dataset with one chunk.'''
+    # Send task.
+    dataset = ['ref1']
+    chunk = [1, 2, 3, 4, 8, 33]
+    self.send_task(sum_dataset, None, dataset)
+    state_msg = self.read_message()
+    self.assert_status(state_msg, 'blocked')
+
+    # Send only missing ref.
+    self.send_refs([(dataset[0], chunk)])
+
+    # Ensure task is now running.
+    state_msg = self.read_message()
+    self.assert_status(state_msg, 'running')
+
+    # Retrieve result.
+    result_msg = self.read_message()
+    result = decode(result_msg['result'])
+    assert_equal(sum(chunk), result)
