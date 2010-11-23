@@ -157,3 +157,5 @@ class Test_Worker:
     state_msg = self.read_message()
     # Worker does not have given refs.
     self.assert_status(state_msg, 'blocked')
+    assert_true('missing_refs' in state_msg)
+    assert_equal(dataset, state_msg['missing_refs'])

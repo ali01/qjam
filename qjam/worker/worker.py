@@ -10,11 +10,15 @@ import tempfile
 import types
 
 
+# Globals.
+refstore = None
+
+
 class RefStore(object):
   def __init__(self):
     self._refs = {}
 
-  def refs():
+  def refs(self):
     '''Get number of refs in store.
 
     Returns:
@@ -22,7 +26,7 @@ class RefStore(object):
     '''
     return len(self._refs.keys())
 
-  def ref(name):
+  def ref(self, name):
     '''Get ref by given name.
 
     Returns:
@@ -30,7 +34,7 @@ class RefStore(object):
     '''
     return self._refs.get(name, None)
 
-  def refIs(name, value):
+  def ref_is(self, name, value):
     '''Store a ref. An existing ref of the same name will be overwritten.
 
     Args:
@@ -41,6 +45,21 @@ class RefStore(object):
       None
     '''
     self._refs[name] = value
+
+  def missing(self, refs):
+    '''Get list of refs not in the store.
+
+    Args:
+      refs: list of refs
+
+    Returns:
+      subset of 'refs' not in the store
+    '''
+    subset = []
+    for ref in refs:
+      if ref not in self._refs:
+        subset.append(ref)
+    return subset
 
 
 def read_message_string():
@@ -136,6 +155,14 @@ def handle_task_message(msg):
     logging.warning(exc_msg)
     raise ValueError, exc_msg
 
+  # Determine if any refs are missing.
+  missing = refstore.missing(dataset)
+  if missing:
+    # TODO(ms): Don't bail if we're missing some refs.
+    send_message('state', {'status': 'blocked',
+                           'missing_refs': missing})
+    return
+
   # TODO(ms): For now, assume no dataset. The status may be 'blocked' if we
   #   don't have all of the local refs here.
   send_message('state', {'status': 'running'})
@@ -192,6 +219,10 @@ def print_message(msg):
 
 
 def main():
+  global refstore
+
+  refstore = RefStore()
+
   # Set up logging.
   _fmt = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
   logging.basicConfig(level=logging.WARNING, format=_fmt)
