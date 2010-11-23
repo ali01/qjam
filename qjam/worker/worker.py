@@ -251,7 +251,25 @@ def handle_task_message(msg):
 
 
 def handle_refs_message(msg):
-  pass
+  # Sanity check.
+  if 'refs' not in msg:
+    exc_msg = 'incomplete message: missing key "refs"'
+    logging.warning(exc_msg)
+    raise ValueError, exc_msg
+  refs = msg['refs']
+  if not isinstance(refs, list):
+    exc_msg = 'expected list of tuples for refs'
+    logging.warning(exc_msg)
+    raise ValueError, exc_msg
+
+  # Ensure all refs are (str, obj).
+  for ref in refs:
+    if (not isinstance(ref, tuple) or
+        len(ref) != 2 or
+        not isinstance(ref[0], unicode)):
+      exc_msg = 'expected list of (str, obj) for refs'
+      logging.warning(exc_msg)
+      raise ValueError, exc_msg
 
 
 def process_tasks():

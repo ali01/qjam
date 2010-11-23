@@ -72,6 +72,10 @@ class Test_Worker:
     data['type'] = cmd
     self.write_message(data)
 
+  def send_refs(self, refs):
+    msg = {'refs': refs}
+    self.write_command('refs', msg)
+
   def send_task(self, module, params, dataset):
     msg = {'module': encode(source(module)),
            'params': encode(params),
@@ -165,3 +169,19 @@ class Test_Worker:
     '''Send a task without a point of entry.'''
     self.send_task(no_poe, None, [])
     assert_true('point of entry' in self.read_error_string())
+
+  def test_incomplete_refs_msg(self):
+    '''Send refs message without 'refs' key.'''
+    self.write_command('refs', {})
+    assert_true('missing key' in self.read_error_string())
+
+  def test_incorrect_refs_format(self):
+    '''Send refs message with bad types.'''
+    self.send_refs(None)
+    assert_true('expected' in self.read_error_string())
+    self.send_refs([None])
+    assert_true('expected' in self.read_error_string())
+    self.send_refs([(None, None)])
+    assert_true('expected' in self.read_error_string())
+    self.send_refs([(1234, None)])
+    assert_true('expected' in self.read_error_string())
