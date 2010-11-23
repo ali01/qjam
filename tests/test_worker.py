@@ -72,6 +72,12 @@ class Test_Worker:
     data['type'] = cmd
     self.write_message(data)
 
+  def send_task(self, module, params, dataset):
+    msg = {'module': encode(source(module)),
+           'params': encode(params),
+           'dataset': dataset}
+    self.write_command('task', msg)
+
   def assert_status(self, msg, status):
     '''Asserts 'msg' is a state message with status 'status'.'''
     assert_true('type' in msg)
@@ -97,10 +103,7 @@ class Test_Worker:
 
   def test_bad_dataset(self):
     '''Send dataset that isn't a list of refs'''
-    msg = {'module': encode(source(constant)),
-           'params': encode(()),
-           'dataset': None}
-    self.write_command('task', msg)
+    self.send_task(constant, (), None)
     assert_true('expected' in self.read_error_string())
 
   def test_incomplete_task(self):
@@ -118,10 +121,7 @@ class Test_Worker:
       assert_true('missing key' in self.read_error_string())
 
   def run_task(self, module, params, dataset):
-    msg = {'module': encode(source(module)),
-           'params': encode(params),
-           'dataset': dataset}
-    self.write_command('task', msg)
+    self.send_task(module, params, dataset)
 
     state_msg = self.read_message()
     # TODO(ms): This assumes worker has all refs.
@@ -154,10 +154,7 @@ class Test_Worker:
     '''Start a task without having all refs on the worker.'''
     params = [1, 2, 3, 4]
     dataset = ['bogus_ref1', 'bogus_ref2']
-    msg = {'module': encode(source(sum_params)),
-           'params': encode(params),
-           'dataset': dataset}
-    self.write_command('task', msg)
+    self.send_task(sum_params, params, dataset)
     state_msg = self.read_message()
     # Worker does not have given refs.
     self.assert_status(state_msg, 'blocked')
@@ -166,8 +163,5 @@ class Test_Worker:
 
   def test_no_poe(self):
     '''Send a task without a point of entry.'''
-    msg = {'module': encode(source(no_poe)),
-           'params': encode(()),
-           'dataset': None}
-    self.write_command('task', msg)
+    self.send_task(no_poe, None, [])
     assert_true('point of entry' in self.read_error_string())
