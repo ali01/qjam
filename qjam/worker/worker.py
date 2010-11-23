@@ -12,6 +12,7 @@ import types
 
 # Globals.
 refstore = None
+taskqueue = None
 
 
 class RefStore(object):
@@ -68,6 +69,12 @@ class Task(object):
     self._params = params
     self._dataset = dataset
 
+  def __eq__(self, other):
+    return (self.id() == other.id())
+
+  def __ne__(self, other):
+    return not self.__eq__(other)
+
   def module(self):
     return self._module
 
@@ -84,6 +91,45 @@ class Task(object):
       ID string
     '''
     raise NotImplementedError
+
+
+class TaskQueue(object):
+  def __init__(self, refstore):
+    self._queue = []
+    self._refstore = refstore
+
+  def task_is(self, task):
+    '''Add new task to the queue.
+
+    Args:
+      task: Task object
+
+    Returns:
+      None
+    '''
+    self._queue.append(task)
+
+  def task_del(self, task):
+    '''Remove a task from the queue.
+
+    Args:
+      task: Task object to remove
+
+    Returns:
+      None
+    '''
+    self._queue.remove(task)
+
+  def dequeue(self):
+    '''Get next unblocked Task object from queue. If all tasks are blocked
+    (waiting on refs), None is returned.
+
+    Returns:
+      Task object or None
+    '''
+    for task in self._queue:
+      if not self._refstore.missing(task.dataset()):
+        return task
 
 
 def read_message_string():
@@ -244,8 +290,10 @@ def print_message(msg):
 
 def main():
   global refstore
+  global taskqueue
 
   refstore = RefStore()
+  taskqueue = TaskQueue(refstore)
 
   # Set up logging.
   _fmt = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
