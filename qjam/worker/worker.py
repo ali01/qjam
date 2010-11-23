@@ -263,13 +263,17 @@ def handle_refs_message(msg):
     raise ValueError, exc_msg
 
   # Ensure all refs are (str, obj).
-  for ref in refs:
-    if (not isinstance(ref, tuple) or
-        len(ref) != 2 or
-        not isinstance(ref[0], unicode)):
+  for tup in refs:
+    if (not isinstance(tup, tuple) or
+        len(tup) != 2 or
+        not isinstance(tup[0], unicode)):
       exc_msg = 'expected list of (str, obj) for refs'
       logging.warning(exc_msg)
       raise ValueError, exc_msg
+
+  # Store new refs.
+  for (ref, obj) in refs:
+    refstore.ref_is(ref, obj)
 
 
 def process_tasks():
