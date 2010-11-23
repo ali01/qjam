@@ -69,15 +69,18 @@ class Test_Worker:
     self.write_message(data)
 
   def test_process(self):
+    '''Make sure worker process is alive with proper communication handles.'''
     assert_not_equals(self._worker.stdin, None)
     assert_not_equals(self._worker.stdout, None)
     assert_not_equals(self._worker.stderr, None)
 
   def test_bad_message(self):
+    '''Send a message without a type.'''
     self.write_message({'bogus_key': 1234})
     assert_true('missing type' in self.read_error_string())
 
   def test_bad_type(self):
+    '''Send a message of an unknown type.'''
     self.write_command('bogus_command', {})
     assert_true('unexpected message type' in self.read_error_string())
 
@@ -90,6 +93,7 @@ class Test_Worker:
     assert_true('expected' in self.read_error_string())
 
   def test_incomplete_task(self):
+    '''Send task messages without all required keys.'''
     c = encode(source(constant))
     msg1 = {'module': c,
             'params': encode(())}
@@ -121,10 +125,12 @@ class Test_Worker:
     return result
 
   def test_constant(self):
+    '''Return a constant number with a task.'''
     result = self.run_task(constant, None, [])
     assert_equals(42, result)
 
   def test_sum(self):
+    '''Sum the list of params.'''
     params = [1, 2, 3, 6, 7, 9]
     result = self.run_task(sum_params, params, [])
     assert_equals(sum(params), result)
