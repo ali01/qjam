@@ -19,7 +19,7 @@ class ErrorMsg(BaseMsg):
 
 
 def ErrorMsgFromDict(dict):
-  if (dict['type'] != 'error'):
+  if dict['type'] != 'error':
     raise TypeError
 
   error_str = dict['error']

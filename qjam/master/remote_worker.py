@@ -36,11 +36,11 @@ class RemoteWorker(object):
     try:
       msg = self.__recv()
 
-      if (msg['type'] == 'state'):
+      if msg['type'] == 'state':
         state_msg = StateMsgFromDict(msg)
         self.__process_state_msg(state_msg)
 
-      elif (msg['type'] == 'result'):
+      elif msg['type'] == 'result':
         result_msg = ResultMsgFromDict(msg)
         self.__process_result_msg(result_msg);
 
@@ -80,13 +80,13 @@ class RemoteWorker(object):
 
 
   def __process_state_msg(self, state_msg):
-    if (not isinstance(state_msg, StateMsg)):
+    if not isinstance(state_msg, StateMsg):
       raise TypeError
 
-    if (state_msg.status() == 'running'):
+    if state_msg.status() == 'running':
       # remote has all necessary refs and is processing the task
       msg = self.__recv()
-      if (msg['type'] == 'result'):
+      if msg['type'] == 'result':
         result_msg = ResultMsgFromDict(msg)
         self.__process_result_msg(result_msg)
 
@@ -118,7 +118,7 @@ class RemoteWorker(object):
     try:
       msg = json.loads(self.__r_stdout.readline())
 
-      if (msg['type'] == 'error'):
+      if msg['type'] == 'error':
         error_msg = ErrorMsgFromDict(msg)
         raise RemoteWorkerError(str(error_msg))
 

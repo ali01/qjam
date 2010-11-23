@@ -10,7 +10,7 @@ class TaskMsg(BaseMsg):
     BaseMsg.__init__(self, 'task')
     self.__module  = module_object
     self.__params  = params
-    if (dataset != None):
+    if dataset != None:
       if not isinstance(dataset, list):
         exc_msg = 'expected list of refs or None for dataset'
         # TODO(ali01): logging

@@ -19,7 +19,7 @@ class ResultMsg(BaseMsg):
 
 
 def ResultMsgFromDict(dict):
-  if (dict['type'] != 'result'):
+  if dict['type'] != 'result':
     raise TypeError
 
   result_object = decode_msg_field(dict['result'])

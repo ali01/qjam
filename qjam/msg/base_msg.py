@@ -12,8 +12,6 @@ class BaseMsg(object):
     raise NotImplementedError
 
 
-
-
 def encode_msg_field(field):
   return base64.b64encode(pickle.dumps(field))
 
