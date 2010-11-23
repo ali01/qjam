@@ -1,7 +1,9 @@
 #!/usr/bin/python2.6
 import base64
 import cPickle as pickle
+import hashlib
 import imp
+import inspect
 import json
 import logging
 import os
@@ -90,7 +92,11 @@ class Task(object):
     Returns:
       ID string
     '''
-    raise NotImplementedError
+    hash = hashlib.sha1()
+    hash.update(inspect.getsource(self._module))
+    hash.update(str(self._params))
+    hash.update(str(self._dataset))
+    return hash.hexdigest()
 
 
 class TaskQueue(object):
@@ -224,6 +230,10 @@ def handle_task_message(msg):
     exc_msg = 'expected list of refs for dataset'
     logging.warning(exc_msg)
     raise ValueError, exc_msg
+
+  # Add task to queue.
+  task = Task(module, params, dataset)
+  taskqueue.task_is(task)
 
   # Determine if any refs are missing.
   missing = refstore.missing(dataset)
