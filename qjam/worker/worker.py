@@ -62,6 +62,30 @@ class RefStore(object):
     return subset
 
 
+class Task(object):
+  def __init__(self, module, params, dataset):
+    self._module = module
+    self._params = params
+    self._dataset = dataset
+
+  def module(self):
+    return self._module
+
+  def params(self):
+    return self._params
+
+  def dataset(self):
+    return self._dataset
+
+  def id(self):
+    '''Get Unique ID for this task.
+
+    Returns:
+      ID string
+    '''
+    raise NotImplementedError
+
+
 def read_message_string():
   '''Read message from stdin.
 
