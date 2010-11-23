@@ -7,6 +7,7 @@ import threading
 from qjam.msg.base_msg import BaseMsg
 from qjam.msg.state_msg import StateMsg, StateMsgFromDict
 from qjam.msg.result_msg import ResultMsg, ResultMsgFromDict
+from qjam.msg.error_msg import ErrorMsg, ErrorMsgFromDict
 from qjam.exceptions.remote_worker_error import RemoteWorkerError
 
 # TODO(ali01): remove hard coded path; use source of module instead
@@ -94,7 +95,7 @@ class RemoteWorker(object):
                                    but received message of type %s''' %
                                 msg['type'])
 
-    elif (msg['type'] == 'blocking'):
+    elif (state_msg.status() == 'blocked'):
       # todo(ali01): send missing refs
       pass
 
