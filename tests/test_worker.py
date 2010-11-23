@@ -81,14 +81,22 @@ class Test_Worker:
     self.write_command('bogus_command', {})
     assert_true('unexpected message type' in self.read_error_string())
 
+  def test_bad_dataset(self):
+    '''Send dataset that isn't a list of refs'''
+    msg = {'module': encode(source(constant)),
+           'params': encode(()),
+           'dataset': None}
+    self.write_command('task', msg)
+    assert_true('expected' in self.read_error_string())
+
   def test_incomplete_task(self):
     c = encode(source(constant))
     msg1 = {'module': c,
-            'params': ()}
+            'params': encode(())}
     msg2 = {'module': c,
             'dataset': None}
     msg3 = {'dataset': None,
-            'params': ()}
+            'params': encode(())}
 
     for msg in (msg1, msg2, msg3):
       self.write_command('task', msg)

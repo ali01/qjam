@@ -121,13 +121,26 @@ def handle_task_message(msg):
   # Entry point in the module.
   callable = getattr(module, 'run', None)
 
+  # Params are passed directly to the callable.
+  params = msg['params']
+  if not isinstance(params, unicode):
+    exc_msg = 'expected base64-encoded pickled object for params'
+    logging.warning(exc_msg)
+    raise ValueError, exc_msg
+  params = pickle.loads(base64.b64decode(msg['params']))
+
+  # The dataset is a list of refs.
+  dataset = msg['dataset']
+  if not isinstance(dataset, list):
+    exc_msg = 'expected list of refs for dataset'
+    logging.warning(exc_msg)
+    raise ValueError, exc_msg
+
   # TODO(ms): For now, assume no dataset. The status may be 'blocked' if we
   #   don't have all of the local refs here.
   send_message('state', {'status': 'running'})
 
   # Run the callable.
-  params = pickle.loads(base64.b64decode(msg['params']))
-  dataset = msg['dataset']
   result = callable(params, dataset)
 
   # Send the result to the master.
