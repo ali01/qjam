@@ -1,6 +1,4 @@
 from nose.tools import *
-import base64
-import cPickle as pickle
 import json
 import os
 import subprocess
@@ -8,25 +6,12 @@ import sys
 
 import qjam.worker.worker
 
+# utils
+from utils import source, encode, decode
+
 # Test modules. These are serialized and sent to the worker to execute.
 import constant
 import sum_params
-
-
-def source(module):
-  '''Return the source code for a given module object.'''
-  filename = module.__file__
-  filename = filename.replace('.pyc', '.py')
-  with open(filename, 'r') as fh:
-    return fh.read()
-
-
-def encode(data):
-  return base64.b64encode(pickle.dumps(data))
-
-
-def decode(data):
-  return pickle.loads(base64.b64decode(data))
 
 
 class Test_Worker:
