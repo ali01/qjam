@@ -244,7 +244,6 @@ def handle_task_message(msg):
   # Determine if any refs are missing.
   missing = refstore.missing(dataset)
   if missing:
-    # TODO(ms): Don't bail if we're missing some refs.
     send_message('state', {'status': 'blocked',
                            'missing_refs': missing})
 
