@@ -73,6 +73,12 @@ class Task(object):
 
     # Compute id.
     hash = hashlib.sha1()
+    # TODO(ms): This inspect hack depends on the code for the module being
+    #   available when the Task is constructed. Usually this is the case, but
+    #   if the code is stored in a temporary file that is closed and deleted
+    #   before the Task object is constructed (but after the module is compiled
+    #   and loaded into memory), this call will fail with a fairly general
+    #   error message ("could not get source code").
     hash.update(inspect.getsource(self._module))
     hash.update(str(self._params))
     hash.update(str(self._dataset))
