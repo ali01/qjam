@@ -68,6 +68,13 @@ class Test_Worker:
     data['type'] = cmd
     self.write_message(data)
 
+  def assert_status(self, msg, status):
+    '''Asserts 'msg' is a state message with status 'status'.'''
+    assert_true('type' in msg)
+    assert_equal('state', msg['type'])
+    assert_true('status' in msg)
+    assert_equal(status, msg['status'])
+
   def test_process(self):
     '''Make sure worker process is alive with proper communication handles.'''
     assert_not_equals(self._worker.stdin, None)
@@ -113,11 +120,8 @@ class Test_Worker:
     self.write_command('task', msg)
 
     state_msg = self.read_message()
-    assert_true('type' in state_msg)
-    assert_equal('state', state_msg['type'])
-    assert_true('status' in state_msg)
     # TODO(ms): This assumes worker has all refs.
-    assert_equal('running', state_msg['status'])
+    self.assert_status(state_msg, 'running')
 
     result_msg = self.read_message()
     assert_true('result' in result_msg)
@@ -141,3 +145,15 @@ class Test_Worker:
     self.test_sum()
     self.test_constant()
     self.test_sum()
+
+  def test_missing_refs(self):
+    '''Start a task without having all refs on the worker.'''
+    params = [1, 2, 3, 4]
+    dataset = ['bogus_ref1', 'bogus_ref2']
+    msg = {'module': encode(source(sum_params)),
+           'params': encode(params),
+           'dataset': dataset}
+    self.write_command('task', msg)
+    state_msg = self.read_message()
+    # Worker does not have given refs.
+    self.assert_status(state_msg, 'blocked')
