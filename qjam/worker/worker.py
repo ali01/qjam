@@ -10,6 +10,39 @@ import tempfile
 import types
 
 
+class RefStore(object):
+  def __init__(self):
+    self._refs = {}
+
+  def refs():
+    '''Get number of refs in store.
+
+    Returns:
+      integer
+    '''
+    return len(self._refs.keys())
+
+  def ref(name):
+    '''Get ref by given name.
+
+    Returns:
+      object or None if not found
+    '''
+    return self._refs.get(name, None)
+
+  def refIs(name, value):
+    '''Store a ref. An existing ref of the same name will be overwritten.
+
+    Args:
+      name: string name of ref
+      value: object
+
+    Returns:
+      None
+    '''
+    self._refs[name] = value
+
+
 def read_message_string():
   '''Read message from stdin.
 
