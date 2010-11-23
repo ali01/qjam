@@ -217,10 +217,10 @@ def handle_task_message(msg):
 
   # Load the module object.
   module = imp.load_source('workermodule', temp_file.name)
-
-  # Entry point in the module.
-  # TODO(ms): raise error here if there is no point of entry
-  callable = getattr(module, 'run', None)
+  if not getattr(module, 'run', None):
+    exc_msg = 'given module is missing "run" point of entry'
+    logging.warning(exc_msg)
+    raise ValueError, exc_msg
 
   # Params are passed directly to the callable.
   params = msg['params']

@@ -10,6 +10,7 @@ import qjam.worker.worker
 
 # Test modules. These are serialized and sent to the worker to execute.
 import constant
+import no_poe
 import sum_params
 
 
@@ -162,3 +163,11 @@ class Test_Worker:
     self.assert_status(state_msg, 'blocked')
     assert_true('missing_refs' in state_msg)
     assert_equal(dataset, state_msg['missing_refs'])
+
+  def test_no_poe(self):
+    '''Send a task without a point of entry.'''
+    msg = {'module': encode(source(no_poe)),
+           'params': encode(()),
+           'dataset': None}
+    self.write_command('task', msg)
+    assert_true('point of entry' in self.read_error_string())
