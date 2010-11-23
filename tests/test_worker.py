@@ -53,6 +53,7 @@ class Test_Worker:
       return json.loads(msg_str.strip())
     except ValueError, e:
       raise ValueError, 'error parsing message: "%s"' % msg_str.strip()
+    assert_true('type' in msg)
 
   def read_error_string(self):
     '''Read a line from stdout, expecting to see an error.
@@ -61,7 +62,6 @@ class Test_Worker:
       error string
     '''
     msg = self.read_message()
-    assert_true('type' in msg)
     assert_equals('error', msg['type'], 'expecting error message type')
     return msg['error']
 
@@ -83,10 +83,22 @@ class Test_Worker:
            'dataset': dataset}
     self.write_command('task', msg)
 
+  def read_result(self):
+    '''Reads worker's stdout and expects a result message. Returns result.'''
+    msg = self.read_message()
+    assert_equal('result', msg['type'])
+    assert_true('result' in msg)
+    result = decode(msg['result'])
+    return result
+
+  def read_state(self):
+    '''Reads worker's stdout and expects a state message. Returns message.'''
+    msg = self.read_message()
+    assert_equal('state', msg['type'])
+    return msg
+
   def assert_status(self, msg, status):
     '''Asserts 'msg' is a state message with status 'status'.'''
-    assert_true('type' in msg)
-    assert_equal('state', msg['type'])
     assert_true('status' in msg)
     assert_equal(status, msg['status'])
 
@@ -128,13 +140,10 @@ class Test_Worker:
   def run_task(self, module, params, dataset):
     self.send_task(module, params, dataset)
 
-    state_msg = self.read_message()
+    state_msg = self.read_state()
     # TODO(ms): This assumes worker has all refs.
     self.assert_status(state_msg, 'running')
-
-    result_msg = self.read_message()
-    assert_true('result' in result_msg)
-    result = decode(result_msg['result'])
+    result = self.read_result()
     return result
 
   def test_constant(self):
@@ -160,7 +169,7 @@ class Test_Worker:
     params = [1, 2, 3, 4]
     dataset = ['bogus_ref1', 'bogus_ref2']
     self.send_task(sum_params, params, dataset)
-    state_msg = self.read_message()
+    state_msg = self.read_state()
     # Worker does not have given refs.
     self.assert_status(state_msg, 'blocked')
     assert_true('missing_refs' in state_msg)
@@ -177,7 +186,7 @@ class Test_Worker:
     assert_true('missing key' in self.read_error_string())
 
   def test_incorrect_refs_format(self):
-    '''Send refs message with bad types.'''
+    '''Send refs messages with bad types.'''
     self.send_refs(None)
     assert_true('expected' in self.read_error_string())
     self.send_refs([None])
@@ -193,17 +202,16 @@ class Test_Worker:
     dataset = ['ref1']
     chunk = [1, 2, 3, 4, 8, 33]
     self.send_task(sum_dataset, None, dataset)
-    state_msg = self.read_message()
+    state_msg = self.read_state()
     self.assert_status(state_msg, 'blocked')
 
     # Send only missing ref.
     self.send_refs([(dataset[0], chunk)])
 
     # Ensure task is now running.
-    state_msg = self.read_message()
+    state_msg = self.read_state()
     self.assert_status(state_msg, 'running')
 
     # Retrieve result.
-    result_msg = self.read_message()
-    result = decode(result_msg['result'])
+    result = self.read_result()
     assert_equal(sum(chunk), result)
