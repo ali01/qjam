@@ -3,8 +3,11 @@ import numpy
 from . import fixture
 from qjam import Job, Master, Node
 
-class NumPyBase(object):
+class TestNumPy(unittest.TestCase):
     """Test NumPy inner product calculations."""
+
+    def setUp(self):
+        self.master = Master(fixture.localhost_nodes)
 
     def test_inner_product(self):
         def inner_prod(xs, theta):
@@ -15,7 +18,3 @@ class NumPyBase(object):
                   dataset=x, params=numpy.array([2,4]))
         result = self.master.run(job)
         self.assertEqual(170, result)
-
-class TestLocalNumPy(NumPyBase, unittest.TestCase):
-    def setUp(self):
-        self.master = Master(fixture.localhost_nodes)
