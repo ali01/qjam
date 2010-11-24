@@ -1,5 +1,6 @@
 from nose.tools import *
 
+from qjam.dataset import DataSet
 from qjam.master.master import Master
 from qjam.master.remote_worker import RemoteWorker
 
@@ -28,9 +29,24 @@ class TestMaster:
     params = [1, 2, 3, 6, 7, 9]
     assert_equals(2 * sum(params), master.run(sum_params, params))
 
-  def test_multiply_sum_simple(self):
+  def test_single_worker_multiply_sum_simple(self):
     worker = RemoteWorker('localhost')
     master = Master([worker])
-    # todo: fix
-    result = master.run(multiply_sum_simple, params=3, dataset=(1,2,3,4,5,6,7))
-    assert_equals(84, result)
+
+    list = range(0,100)
+    dataset = DataSet(list)
+    
+    result = master.run(multiply_sum_simple, params=3, dataset=dataset)
+    assert_equals(14850, result)
+
+  def test_triple_worker_multiply_sum_simple(self):
+    worker_1 = RemoteWorker('localhost')
+    worker_2 = RemoteWorker('localhost')
+    worker_3 = RemoteWorker('localhost')
+    master = Master([worker_1, worker_2, worker_3])
+
+    list = range(0,100)
+    dataset = DataSet(list)
+
+    result = master.run(multiply_sum_simple, params=3, dataset=dataset)
+    assert_equals(14850, result)

@@ -1,10 +1,11 @@
 #!/usr/bin/python
-import os
-import threading
 import base64
-import json
 import cPickle as pickle
+import json
+import math
+import os
 import paramiko
+import threading
 
 from remote_worker import RemoteWorker
 from remote_task_thread import RemoteTaskThread
@@ -31,9 +32,24 @@ class Master(object):
   def run(self, module, params=None, dataset=None):
     self.__thread_pool = []
 
-    for worker in self.__workers:
-      # TODO: pass in appropriate slice
-      task_msg = TaskMsg(module, params, None)
+    len_workers = len(self.__workers)
+
+    if dataset:
+      dataset.slice_size_is(1)
+      if len(dataset) > len_workers:
+        slice_size = int(math.ceil(float(len(dataset)) / len_workers))
+        dataset.slice_size_is(slice_size)
+
+    for i,worker in enumerate(self.__workers):
+      if dataset:
+        if i >= len(dataset):
+          break
+        worker_slice = dataset.slice(i)
+        # TODO: resize make slice_size the desired chunk size
+        task_msg = TaskMsg(module, params, worker_slice)
+      else:
+        task_msg = TaskMsg(module, params, None)
+
       thread = RemoteTaskThread(worker, task_msg)
       self.__thread_pool.append(thread)
       thread.start()
