@@ -11,6 +11,11 @@ import sys
 import tempfile
 import types
 
+# Adjust path to have access to other qjam code.
+sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..', '..'))
+
+from qjam.common import reducing
+
 
 # Globals.
 refstore = None
@@ -291,6 +296,13 @@ def process_tasks():
   if task is None:
     return  # Nothing to do
 
+  try:
+    process_task(task)
+  except Exception, e:
+    send_error('callable raised exception: %s' % str(e))
+
+
+def process_task(task):
   send_message('state', id=task.id(), status='running')
 
   # Entry point in the module.
@@ -301,9 +313,14 @@ def process_tasks():
   if len(dataset) == 0:
     result = callable(task.params(), dataset)
   else:
-    # TODO(ms): run callable once for each chunk and coalesce the results
-    chunk = refstore.ref(task.dataset()[0])
-    result = callable(task.params(), chunk)
+    results = []
+    for ref in dataset:
+      chunk = refstore.ref(ref)
+      result = callable(task.params(), chunk)
+      results.append(result)
+
+    # In-mapper reducing.
+    result = reduce(reducing.default_reduce, results)
 
   # Send the result to the master.
   enc_result = base64.b64encode(pickle.dumps(result))
