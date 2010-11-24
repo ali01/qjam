@@ -1,5 +1,7 @@
 from nose.tools import *
 
+import numpy
+
 from qjam.dataset import DataSet
 from qjam.master.master import Master
 from qjam.master.remote_worker import RemoteWorker
@@ -8,6 +10,7 @@ from qjam.master.remote_worker import RemoteWorker
 import constant
 import sum_params
 from modules import multiply_sum_simple
+from modules import inner_prod
 
 class TestMaster:
   def test_single_worker_simple(self):
@@ -33,10 +36,9 @@ class TestMaster:
     worker = RemoteWorker('localhost')
     master = Master([worker])
 
-    list = range(0,100)
-    dataset = DataSet(list)
-    
+    dataset = DataSet(range(0,100))
     result = master.run(multiply_sum_simple, params=3, dataset=dataset)
+
     assert_equals(14850, result)
 
   def test_triple_worker_multiply_sum_simple(self):
@@ -45,8 +47,18 @@ class TestMaster:
     worker_3 = RemoteWorker('localhost')
     master = Master([worker_1, worker_2, worker_3])
 
-    list = range(0,100)
-    dataset = DataSet(list)
-
+    dataset = DataSet(range(0,100))
     result = master.run(multiply_sum_simple, params=3, dataset=dataset)
+
     assert_equals(14850, result)
+
+  def test_numpy(self):
+    worker_1 = RemoteWorker('localhost')
+    worker_2 = RemoteWorker('localhost')
+    master = Master([worker_1, worker_2])
+
+    dataset = DataSet(numpy.array([[1,2],[3,4],[5,6],[7,8],[9,10]]))
+    params = numpy.array([2,4])
+    result = master.run(inner_prod, params=params, dataset=dataset)
+
+    assert_equals(170, result)
