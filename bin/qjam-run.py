@@ -7,13 +7,15 @@ import sys
 # Add parent directory to path.
 sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..'))
 
-from qjam import Node, Master, Job
+from qjam.dataset import DataSet
+from qjam.master.remote_worker import RemoteWorker
+from qjam.master.master import Master
 
 logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 logger = logging.getLogger('qjam')
 
 def parse_args():
-    parser = OptionParser(usage="%prog [opts] <mapfunc> <dataset> [params]")
+    parser = OptionParser(usage="%prog [opts] <module> <dataset> [params]")
     parser.add_option("-n", "--nodes", dest="nodes", default="localhost",
                       help="list of nodes, e.g. 'node1 node2'")
     parser.add_option("-q", "--quiet", dest="verbose",
@@ -21,7 +23,7 @@ def parse_args():
                       help="quiet (default is verbose)")
     (options, args) = parser.parse_args()
     if len(args) < 2:
-        parser.error("missing required args <mapfunc> <dataset>")
+        parser.error("missing required args <module> <dataset>")
     return (options, args)
 
 def print_nodes(nodes):
@@ -41,28 +43,24 @@ def resolve_module_attr(name):
 def main():
     # parse args
     options, args = parse_args()
-    mapfunc_name = args[0]
+    module_name = args[0]
     dataset_name = args[1]
     params_name = args[2] if len(args) == 3 else None
 
     # set up cluster
-    nodes = [Node(host) for host in options.nodes.split()]
-    print_nodes(nodes)
-    master = Master(nodes)
+    workers = [RemoteWorker(host) for host in options.nodes.split()]
+    # print_nodes(workers)
+    master = Master(workers)
 
     # set up job
     # TODO: allow user to specify params - through a separate .py file?
-    mapfunc = resolve_module_attr(mapfunc_name)
-    dataset = resolve_module_attr(dataset_name)
+    module = resolve_module_attr(module_name)
     params = resolve_module_attr(params_name) if params_name else None
-    job_name = mapfunc_name.rsplit('.', 1)[1]
-    job = Job(mapfunc, name=job_name, dataset=dataset, params=params)
+    dataset = DataSet(resolve_module_attr(dataset_name))
 
     # run
-    result = master.run(job)
+    result = master.run(module, params, dataset)
     print result
 
 if __name__ == "__main__":
     main()
-
-
