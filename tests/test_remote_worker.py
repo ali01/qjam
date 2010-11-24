@@ -26,13 +26,13 @@ class TestRemoteWorker:
     assert_equals(sum(params), result)
 
   def test_multiply_sum_simple(self):
-    list = range(0,10)
-    dataset = DataSet(list, len(list))
-    assert_equals(1, len(dataset))
+    list = range(0,100)
+    dataset = DataSet(list, slice_size=5)
+    assert_equals(20, len(dataset))
 
     task_msg = TaskMsg(multiply_sum_simple, params=3, dataset=dataset)
-    result = self.remote_worker.taskIs(taskIs)
-    assert_equals(135, result)
+    result = self.remote_worker.taskIs(task_msg)
+    assert_equals(14850, result)
 
 class TestRemoteTaskThread:
   def setup(self):
@@ -52,3 +52,14 @@ class TestRemoteTaskThread:
     task_thread.start()
     task_thread.join()
     assert_equals(sum(params), task_thread.result())
+
+  def test_multiply_sum_simple(self):
+    list = range(0,100)
+    dataset = DataSet(list, slice_size=4)
+    assert_equals(25, len(dataset))
+
+    task_msg = TaskMsg(multiply_sum_simple, params=3, dataset=dataset)
+    task_thread = RemoteTaskThread(self.remote_worker, task_msg)
+    task_thread.start()
+    task_thread.join()
+    assert_equals(14850, task_thread.result())

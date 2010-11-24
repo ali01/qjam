@@ -1,8 +1,7 @@
 import unittest
 import numpy
-from . import fixture
-from qjam.dataset_new import DataSet
-from qjam.dataset_new import NumpyMatrixFileDataSet as MatFileDataSet
+from qjam.dataset import DataSet
+from qjam.dataset import NumpyMatrixFileDataSet as MatFileDataSet
 
 class TestDataSet(unittest.TestCase):
     pass
@@ -117,10 +116,10 @@ class TestNumpyMatrixDataSet(unittest.TestCase):
       self.assertEqual(ds1.hash(), ds2.hash())
       for i in range(0, len(ds1)):
         self.assertEqual(ds1.hash(i), ds2.hash(i))
-        slice1 = ds1.slice_with_hash(ds1.hash(i)).raw_data()
-        slice2 = ds2.slice_with_hash(ds2.hash(i)).raw_data()
-        slice12 = ds1.slice_with_hash(ds2.hash(i)).raw_data()
-        slice21 = ds2.slice_with_hash(ds1.hash(i)).raw_data()
+        slice1 = ds1.slice_from_hash(ds1.hash(i)).raw_data()
+        slice2 = ds2.slice_from_hash(ds2.hash(i)).raw_data()
+        slice12 = ds1.slice_from_hash(ds2.hash(i)).raw_data()
+        slice21 = ds2.slice_from_hash(ds1.hash(i)).raw_data()
         self.assertTrue((slice1 == slice2).all())
         self.assertTrue((slice12 == slice21).all())
         self.assertTrue((slice1 == slice21).all())
@@ -153,7 +152,11 @@ MAT3 = numpy.matrix('''[-7.3648691e-002 -5.8656108e-002 -1.9319049e-001;
 
 
 class TestNumpyMatrixFileDataSet(unittest.TestCase):
-  __FILE = "../sparse_autoencoder/matlab/src/olsh.dat"
+  import os
+  if 'tests' in os.getcwd():
+    __FILE = "../sparse_autoencoder/matlab/src/olsh.dat"
+  else:
+    __FILE = "sparse_autoencoder/matlab/src/olsh.dat"
   __LINES = 5120
 
   def test_len(self):
@@ -203,10 +206,10 @@ class TestNumpyMatrixFileDataSet(unittest.TestCase):
       self.assertEqual(ds1.hash(), ds2.hash())
       for i in range(0, len(ds1), 100):
         self.assertEqual(ds1.hash(i), ds2.hash(i))
-        slice1 = ds1.slice_with_hash(ds1.hash(i)).raw_data()
-        slice2 = ds2.slice_with_hash(ds2.hash(i)).raw_data()
-        slice12 = ds1.slice_with_hash(ds2.hash(i)).raw_data()
-        slice21 = ds2.slice_with_hash(ds1.hash(i)).raw_data()
+        slice1 = ds1.slice_from_hash(ds1.hash(i)).raw_data()
+        slice2 = ds2.slice_from_hash(ds2.hash(i)).raw_data()
+        slice12 = ds1.slice_from_hash(ds2.hash(i)).raw_data()
+        slice21 = ds2.slice_from_hash(ds1.hash(i)).raw_data()
         self.assertTrue((slice1 == slice2).all())
         self.assertTrue((slice12 == slice21).all())
         self.assertTrue((slice1 == slice21).all())
