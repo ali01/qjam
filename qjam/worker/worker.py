@@ -17,11 +17,6 @@ sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..', '..'))
 from qjam.common import reducing
 
 
-# Globals.
-refstore = None
-taskqueue = None
-
-
 class RefStore(object):
   def __init__(self):
     self._refs = {}
@@ -161,198 +156,230 @@ class TaskQueue(object):
     return to_return
 
 
-def read_message_string():
-  '''Read message from stdin.
+class Worker(object):
+  def __init__(self, input, output, refstore=None):
+    '''Initialize the worker.
 
-  Returns:
-    Message string without newline.
-  '''
-  line = sys.stdin.readline()
-  line = line.strip()
-  return line
+    Args:
+      input: file object for Worker's input
+      output: file object for Worker's output
+      refstore: RefStore object for object storage
+    '''
+    self._input = input
+    self._output = output
+    if refstore is None:
+      refstore = RefStore()
+    self._refstore = refstore
+    self._taskqueue = TaskQueue(self._refstore)
 
+  def _read_message_string(self):
+    '''Read message from input stream.
 
-def handle_message(msg):
-  '''Dispatch a message object to the appropriate handler.
+    Returns:
+      Message string without newline.
+    '''
+    line = self._input.readline().strip()
+    return line
 
-  Args:
-    msg: message object
+  def _handle_message(self, msg):
+    '''Dispatch a message object to the appropriate handler.
 
-  Raises:
-    ValueError if message is ill-formed or contains an unexpected type.
+    Args:
+      msg: message object
 
-  Returns:
-    None
-  '''
-  print_message(msg)
+    Raises:
+      ValueError if message is ill-formed or contains an unexpected type.
 
-  if 'type' not in msg:
-    # Ill-formed message.
-    logging.warning('message is missing type, ignoring')
-    raise ValueError, 'message is missing type'
+    Returns:
+      None
+    '''
+    print_message(msg)
 
-  msg_type = msg['type']
-  if msg_type == 'task':
-    handle_task_message(msg)
-  elif msg_type == 'refs':
-    handle_refs_message(msg)
-  else:
-    exc_msg = 'unexpected message type: %s' % msg_type
-    logging.warning(exc_msg)
-    raise ValueError, exc_msg
+    if 'type' not in msg:
+      # Ill-formed message.
+      logging.warning('message is missing type, ignoring')
+      raise ValueError, 'message is missing type'
 
-
-def handle_task_message(msg):
-  '''Message handler for "task" messages.
-
-  Args:
-    msg: mesage object
-
-  Raises:
-    ValueError on incomplete messages
-
-  Returns:
-    None
-  '''
-  # Sanity check.
-  for key in ('module', 'params', 'dataset'):
-    if key not in msg:
-      exc_msg = 'incomplete message: missing key "%s"' % key
+    msg_type = msg['type']
+    if msg_type == 'task':
+      self._handle_task_message(msg)
+    elif msg_type == 'refs':
+      self._handle_refs_message(msg)
+    else:
+      exc_msg = 'unexpected message type: %s' % msg_type
       logging.warning(exc_msg)
       raise ValueError, exc_msg
 
-  # Python source code for the runnable module.
-  code = pickle.loads(base64.b64decode(msg['module']))
+  def _handle_task_message(self, msg):
+    '''Message handler for "task" messages.
 
-  # TODO(ms): Writing the code to a file is a hack to get the module
-  #   object. Built-in functions like compile(), exec(), and eval() seem like a
-  #   step in the right direction, but I haven't figured out a complete
-  #   solution that doesn't involve the filesystem yet.
-  temp_file = tempfile.NamedTemporaryFile()
-  temp_file.write(code)
-  temp_file.flush()
-  # Don't close the temp_file yet; need to load it below.
+    Args:
+      msg: mesage object
 
-  # Load the module object.
-  module = imp.load_source('workermodule', temp_file.name)
-  if not getattr(module, 'run', None):
-    exc_msg = 'given module is missing "run" point of entry'
-    logging.warning(exc_msg)
-    raise ValueError, exc_msg
+    Raises:
+      ValueError on incomplete messages
 
-  # Params are passed directly to the callable.
-  params = msg['params']
-  if not isinstance(params, unicode):
-    exc_msg = 'expected base64-encoded pickled object for params'
-    logging.warning(exc_msg)
-    raise ValueError, exc_msg
-  params = pickle.loads(base64.b64decode(msg['params']))
+    Returns:
+      None
+    '''
+    # Sanity check.
+    for key in ('module', 'params', 'dataset'):
+      if key not in msg:
+        exc_msg = 'incomplete message: missing key "%s"' % key
+        logging.warning(exc_msg)
+        raise ValueError, exc_msg
 
-  # The dataset is a list of refs.
-  dataset = msg['dataset']
-  if not isinstance(dataset, list):
-    exc_msg = 'expected list of refs for dataset'
-    logging.warning(exc_msg)
-    raise ValueError, exc_msg
+    # Python source code for the runnable module.
+    code = pickle.loads(base64.b64decode(msg['module']))
 
-  # Add task to queue.
-  task = Task(module, params, dataset)
-  taskqueue.task_is(task)
+    # TODO(ms): Writing the code to a file is a hack to get the module
+    #   object. Built-in functions like compile(), exec(), and eval() seem like
+    #   a step in the right direction, but I haven't figured out a complete
+    #   solution that doesn't involve the filesystem yet.
+    temp_file = tempfile.NamedTemporaryFile()
+    temp_file.write(code)
+    temp_file.flush()
+    # Don't close the temp_file yet; need to load it below.
 
-  # Determine if any refs are missing.
-  missing = refstore.missing(dataset)
-  if missing:
-    send_message('state', status='blocked', missing_refs=missing)
-
-
-def handle_refs_message(msg):
-  # Sanity check.
-  if 'refs' not in msg:
-    exc_msg = 'incomplete message: missing key "refs"'
-    logging.warning(exc_msg)
-    raise ValueError, exc_msg
-  refs = msg['refs']
-  if not isinstance(refs, list):
-    exc_msg = 'expected list of tuples for refs'
-    logging.warning(exc_msg)
-    raise ValueError, exc_msg
-
-  # Ensure all refs are (str, obj).
-  for tup in refs:
-    if (not isinstance(tup, list) or
-        len(tup) != 2 or
-        not isinstance(tup[0], unicode)):
-      exc_msg = 'expected list of [str, obj] for refs'
+    # Load the module object.
+    module = imp.load_source('workermodule', temp_file.name)
+    if not getattr(module, 'run', None):
+      exc_msg = 'given module is missing "run" point of entry'
       logging.warning(exc_msg)
       raise ValueError, exc_msg
 
-  # Store new refs.
-  for (ref, obj) in refs:
-    refstore.ref_is(ref, obj)
+    # Params are passed directly to the callable.
+    params = msg['params']
+    if not isinstance(params, unicode):
+      exc_msg = 'expected base64-encoded pickled object for params'
+      logging.warning(exc_msg)
+      raise ValueError, exc_msg
+    params = pickle.loads(base64.b64decode(msg['params']))
 
+    # The dataset is a list of refs.
+    dataset = msg['dataset']
+    if not isinstance(dataset, list):
+      exc_msg = 'expected list of refs for dataset'
+      logging.warning(exc_msg)
+      raise ValueError, exc_msg
 
-def process_tasks():
-  task = taskqueue.dequeue()
-  if task is None:
-    return  # Nothing to do
+    # Add task to queue.
+    task = Task(module, params, dataset)
+    self._taskqueue.task_is(task)
 
-  try:
-    process_task(task)
-  except Exception, e:
-    send_error('callable raised exception: %s' % str(e))
+    # Determine if any refs are missing.
+    missing = self._refstore.missing(dataset)
+    if missing:
+      self._send_message('state', status='blocked', missing_refs=missing)
 
+  def _handle_refs_message(self, msg):
+    # Sanity check.
+    if 'refs' not in msg:
+      exc_msg = 'incomplete message: missing key "refs"'
+      logging.warning(exc_msg)
+      raise ValueError, exc_msg
+    refs = msg['refs']
+    if not isinstance(refs, list):
+      exc_msg = 'expected list of tuples for refs'
+      logging.warning(exc_msg)
+      raise ValueError, exc_msg
 
-def process_task(task):
-  send_message('state', id=task.id(), status='running')
+    # Ensure all refs are (str, obj).
+    for tup in refs:
+      if (not isinstance(tup, list) or
+          len(tup) != 2 or
+          not isinstance(tup[0], unicode)):
+        exc_msg = 'expected list of [str, obj] for refs'
+        logging.warning(exc_msg)
+        raise ValueError, exc_msg
 
-  # Entry point in the module.
-  callable = getattr(task.module(), 'run')
+    # Store new refs.
+    for (ref, obj) in refs:
+      self._refstore.ref_is(ref, obj)
 
-  # Run the callable.
-  dataset = task.dataset()
-  if len(dataset) == 0:
-    result = callable(task.params(), dataset)
-  else:
-    results = []
-    for ref in dataset:
-      chunk = refstore.ref(ref)
-      result = callable(task.params(), chunk)
-      results.append(result)
+  def _process_tasks(self):
+    task = self._taskqueue.dequeue()
+    if task is None:
+      return  # Nothing to do
 
-    # In-mapper reducing.
-    result = reduce(reducing.default_reduce, results)
+    try:
+      self._process_task(task)
+    except Exception, e:
+      self._send_error('callable raised exception: %s' % str(e))
 
-  # Send the result to the master.
-  enc_result = base64.b64encode(pickle.dumps(result))
-  send_message('result', id=task.id(), result=enc_result)
+  def _process_task(self, task):
+    self._send_message('state', id=task.id(), status='running')
 
+    # Entry point in the module.
+    callable = getattr(task.module(), 'run')
 
-def send_error(err_str):
-  '''Send an error message to stdout.
+    # Run the callable.
+    dataset = task.dataset()
+    if len(dataset) == 0:
+      result = callable(task.params(), dataset)
+    else:
+      results = []
+      for ref in dataset:
+        chunk = self._refstore.ref(ref)
+        result = callable(task.params(), chunk)
+        results.append(result)
 
-  Args:
-    err_str: error string
+      # In-mapper reducing.
+      result = reduce(reducing.default_reduce, results)
 
-  Returns:
-    None
-  '''
-  send_message('error', error=err_str)
+    # Send the result to the master.
+    enc_result = base64.b64encode(pickle.dumps(result))
+    self._send_message('result', id=task.id(), result=enc_result)
 
+  def _send_error(self, err_str):
+    '''Send an error message to stdout.
 
-def send_message(msg_type, **kwargs):
-  '''Send a message to stdout.
+    Args:
+      err_str: error string
 
-  Args:
-    msg_type: message type ('error', 'state', 'result')
-    msg: dictionary of other parameters to include in outgoing message
+    Returns:
+      None
+    '''
+    self._send_message('error', error=err_str)
 
-  Returns:
-    None
-  '''
-  msg = kwargs
-  msg['type'] = msg_type
-  sys.stdout.write('%s\n' % json.dumps(msg))
-  sys.stdout.flush()
+  def _send_message(self, msg_type, **kwargs):
+    '''Send a message to output stream.
+
+    Args:
+      msg_type: message type ('error', 'state', 'result')
+      msg: dictionary of other parameters to include in outgoing message
+
+    Returns:
+      None
+    '''
+    msg = kwargs
+    msg['type'] = msg_type
+    self._output.write('%s\n' % json.dumps(msg))
+    self._output.flush()
+
+  def run(self):
+    '''Entry point into the worker. Processes and responds to incoming messages
+    forever. Does not return.
+    '''
+    while True:
+      # Read incoming message.
+      msg_str = self._read_message_string()
+      if not msg_str:
+        return
+
+      # Process message.
+      try:
+        msg = json.loads(msg_str)
+      except ValueError, e:
+        _send_error('error parsing incoming message')
+
+      try:
+        self._handle_message(msg)
+      except ValueError, e:
+        self._send_error(str(e))
+
+      # Run any ready tasks.
+      self._process_tasks()
 
 
 def print_message(msg):
@@ -362,41 +389,19 @@ def print_message(msg):
     msg: message object
 
   Returns:
-    None
+  None
   '''
   logging.debug('received message: %s' % msg)
 
 
 def main():
-  global refstore
-  global taskqueue
-
-  refstore = RefStore()
-  taskqueue = TaskQueue(refstore)
-
   # Set up logging.
   _fmt = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
   logging.basicConfig(level=logging.DEBUG, format=_fmt)
 
-  while True:
-    # Read incoming message.
-    msg_str = read_message_string()
-    if not msg_str:
-      return
-
-    # Process message.
-    try:
-      msg = json.loads(msg_str)
-    except ValueError, e:
-      send_error('error parsing incoming message')
-
-    try:
-      handle_message(msg)
-    except ValueError, e:
-      send_error(str(e))
-
-    # Run any ready tasks.
-    process_tasks()
+  # Create a Worker and attach it to the stdin and stdout streams.
+  worker = Worker(sys.stdin, sys.stdout)
+  worker.run()
 
 
 if __name__ == '__main__':
