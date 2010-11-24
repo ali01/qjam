@@ -8,7 +8,7 @@ EXAMPLES
 --------------------------------
 # You need to have passwordless ssh access to localhost as your current username.
 # Run qjam on localhost
-bin/qjam-run.py -n localhost examples.multiply_sum.multiply_sum examples.sequences.onetoten
+bin/qjam-run.py -n localhost examples.multiply_sum.multiply_sum examples.sequences.onetoten examples.sequences.three
 # should print 165
 
 
