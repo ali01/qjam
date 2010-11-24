@@ -55,7 +55,9 @@ class TestRemoteTaskThread:
 
   def test_multiply_sum_simple(self):
     list = range(0,100)
-    dataset = DataSet(list, slice_size=5)
+    dataset = DataSet(list, slice_size=4)
+    assert_equals(25, len(dataset))
+
     task_msg = TaskMsg(multiply_sum_simple, params=3, dataset=dataset)
     task_thread = RemoteTaskThread(self.remote_worker, task_msg)
     task_thread.start()
