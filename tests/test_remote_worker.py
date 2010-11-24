@@ -31,7 +31,7 @@ class TestRemoteWorker:
     assert_equals(20, len(dataset))
 
     task_msg = TaskMsg(multiply_sum_simple, params=3, dataset=dataset)
-    result = self.remote_worker.taskIs(taskIs)
+    result = self.remote_worker.taskIs(task_msg)
     assert_equals(14850, result)
 
 class TestRemoteTaskThread:
