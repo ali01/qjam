@@ -1,8 +1,8 @@
 import unittest
 import numpy
 from . import fixture
-from qjam.dataset_new import DataSet
-from qjam.dataset_new import NumpyMatrixFileDataSet as MatFileDataSet
+from qjam.dataset import DataSet
+from qjam.dataset import NumpyMatrixFileDataSet as MatFileDataSet
 
 class TestDataSet(unittest.TestCase):
     pass
