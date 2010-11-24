@@ -97,6 +97,10 @@ class BaseDataSet(object):
     index = self._slice_hashes[hash_value]
     return self.slice(index)
 
+  def hash_list(self):
+    '''returns a list of the hashes of all slices'''
+    return self._slice_hashes.keys()
+
   # subclasses may override:
 
   # subclasses must implement:
