@@ -284,17 +284,19 @@ class Worker(object):
       logging.warning(exc_msg)
       raise ValueError, exc_msg
 
-    # Ensure all refs are (str, obj).
+    # Ensure all refs are (str, encoded obj).
     for tup in refs:
       if (not isinstance(tup, list) or
           len(tup) != 2 or
-          not isinstance(tup[0], unicode)):
+          not isinstance(tup[0], unicode) or
+          not isinstance(tup[1], unicode)):
         exc_msg = 'expected list of [str, obj] for refs'
         logging.warning(exc_msg)
         raise ValueError, exc_msg
 
     # Store new refs.
     for (ref, obj) in refs:
+      obj = pickle.loads(base64.b64decode(obj))
       self._refstore.ref_is(ref, obj)
 
   def _process_tasks(self):
