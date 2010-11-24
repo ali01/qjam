@@ -12,6 +12,7 @@ from utils import source, encode, decode
 # Test modules. These are serialized and sent to the worker to execute.
 import constant
 import no_poe
+import raise_exc
 import sum_dataset
 import sum_params
 
@@ -141,6 +142,12 @@ class Test_Worker:
     params = [1, 2, 3, 6, 7, 9]
     result = self.run_task(sum_params, params, [])
     assert_equals(sum(params), result)
+
+  def test_raise_exc(self):
+    '''Run a callable that raises an exception.'''
+    self.send_task(raise_exc, None, [])
+    state_msg = self.read_state()
+    assert_true('exception' in self.read_error_string())
 
   def test_multiple_tasks(self):
     '''Run multiple tasks on the same worker instance.'''
