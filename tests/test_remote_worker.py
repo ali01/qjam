@@ -1,5 +1,6 @@
 from nose.tools import *
 
+from qjam.dataset import DataSet
 from qjam.master.remote_task_thread import RemoteTaskThread
 from qjam.master.remote_worker import RemoteWorker
 from qjam.msg.task_msg import TaskMsg
@@ -7,6 +8,7 @@ from qjam.msg.task_msg import TaskMsg
 # test modules
 import constant
 import sum_params
+from modules import multiply_sum_simple
 
 class TestRemoteWorker:
   def setup(self):
@@ -17,13 +19,20 @@ class TestRemoteWorker:
     result = self.remote_worker.taskIs(task_msg)
     assert_equals(42, result)
 
-
   def test_task_sum(self):
     params = [1, 2, 3, 6, 7, 9]
     task_msg = TaskMsg(sum_params, params, dataset=None)
     result = self.remote_worker.taskIs(task_msg)
     assert_equals(sum(params), result)
 
+  def test_multiply_sum_simple(self):
+    list = range(0,10)
+    dataset = DataSet(list, len(list))
+    assert_equals(1, len(dataset))
+
+    task_msg = TaskMsg(multiply_sum_simple, params=3, dataset=dataset)
+    result = self.remote_worker.taskIs(taskIs)
+    assert_equals(135, result)
 
 class TestRemoteTaskThread:
   def setup(self):
@@ -35,7 +44,6 @@ class TestRemoteTaskThread:
     task_thread.start()
     task_thread.join()
     assert_equals(42, task_thread.result())
-
 
   def test_task_sum(self):
     params = [1, 2, 3, 6, 7, 9]
