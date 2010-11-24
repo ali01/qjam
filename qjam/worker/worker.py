@@ -243,8 +243,8 @@ class Worker(object):
 
     # Load the module object.
     module = imp.load_source('workermodule', temp_file.name)
-    if not getattr(module, 'run', None):
-      exc_msg = 'given module is missing "run" point of entry'
+    if not getattr(module, 'mapfunc', None):
+      exc_msg = 'given module is missing "mapfunc" point of entry'
       logging.warning(exc_msg)
       raise ValueError, exc_msg
 
@@ -313,7 +313,7 @@ class Worker(object):
     self._send_message('state', id=task.id(), status='running')
 
     # Entry point in the module.
-    callable = getattr(task.module(), 'run')
+    callable = getattr(task.module(), 'mapfunc')
 
     # Run the callable.
     dataset = task.dataset()

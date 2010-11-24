@@ -6,4 +6,4 @@ def inner_prod(theta, xs):
 
 x = numpy.array([[1,2],[3,4],[5,6],[7,8],[9,10]])
 theta = numpy.array([2,4])
-run = inner_prod
+mapfunc = inner_prod
