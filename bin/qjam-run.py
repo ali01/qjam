@@ -6,7 +6,6 @@ import sys
 
 # Add parent directory to path.
 sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..'))
-
 from qjam import DataSet
 from qjam.master import Master, RemoteWorker
 
@@ -22,7 +21,7 @@ def parse_args():
                       help="quiet (default is verbose)")
     (options, args) = parser.parse_args()
     if len(args) < 2:
-        parser.error("missing required args <mapfunc> <dataset>")
+        parser.error("missing required args <module> <dataset>")
     return (options, args)
 
 def print_workers(workers):
@@ -45,7 +44,7 @@ def resolve_module_attr(name):
 def main():
     # parse args
     options, args = parse_args()
-    mapfunc_name = args[0]
+    module_name = args[0]
     dataset_name = args[1]
     params_name = args[2] if len(args) == 3 else None
 
@@ -55,16 +54,14 @@ def main():
     master = Master(workers)
 
     # set up job
-    mapfunc_mod = resolve_module(mapfunc_name)
+    mapfunc_mod = resolve_module(module_name)
     dataset = resolve_module_attr(dataset_name)
     params = resolve_module_attr(params_name) if params_name else None
 
     # run
     dataset = DataSet(list(dataset))
-    result = master.run(mapfunc_mod, dataset=dataset, params=params)
+    result = master.run(mapfunc_mod, params=params, dataset=dataset)
     print result
 
 if __name__ == "__main__":
     main()
-
-

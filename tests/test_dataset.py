@@ -1,8 +1,7 @@
 import unittest
 import numpy
-from . import fixture
-from qjam.dataset_new import DataSet
-from qjam.dataset_new import NumpyMatrixFileDataSet as MatFileDataSet
+from qjam.dataset import DataSet
+from qjam.dataset import NumpyMatrixFileDataSet as MatFileDataSet
 
 class TestDataSet(unittest.TestCase):
     pass
@@ -153,7 +152,11 @@ MAT3 = numpy.matrix('''[-7.3648691e-002 -5.8656108e-002 -1.9319049e-001;
 
 
 class TestNumpyMatrixFileDataSet(unittest.TestCase):
-  __FILE = "../sparse_autoencoder/matlab/src/olsh.dat"
+  import os
+  if 'tests' in os.getcwd():
+    __FILE = "../sparse_autoencoder/matlab/src/olsh.dat"
+  else:
+    __FILE = "sparse_autoencoder/matlab/src/olsh.dat"
   __LINES = 5120
 
   def test_len(self):
