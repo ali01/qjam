@@ -7,5 +7,4 @@ class TestQjamRun(unittest.TestCase):
                'examples.sequences.onetoten']
         output = Popen(cmd, stdout=PIPE).communicate()[0]
         self.assertEqual(output, "165\n")
-        
-        
+
