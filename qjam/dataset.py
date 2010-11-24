@@ -23,6 +23,9 @@ def DataSet(raw_data, **kwds):
     return NumpyMatrixDataSet(raw_data, **kwds)
 
 class BaseDataSet(object):
+  def __init__(self):
+    self.__indices_hashed = False
+
   def __getitem__(self, key):
     '''Accessor for the slice of data at the given key (index or seq slice).'''
     if isinstance(key, int):
@@ -50,10 +53,18 @@ class BaseDataSet(object):
     for i in range(0, len(self)):
       self._slice_hashes[self.hash(i)] = i
 
+    self.__indices_hashed = True
+
   # public
   def slice_size(self):
     '''Returns the dataset's slice_size.'''
     return self._slice_size
+
+  def slice_size_is(self, size):
+    self._slice_size = size
+    if self.__indices_hashed:
+      # slice_size has changed so previous indices are invalid; rehash
+      self._hash_slice_indices(size)
 
   def raw_data(self):
     '''Returns a pointer to the raw data. WARNING: DO NOT MODIFY!'''
@@ -79,6 +90,10 @@ class BaseDataSet(object):
     return self._hash
 
   def slice_with_hash(self, hash_value):
+    # hash indices lazily if they haven't been hashed before
+    if not self.__indices_hashed:
+      self._hash_slice_indices(self.slice_size())
+
     index = self._slice_hashes[hash_value]
     return self.slice(index)
 
@@ -99,7 +114,6 @@ class ListDataSet(BaseDataSet):
   def __init__(self, _list, slice_size=30):
     '''The given slice_size determines the number of elements in each slice.'''
     self._data = _list
-    self._hash_slice_indices(slice_size)
 
   def __len__(self):
     '''Returns the length of data list.'''
@@ -119,7 +133,6 @@ class NumpyMatrixDataSet(BaseDataSet):
     '''Row major is true if the examples are across rows.'''
     # support easy slicing of column-major matrices:
     self._data = matrix if row_major else matrix.transpose()
-    self._hash_slice_indices(slice_size)
 
   def __len__(self):
     '''Returns the number of entries (major) in the matrix.'''
@@ -140,7 +153,6 @@ class NumpyMatrixFileDataSet(BaseDataSet):
     # support easy slicing of column-major matrices:
     self._data = filename
     self.filesize() # attempt to get the filesize.
-    self._hash_slice_indices(slice_size)
 
   def line_count(self):
     '''Returns the line count of the file.'''
