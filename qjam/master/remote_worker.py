@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import paramiko
-import threading
 
 from qjam.exceptions.remote_worker_error import RemoteWorkerError
 from qjam.msg.base_msg import BaseMsg
@@ -11,7 +10,7 @@ from qjam.msg.result_msg import ResultMsg, ResultMsgFromDict
 from qjam.msg.error_msg import ErrorMsg, ErrorMsgFromDict
 from qjam.utils import module_path
 
-REMOTE_WORKER_PATH = os.path.join(os.sep, 'tmp', 'worker.py')
+REMOTE_CODE_PATH = os.path.join(os.sep, 'tmp')
 
 # TODO(ali01): logging
 # TODO(ali01): overlooked, but necessary, exception handling
@@ -24,6 +23,10 @@ class RemoteWorker(object):
     self.__init_worker_connection()
     self.__bootstrap_remote_worker()
 
+    self.__result = None
+
+  def __del__(self):
+    self.__ssh_client.close()
 
   def taskIs(self, task_msg):
     '''runs task on remote worker;
@@ -48,8 +51,8 @@ class RemoteWorker(object):
       raise e
       # todo(ali01): log error instead of raising e
 
-  def result(self):
     return self.__result
+
 
   def __init_worker_connection(self):
     '''initializes ssh client for worker connection'''
@@ -64,14 +67,38 @@ class RemoteWorker(object):
   def __bootstrap_remote_worker(self):
     '''transfers worker/worker.py to the remote worker executes it on the
        remote'''
-    # transferring worker code
+
+    # transferring common code
     sftp = self.__ssh_client.open_sftp()
+
+    remote_qjam_dir = os.path.join(REMOTE_CODE_PATH, 'qjam')
+    remote_worker_dir = os.path.join(remote_qjam_dir, 'worker')
+    remote_common_dir = os.path.join(remote_qjam_dir, 'common')
+
+    self.__remote_mkdir(sftp, remote_qjam_dir)
+    self.__remote_mkdir(sftp, remote_worker_dir)
+    self.__remote_mkdir(sftp, remote_common_dir)
+
+    remote_qjam_init_path = os.path.join(remote_qjam_dir, '__init__.py')
+    remote_worker_init_path = os.path.join(remote_worker_dir, '__init__.py')
+    remote_common_init_path = os.path.join(remote_common_dir, '__init__.py')
+
+    self.__remote_touch(remote_qjam_init_path)
+    self.__remote_touch(remote_worker_init_path)
+    self.__remote_touch(remote_common_init_path)
+
     from qjam.worker import worker
-    sftp.put(module_path(worker), REMOTE_WORKER_PATH)
+    remote_worker_path = os.path.join(remote_worker_dir, 'worker.py')
+    sftp.put(module_path(worker), remote_worker_path)
+
+    from qjam.common import reducing
+    remote_reducer_path = os.path.join(remote_common_dir, 'reducing.py')
+    sftp.put(module_path(reducing), remote_reducer_path)
+
     sftp.close()
 
     # executing worker code
-    cmd = 'python %s' % (REMOTE_WORKER_PATH)
+    cmd = 'python %s' % (remote_worker_path)
     stdin, stdout, stderr = self.__ssh_client.exec_command(cmd);
 
     self.__r_stdin  = stdin
@@ -127,3 +154,14 @@ class RemoteWorker(object):
 
     return msg
 
+
+  def __remote_mkdir(self, sftp_client, path):
+    try:
+      sftp_client.mkdir(path)
+    except IOError:
+      # log error: may fail if directory already exists
+      pass
+
+
+  def __remote_touch(self, path):
+    self.__ssh_client.exec_command('touch -f %s' % path)
