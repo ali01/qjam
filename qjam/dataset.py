@@ -26,7 +26,7 @@ class BaseDataSet(object):
   def __getitem__(self, key):
     '''Accessor for the slice of data at the given key (index or seq slice).'''
     if isinstance(key, int):
-      if key > len(self):
+      if key < 0 or key >= len(self):
         raise KeyError('Slice index %i is out of bounds.' % key)
       return self.slice(key)
 
@@ -59,11 +59,19 @@ class BaseDataSet(object):
     '''Returns a pointer to the raw data. WARNING: DO NOT MODIFY!'''
     return self._data
 
+  def slice_data(self, index):
+    if index < 0 or index >= len(self):
+      raise KeyError('Slice index %i is out of bounds.' % index)
+    return self.slice(index).raw_data()
+
   def hash(self, index=None):
     '''Returns the hash of the slice of data at the given index.
     If index not given, return the hash that uniquely identifies this data set.
     '''
     if index:
+      if index < 0 or index >= len(self):
+        raise KeyError('Slice index %i is out of bounds.' % index)
+
       return hash_objects(self.hash(), index)
 
     if not hasattr(self, '_hash'):
@@ -99,6 +107,8 @@ class ListDataSet(BaseDataSet):
 
   def slice(self, index):
     '''Returns the slice of data at the given index.'''
+    if index < 0 or index >= len(self):
+      raise KeyError('Slice index %i is out of bounds.' % index)
     data = self._data[self.slice_size()*index : self.slice_size()*(index+1)]
     return ListDataSet(data, slice_size=self.slice_size())
 
@@ -117,6 +127,8 @@ class NumpyMatrixDataSet(BaseDataSet):
 
   def slice(self, index):
     '''Returns the slice of the matrix at the given index.'''
+    if index < 0 or index >= len(self):
+      raise KeyError('Slice index %i is out of bounds.' % index)
     data = self._data[self.slice_size()*index:self.slice_size()*(index+1)]
     return NumpyMatrixDataSet(data, slice_size=self.slice_size())
 
@@ -153,6 +165,8 @@ class NumpyMatrixFileDataSet(BaseDataSet):
     return math.ceil(self.line_count() * 1.0 / self.slice_size())
 
   def slice(self, index):
+    if index < 0 or index >= len(self):
+      raise KeyError('Slice index %i is out of bounds.' % index)
     '''Returns the slice of the matrix at the given index.'''
     bytes_per_line = int(self.filesize() * 1.0 / self.line_count())
     if int(bytes_per_line) != bytes_per_line:
