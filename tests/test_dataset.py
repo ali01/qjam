@@ -1,7 +1,7 @@
 import unittest
 import numpy
 from . import fixture
-from qjam import DataSet
+from qjam.dataset import DataSet
 
 class TestDataSet(unittest.TestCase):
     pass
