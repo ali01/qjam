@@ -50,5 +50,4 @@ class Master(object):
     except AttributeError:
       reducefn = default_reduce
 
-    # TODO: look for custom reduce function
     return reduce(reducefn, results)
