@@ -40,23 +40,47 @@ class BaseDataSet(object):
 
     raise TypeError('Slice index is not an integer or a slice.')
 
-  # subclasses may override:
-  def hash(self):
-    '''Returns the hash that uniquely identifies this data set.'''
+  # protected
+  def _hash_slice_indices(self, slice_size):
+    '''Sets up the slice number and their hash values.'''
+    # we do not have _slice_hashes yet, so cannot use len()
+    self._slice_size = slice_size
+    self._slice_hashes = {}
+    for i in range(0, len(self)):
+      self._slice_hashes[self.hash(i)] = i
+
+  # public
+  def slice_size(self):
+    '''Returns the dataset's slice_size.'''
+    return self._slice_size
+
+  def raw_data(self):
+    '''Returns a pointer to the raw data. WARNING: DO NOT MODIFY!'''
+    return self._data
+
+  def hash(self, index=None):
+    '''Returns the hash of the slice of data at the given index.
+    If index not given, return the hash that uniquely identifies this data set.
+    '''
+    if index:
+      return hash_objects(self.hash(), index)
+
     if not hasattr(self, '_hash'):
       self._hash = hash_objects(pickle.dumps(self))
     return self._hash
 
-  def slice_hash(self, index):
-    '''Returns the hash of the slice of data at the given index.'''
-    return hash_objects(self.hash(), index)
+  def slice_with_hash(self, hash_value):
+    index = self._slice_hashes[hash_value]
+    return self.slice(index)
+
+  # subclasses may override:
 
   # subclasses must implement:
   def __len__(self):
     '''Returns the length of data.'''
     raise NotImplementedError
 
-  def slice(index):
+  def slice(self, index):
     '''Returns the slice of data at the given index.'''
     raise NotImplementedError
 
@@ -64,32 +88,32 @@ class BaseDataSet(object):
 class ListDataSet(BaseDataSet):
   def __init__(self, _list, slice_size=30):
     '''The given slice_size determines the number of elements in each slice.'''
-    self.__list = _list
-    self.__slice_size = int(slice_size)
+    self._data = _list
+    self._hash_slice_indices(slice_size)
 
   def __len__(self):
     '''Returns the length of data list.'''
-    return math.ceil(len(self.__list) * 1.0 / self.__slice_size)
+    return math.ceil(len(self._data) * 1.0 / self.slice_size())
 
   def slice(self, index):
     '''Returns the slice of data at the given index.'''
-    return self.__list[self.__slice_size*index : self.__slice_size*(index+1)]
+    data = self._data[self.slice_size()*index : self.slice_size()*(index+1)]
+    return ListDataSet(data, slice_size=self.slice_size())
 
 
 class NumpyMatrixDataSet(BaseDataSet):
   def __init__(self, matrix, slice_size=5, row_major=True):
     '''Row major is true if the examples are across rows.'''
-    self.__slice_size = int(slice_size)
-    self.__matrix = matrix if row_major else matrix.transpose()
-    # this is to supposrt easy slicing of column-major matrices. ^
-    # however, this could be bad if we're just copying around large matrices...
+    # support easy slicing of column-major matrices:
+    self._data = matrix if row_major else matrix.transpose()
+    self._hash_slice_indices(slice_size)
 
   def __len__(self):
     '''Returns the number of entries (major) in the matrix.'''
-    return math.ceil(self.__matrix.shape[0] * 1.0 / self.__slice_size)
+    return math.ceil(self._data.shape[0] * 1.0 / self.slice_size())
 
   def slice(self, index):
     '''Returns the slice of the matrix at the given index.'''
-    return self.__matrix[self.__slice_size*index:self.__slice_size*(index+1)]
-
+    data = self._data[self.slice_size()*index:self.slice_size()*(index+1)]
+    return NumpyMatrixDataSet(data, slice_size=self.slice_size())
 
