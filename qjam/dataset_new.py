@@ -1,6 +1,7 @@
 '''DataSet objects wrap underlying data, with an accessor for a particular of
 data (termed slice).'''
 
+import os
 import numpy
 import math
 import hashlib
@@ -86,6 +87,7 @@ class BaseDataSet(object):
 
 
 class ListDataSet(BaseDataSet):
+  '''Basic List DataSet.'''
   def __init__(self, _list, slice_size=30):
     '''The given slice_size determines the number of elements in each slice.'''
     self._data = _list
@@ -102,6 +104,7 @@ class ListDataSet(BaseDataSet):
 
 
 class NumpyMatrixDataSet(BaseDataSet):
+  '''Basic DataSet wrapping a numpy Matrix.'''
   def __init__(self, matrix, slice_size=5, row_major=True):
     '''Row major is true if the examples are across rows.'''
     # support easy slicing of column-major matrices:
@@ -116,4 +119,62 @@ class NumpyMatrixDataSet(BaseDataSet):
     '''Returns the slice of the matrix at the given index.'''
     data = self._data[self.slice_size()*index:self.slice_size()*(index+1)]
     return NumpyMatrixDataSet(data, slice_size=self.slice_size())
+
+
+class NumpyMatrixFileDataSet(BaseDataSet):
+  '''Basic DataSet that reads a matrix from a file.'''
+  def __init__(self, filename, slice_size=20, row_major=True):
+    '''Row major is true if the examples are across rows.'''
+    # support easy slicing of column-major matrices:
+    self._data = filename
+    self.filesize() # attempt to get the filesize.
+    self._hash_slice_indices(slice_size)
+
+  def line_count(self):
+    '''Returns the line count of the file.'''
+    if not hasattr(self, '_line_count'):
+      with open(self._data) as f:
+        for i, l in enumerate(f):
+          pass
+      self._line_count = i + 1
+    return self._line_count
+
+  def filesize(self):
+    '''Returns the size of the file in bytes.'''
+    # attempt to read in the filesize:
+    if not hasattr(self, '_filesize') or not self._filesize:
+      if os.path.exists(self._data) and os.path.isfile(self._data):
+        self._filesize = os.path.getsize(self._data)
+
+    return self._filesize if hasattr(self, '_filesize') else None
+
+  def __len__(self):
+    '''Returns the number of entries (major) in the matrix.'''
+    return math.ceil(self.line_count() * 1.0 / self.slice_size())
+
+  def slice(self, index):
+    '''Returns the slice of the matrix at the given index.'''
+    bytes_per_line = int(self.filesize() * 1.0 / self.line_count())
+    if int(bytes_per_line) != bytes_per_line:
+      raise 'DataSet file not aligned. Lines MUST be of the same length.'
+
+    bytes_per_slice = self.slice_size() * bytes_per_line
+    byte_offset = index * bytes_per_slice
+
+    # i'm not proud of this following code, but it seems a reasnoably efficient
+    # way to do it. (rather than creating a bunch of big mat objects via concat)
+    string = '['
+    lines_to_read = self.slice_size()
+    with open(self._data, 'r') as f:
+      f.seek(byte_offset)
+      for line in f:
+        string += line.strip() + ';'
+        lines_to_read -= 1
+        if lines_to_read <= 0:
+          break
+    string = string.strip(';')
+    string += ']'
+
+    matrix = numpy.mat(string.strip())
+    return NumpyMatrixDataSet(matrix, slice_size=self.slice_size())
 

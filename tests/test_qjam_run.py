@@ -17,4 +17,3 @@ class TestQjamRun(unittest.TestCase):
         output = self.__get_output(cmd)
         self.assertEqual(output, "170\n")
 
-        
