@@ -5,9 +5,10 @@ import paramiko
 
 from qjam.exceptions.remote_worker_error import RemoteWorkerError
 from qjam.msg.base_msg import BaseMsg
-from qjam.msg.state_msg import StateMsg, StateMsgFromDict
-from qjam.msg.result_msg import ResultMsg, ResultMsgFromDict
 from qjam.msg.error_msg import ErrorMsg, ErrorMsgFromDict
+from qjam.msg.refs_msg import RefsMsg
+from qjam.msg.result_msg import ResultMsg, ResultMsgFromDict
+from qjam.msg.state_msg import StateMsg, StateMsgFromDict
 from qjam.utils import module_path
 
 REMOTE_CODE_PATH = os.path.join(os.sep, 'tmp')
@@ -23,14 +24,19 @@ class RemoteWorker(object):
     self.__init_worker_connection()
     self.__bootstrap_remote_worker()
 
+    self.__task = None
     self.__result = None
 
   def __del__(self):
     self.__ssh_client.close()
 
+
   def taskIs(self, task_msg):
     '''runs task on remote worker;
        implements the master side of the wire protocol'''
+
+    self.__task = task_msg
+    self.__dataset = task_msg.dataset()
 
     # assigning task
     self.__send(task_msg)
@@ -52,6 +58,47 @@ class RemoteWorker(object):
       # todo(ali01): log error instead of raising e
 
     return self.__result
+
+
+  def __process_state_msg(self, state_msg):
+    if not isinstance(state_msg, StateMsg):
+      raise TypeError
+
+    if state_msg.status() == 'running':
+      # remote has all necessary refs and is processing the task
+      msg = self.__recv()
+      if msg['type'] == 'result':
+        result_msg = ResultMsgFromDict(msg)
+        self.__process_result_msg(result_msg)
+
+      else:
+        exc_msg = '''expected message of type 'result'
+                     but received message of type %s''' % msg['type']
+        raise RemoteWorkerError(exc_msg)
+
+    elif (state_msg.status() == 'blocked'):
+      # send missing refs
+      refs_msg = RefsMsg()
+      for ref in state_msg.missing_refs():
+        refs_msg.append(ref, self.__dataset.slice_data_from_hash(ref))
+      self.__send(refs_msg)
+
+      # expect state message
+      msg = self.__recv()
+      if msg['type'] == 'state':
+        state_msg = StateMsgFromDict(msg)
+        self.__process_state_msg(state_msg)
+      else:
+        exc_msg = '''expected message of type 'state'
+                     but received message of type %s''' % msg['type']
+        raise RemoteWorkerError(exc_msg)
+
+
+  def __process_result_msg(self, result_msg):
+    if (not isinstance(result_msg, ResultMsg)):
+      raise TypeError
+
+    self.__result = result_msg.result()
 
 
   def __init_worker_connection(self):
@@ -106,34 +153,6 @@ class RemoteWorker(object):
     self.__r_stderr = stderr
 
 
-  def __process_state_msg(self, state_msg):
-    if not isinstance(state_msg, StateMsg):
-      raise TypeError
-
-    if state_msg.status() == 'running':
-      # remote has all necessary refs and is processing the task
-      msg = self.__recv()
-      if msg['type'] == 'result':
-        result_msg = ResultMsgFromDict(msg)
-        self.__process_result_msg(result_msg)
-
-      else:
-        raise RemoteWorkerError('''expected message of type 'result'
-                                   but received message of type %s''' %
-                                msg['type'])
-
-    elif (state_msg.status() == 'blocked'):
-      # todo(ali01): send missing refs
-      pass
-
-
-  def __process_result_msg(self, result_msg):
-    if (not isinstance(result_msg, ResultMsg)):
-      raise TypeError
-
-    self.__result = result_msg.result()
-
-
   def __send(self, msg):
     if (not issubclass(type(msg), BaseMsg)):
       raise TypeError
@@ -165,3 +184,4 @@ class RemoteWorker(object):
 
   def __remote_touch(self, path):
     self.__ssh_client.exec_command('touch -f %s' % path)
+
