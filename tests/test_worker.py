@@ -60,6 +60,8 @@ class Test_Worker:
     self.write_message(data)
 
   def send_refs(self, refs):
+    # Encode the objects in the refs.
+    refs = [(x, encode(y)) for (x, y) in refs]
     msg = {'refs': refs}
     self.write_command('refs', msg)
 
@@ -115,8 +117,8 @@ class Test_Worker:
     msg1 = {'module': c,
             'params': encode(())}
     msg2 = {'module': c,
-            'dataset': None}
-    msg3 = {'dataset': None,
+            'dataset': []}
+    msg3 = {'dataset': [],
             'params': encode(())}
 
     for msg in (msg1, msg2, msg3):
@@ -179,10 +181,7 @@ class Test_Worker:
 
   def test_incorrect_refs_format(self):
     '''Send refs messages with bad types.'''
-    self.send_refs(None)
-    assert_true('expected' in self.read_error_string())
-    self.send_refs([None])
-    assert_true('expected' in self.read_error_string())
+    # TODO(ms): Send refs with incorrectly pickled objects.
     self.send_refs([(None, None)])
     assert_true('expected' in self.read_error_string())
     self.send_refs([(1234, None)])
