@@ -71,6 +71,7 @@ class BaseDataSet(object):
     return self._data
 
   def slice_data(self, index):
+    '''Returns the raw data that corresponds to the slice at index'''
     if index < 0 or index >= len(self):
       raise KeyError('Slice index %i is out of bounds.' % index)
     return self.slice(index).raw_data()
