@@ -14,6 +14,6 @@ class TestQjamRun(unittest.TestCase):
 
   def test_run_numpy_examples(self):
     cmd = ['bin/qjam-run.py', 'examples.numpy_inner_prod',
-           'examples.numpy_examples.x', 'examples.numpy_examples.theta']
+           'examples.numpy_inner_prod.x', 'examples.numpy_inner_prod.theta']
     output = self.__get_output(cmd)
     self.assertEqual(output, "170\n")
