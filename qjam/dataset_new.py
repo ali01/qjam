@@ -1,7 +1,17 @@
-'''DataSet objects wrap underlying data, with an accessor for a particular of data (termed slice).'''
+'''DataSet objects wrap underlying data, with an accessor for a particular of
+data (termed slice).'''
 
 import numpy
 import math
+import hashlib
+import cPickle as pickle
+
+def hash_objects(*args):
+  '''Hash function of to use with the DataSets. Use sha1 by default.'''
+  hashobj = hashlib.sha1()
+  for arg in args:
+    hashobj.update(str(arg))
+  return hashobj.hexdigest()
 
 def DataSet(raw_data, **kwds):
   if isinstance(raw_data, BaseDataSet):
@@ -29,6 +39,17 @@ class BaseDataSet(object):
       return slices
 
     raise TypeError('Slice index is not an integer or a slice.')
+
+  # subclasses may override:
+  def hash(self):
+    '''Returns the hash that uniquely identifies this data set.'''
+    if not hasattr(self, '_hash'):
+      self._hash = hash_objects(pickle.dumps(self))
+    return self._hash
+
+  def slice_hash(self, index):
+    '''Returns the hash of the slice of data at the given index.'''
+    return hash_objects(self.hash(), index)
 
   # subclasses must implement:
   def __len__(self):

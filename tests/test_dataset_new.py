@@ -34,6 +34,18 @@ class TestListDataSet(unittest.TestCase):
     self.assertEqual([0], ds.slice(0))
     self.assertEqual([119], ds.slice(119))
 
+  def test_hash(self):
+    ds1 = DataSet(range(0,120))
+    ds2 = DataSet(range(0,120))
+    self.assertEqual(ds1.slice_hash(0), ds2.slice_hash(0))
+    self.assertEqual(ds1.slice_hash(1), ds2.slice_hash(1))
+    self.assertEqual(ds1.slice_hash(2), ds2.slice_hash(2))
+    self.assertEqual(ds1.slice_hash(3), ds2.slice_hash(3))
+    ds1 = DataSet(range(0,120), slice_size=1)
+    ds2 = DataSet(range(0,120), slice_size=1)
+    for i in range(0, 120, 10):
+      self.assertEqual(ds1.slice_hash(i), ds2.slice_hash(i))
+
 
 class TestNumpyMatrixDataSet(unittest.TestCase):
   def test_len(self):
@@ -89,3 +101,19 @@ class TestNumpyMatrixDataSet(unittest.TestCase):
     ds = DataSet(mat_repeated(10), slice_size=100)
     self.assertTrue((mat_repeated(10) == ds.slice(0)).all())
 
+  def test_hash(self):
+    x = numpy.matrix("[%s]" % ("1 2;3 4;5 6;7 8;9 10;" * 10).strip(';'))
+    ds1 = DataSet(x)
+    ds2 = DataSet(x)
+    for i in range(0, len(ds1)):
+      self.assertEqual(ds1.slice_hash(i), ds2.slice_hash(i))
+
+    ds1 = DataSet(x, slice_size=1)
+    ds2 = DataSet(x, slice_size=1)
+    for i in range(0, len(ds1)):
+      self.assertEqual(ds1.slice_hash(i), ds2.slice_hash(i))
+
+    ds1 = DataSet(x, slice_size=3)
+    ds2 = DataSet(x, slice_size=3)
+    for i in range(0, len(ds1)):
+      self.assertEqual(ds1.slice_hash(i), ds2.slice_hash(i))
