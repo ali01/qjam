@@ -1,42 +1,69 @@
-import time, cPickle as pickle
+#!/usr/bin/python
+import base64
+import cPickle as pickle
+import json
+import math
+import os
+import paramiko
+import threading
 
+from remote_worker import RemoteWorker
+from remote_task_thread import RemoteTaskThread
 
-POLL_INTERVAL = 0.5 # seconds
+from qjam.msg.task_msg import TaskMsg
+from qjam.common.reducing import default_reduce
 
 class Master(object):
-    def __init__(self, nodes):
-        self.nodes = nodes
+  def __init__(self, remote_workers):
+    if not isinstance(remote_workers, list):
+      raise TypeError, 'remote_workers parameter must be of type list'
 
-    def run(self, job):
-        """Distributes data to nodes and then runs `job` on all nodes. Returns
-        the sum of the nodes' responses."""
+    if len(remote_workers) == 0:
+      raise ValueError, 'list of workers cannot be empty'
 
-        # distribute data and run tasks
-        for i,node in enumerate(self.nodes):
-            # distribute data
-            slice = job.dataset.slice(len(self.nodes), i)
-            slice_name = self.__slice_name(job.name, i)
-            if slice_name not in node.slices.list():
-                node.slices.put(slice_name, pickle.dumps(slice))
+    for worker in remote_workers:
+      if not isinstance(worker, RemoteWorker):
+        exc_msg = '''elements in the parameter list, remote_workers,
+                     must be of type RemoteWorker'''
+        raise TypeErrer, exc_msg
 
-            task_name = slice_name
-            node.run_task(job, task_name)
+    self.__workers = remote_workers
 
-        result = 0
-        polled = False
-        for i,node in enumerate(self.nodes):
-            task_name = self.__slice_name(job.name, i)
-            while not node.task_is_finished(task_name):
-                time.sleep(POLL_INTERVAL)
-                if polled:
-                    print "poll for %s, try again in %.1f sec" % \
-                        (task_name, POLL_INTERVAL)
-                else:
-                    polled = True # print msg next time
-            task_output = node.task_output(task_name)
-            result += pickle.loads(task_output)
+  def run(self, module, params=None, dataset=None):
+    self.__thread_pool = []
 
-        return result
+    len_workers = len(self.__workers)
 
-    def __slice_name(self, job_name, slice_num):
-        return "%s_slice%dof%d" % (job_name, slice_num+1, len(self.nodes))
+    if dataset:
+      dataset.slice_size_is(1)
+      if len(dataset) > len_workers:
+        slice_size = int(math.ceil(float(len(dataset)) / len_workers))
+        dataset.slice_size_is(slice_size)
+
+    for i,worker in enumerate(self.__workers):
+      if dataset:
+        if i >= len(dataset):
+          break
+        worker_slice = dataset.slice(i)
+        # TODO: resize make slice_size the desired chunk size
+        task_msg = TaskMsg(module, params, worker_slice)
+      else:
+        task_msg = TaskMsg(module, params, None)
+
+      thread = RemoteTaskThread(worker, task_msg)
+      self.__thread_pool.append(thread)
+      thread.start()
+
+    for thread in self.__thread_pool:
+      thread.join()
+
+    results = []
+    for thread in self.__thread_pool:
+      results.append(thread.result())
+
+    try:
+      reducefn = module.reduce
+    except AttributeError:
+      reducefn = default_reduce
+
+    return reduce(reducefn, results)

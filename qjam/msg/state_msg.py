@@ -24,12 +24,12 @@ class StateMsg(BaseMsg):
     return self.__status
 
   def missing_refs(self):
-    return self.__mising_refs
+    return self.__missing_refs
 
   def json_str(self):
     msg = {'type': self.type(), 'status': self.__status}
     if len(self.__missing_refs) != 0:
-      msg['missing_refs'] = self.__mising_refs
+      msg['missing_refs'] = self.__missing_refs
 
     return json.dumps(msg)
 
