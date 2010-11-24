@@ -27,9 +27,10 @@ class Master(object):
         raise TypeErrer, exc_msg
 
     self.__workers = remote_workers
-    self.__thread_pool = []
 
   def run(self, module, params=None, dataset=None):
+    self.__thread_pool = []
+
     for worker in self.__workers:
       # TODO: pass in appropriate slice
       task_msg = TaskMsg(module, params, None)
