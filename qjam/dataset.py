@@ -23,8 +23,9 @@ def DataSet(raw_data, **kwds):
     return NumpyMatrixDataSet(raw_data, **kwds)
 
 class BaseDataSet(object):
-  def __init__(self):
+  def __init__(self, slice_size):
     self.__indices_hashed = False
+    self.slice_size_is(slice_size)
 
   def __getitem__(self, key):
     '''Accessor for the slice of data at the given key (index or seq slice).'''
@@ -45,10 +46,9 @@ class BaseDataSet(object):
     raise TypeError('Slice index is not an integer or a slice.')
 
   # protected
-  def _hash_slice_indices(self, slice_size):
+  def _hash_slice_indices(self):
     '''Sets up the slice number and their hash values.'''
     # we do not have _slice_hashes yet, so cannot use len()
-    self._slice_size = slice_size
     self._slice_hashes = {}
     for i in range(0, len(self)):
       self._slice_hashes[self.hash(i)] = i
@@ -64,7 +64,7 @@ class BaseDataSet(object):
     self._slice_size = size
     if self.__indices_hashed:
       # slice_size has changed so previous indices are invalid; rehash
-      self._hash_slice_indices(size)
+      self._hash_slice_indices()
 
   def raw_data(self):
     '''Returns a pointer to the raw data. WARNING: DO NOT MODIFY!'''
@@ -92,7 +92,7 @@ class BaseDataSet(object):
   def slice_with_hash(self, hash_value):
     # hash indices lazily if they haven't been hashed before
     if not self.__indices_hashed:
-      self._hash_slice_indices(self.slice_size())
+      self._hash_slice_indices()
 
     index = self._slice_hashes[hash_value]
     return self.slice(index)
@@ -101,7 +101,7 @@ class BaseDataSet(object):
     '''returns a list of the hashes of all slices'''
     # hash indices lazily if they haven't been hashed before
     if not self.__indices_hashed:
-      self._hash_slice_indices(self.slice_size())
+      self._hash_slice_indices()
 
     return self._slice_hashes.keys()
 
@@ -121,6 +121,7 @@ class ListDataSet(BaseDataSet):
   '''Basic List DataSet.'''
   def __init__(self, _list, slice_size=30):
     '''The given slice_size determines the number of elements in each slice.'''
+    BaseDataSet.__init__(self, slice_size)
     self._data = _list
 
   def __len__(self):
@@ -139,6 +140,7 @@ class NumpyMatrixDataSet(BaseDataSet):
   '''Basic DataSet wrapping a numpy Matrix.'''
   def __init__(self, matrix, slice_size=5, row_major=True):
     '''Row major is true if the examples are across rows.'''
+    BaseDataSet.__init__(self, slice_size)
     # support easy slicing of column-major matrices:
     self._data = matrix if row_major else matrix.transpose()
 
@@ -158,6 +160,7 @@ class NumpyMatrixFileDataSet(BaseDataSet):
   '''Basic DataSet that reads a matrix from a file.'''
   def __init__(self, filename, slice_size=20, row_major=True):
     '''Row major is true if the examples are across rows.'''
+    BaseDataSet.__init__(self, slice_size)
     # support easy slicing of column-major matrices:
     self._data = filename
     self.filesize() # attempt to get the filesize.
