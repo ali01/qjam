@@ -207,3 +207,26 @@ class Test_Worker:
     # Retrieve result.
     result = self.read_result()
     assert_equal(sum(chunk), result)
+
+  def test_sum_dataset_three_refs(self):
+    '''Test in-worker reducing by summing a three-ref dataset.'''
+    dataset = ['ref1', 'ref2', 'ref3']
+    chunk1 = [1, 2, 3]
+    chunk2 = [3, 4, 5, 6]
+    chunk3 = [6, 7, 8]
+    self.send_task(sum_dataset, None, dataset)
+    state_msg = self.read_state()
+
+    # Send two refs first.
+    self.send_refs([(dataset[0], chunk1),
+                    (dataset[1], chunk2)])
+
+    # Send the third ref to start the task.
+    self.send_refs([(dataset[2], chunk3)])
+
+    # State should be 'running'.
+    state_msg = self.read_state()
+
+    # Read result.
+    result = self.read_result()
+    assert_equal(sum(chunk1) + sum(chunk2) + sum(chunk3), result)
