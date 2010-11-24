@@ -18,6 +18,9 @@ class TaskMsg(BaseMsg):
 
     self.__dataset = dataset
 
+  def dataset(self):
+    return self.__dataset
+
   def json_str(self):
     if self.__dataset == None:
       ref_list = []
