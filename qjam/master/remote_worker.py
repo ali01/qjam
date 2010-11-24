@@ -185,3 +185,6 @@ class RemoteWorker(object):
   def __remote_touch(self, path):
     self.__ssh_client.exec_command('touch -f %s' % path)
 
+  def __str__(self):
+    return "%s:%d" % (self.__host, self.__port)
+
