@@ -16,5 +16,3 @@ class TestQjamRun(unittest.TestCase):
                'examples.numpy_examples.x', 'examples.numpy_examples.theta']
         output = self.__get_output(cmd)
         self.assertEqual(output, "170\n")
-
-        
