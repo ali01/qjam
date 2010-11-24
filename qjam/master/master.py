@@ -45,5 +45,10 @@ class Master(object):
     for thread in self.__thread_pool:
       results.append(thread.result())
 
+    try:
+      reducefn = module.reduce
+    except AttributeError:
+      reducefn = default_reduce
+
     # TODO: look for custom reduce function
-    return reduce(default_reduce, results)
+    return reduce(reducefn, results)
