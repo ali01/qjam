@@ -50,8 +50,8 @@ class RemoteWorker(object):
       raise e
       # todo(ali01): log error instead of raising e
 
-  def result(self):
     return self.__result
+
 
   def __init_worker_connection(self):
     '''initializes ssh client for worker connection'''
@@ -153,12 +153,14 @@ class RemoteWorker(object):
 
     return msg
 
+
   def __remote_mkdir(self, sftp_client, path):
     try:
       sftp_client.mkdir(path)
     except IOError:
       # log error: may fail if directory already exists
       pass
+
 
   def __remote_touch(self, path):
     self.__ssh_client.exec_command('touch -f %s' % path)

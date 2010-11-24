@@ -15,8 +15,14 @@ class RemoteTaskThread(threading.Thread):
     self.__remote_worker = remote_worker
     self.__task_msg = task_msg
 
+    self.__result = None
+
   def run(self):
-    self.__remote_worker.taskIs(self.__task_msg)
+    self.__result = self.__remote_worker.taskIs(self.__task_msg)
 
   def result(self):
-    return self.__remote_worker.result()
+    if self.is_alive():
+      exc_msg = 'thread result cannot be queried while thread is alive'
+      raise RuntimeError, exc_msg
+
+    return self.__result
