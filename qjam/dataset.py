@@ -89,13 +89,16 @@ class BaseDataSet(object):
       self._hash = hash_objects(pickle.dumps(self))
     return self._hash
 
-  def slice_with_hash(self, hash_value):
+  def slice_from_hash(self, hash_value):
     # hash indices lazily if they haven't been hashed before
     if not self.__indices_hashed:
       self._hash_slice_indices()
 
     index = self._slice_hashes[hash_value]
     return self.slice(index)
+
+  def slice_data_from_hash(self, hash_value):
+    return self.slice_from_hash(hash_value).raw_data()
 
   def hash_list(self):
     '''returns a list of the hashes of all slices'''
