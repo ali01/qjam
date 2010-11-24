@@ -13,7 +13,6 @@ from qjam.utils import module_path
 REMOTE_CODE_PATH = os.path.join(os.sep, 'tmp')
 
 # TODO(ali01): logging
-# TODO(ali01): destructor
 # TODO(ali01): overlooked, but necessary, exception handling
 
 class RemoteWorker(object):
@@ -26,6 +25,8 @@ class RemoteWorker(object):
 
     self.__result = None
 
+  def __del__(self):
+    self.__ssh_client.close()
 
   def taskIs(self, task_msg):
     '''runs task on remote worker;
