@@ -1,4 +1,4 @@
-qjam is a framework for parallel computation.
+qjam is a framework for distributed computing.
 
 It leverages ssh public key setups to automatically bootstrap and start worker
 nodes without manual intervention.
