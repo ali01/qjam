@@ -11,10 +11,11 @@ from qjam.msg.result_msg import ResultMsg, ResultMsgFromDict
 from qjam.msg.state_msg import StateMsg, StateMsgFromDict
 from qjam.utils import module_path
 
-REMOTE_CODE_PATH = os.path.join(os.sep, 'tmp')
+REMOTE_CODE_PATH = os.path.join(os.sep, 'tmp', 'qjam-%s' % os.getenv('USER'))
 
 # TODO(ali01): logging
 # TODO(ali01): overlooked, but necessary, exception handling
+
 
 class RemoteWorker(object):
   def __init__(self, host, port=22):
@@ -126,6 +127,7 @@ class RemoteWorker(object):
     remote_worker_dir = os.path.join(remote_qjam_dir, 'worker')
     remote_common_dir = os.path.join(remote_qjam_dir, 'common')
 
+    self.__remote_mkdir(sftp, REMOTE_CODE_PATH)
     self.__remote_mkdir(sftp, remote_qjam_dir)
     self.__remote_mkdir(sftp, remote_worker_dir)
     self.__remote_mkdir(sftp, remote_common_dir)
