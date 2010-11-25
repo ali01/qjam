@@ -11,7 +11,7 @@ from qjam.master import Master, RemoteWorker
 
 
 def parse_args():
-    parser = OptionParser(usage="%prog [opts] <mapfunc> <dataset> [params]")
+    parser = OptionParser(usage="%prog [opts] <module> <dataset> [params]")
     parser.add_option("-w", "--workers", dest="workers", default="localhost",
                       help="list of workers, e.g. 'host1 host2'")
     parser.add_option("-q", "--quiet", dest="verbose",
@@ -59,13 +59,13 @@ def main():
     master = Master(workers)
 
     # set up job
-    mapfunc_mod = resolve_module(module_name)
+    mod = resolve_module(module_name)
     dataset = resolve_module_attr(dataset_name)
     params = resolve_module_attr(params_name) if params_name else None
 
     # run
     dataset = DataSet(list(dataset))
-    result = master.run(mapfunc_mod, params=params, dataset=dataset)
+    result = master.run(mod, params=params, dataset=dataset)
     print result
 
 
