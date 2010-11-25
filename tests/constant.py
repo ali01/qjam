@@ -1,2 +1,2 @@
-def run(params, dataset):
+def mapfunc(params, dataset):
   return 42
