@@ -58,9 +58,6 @@ def main():
   # up the data into smaller chunks and distribute the chunks to the workers.
   dataset = NumpyMatrixDataSet(matrix)
 
-  print 'DataSet contains %d slices.' % len(dataset)
-  print
-
   # Sum the matrix!
   master = Master(workers)
   params = None  # No parameters needed for this job.
