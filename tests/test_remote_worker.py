@@ -5,10 +5,11 @@ from qjam.master.remote_task_thread import RemoteTaskThread
 from qjam.master.remote_worker import RemoteWorker
 from qjam.msg.task_msg import TaskMsg
 
-# test modules
-import constant
-import sum_params
+# Test modules.
+from modules import constant
 from modules import multiply_sum_simple
+from modules import sum_params
+
 
 class TestRemoteWorker:
   def setup(self):

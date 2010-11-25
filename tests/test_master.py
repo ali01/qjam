@@ -6,12 +6,13 @@ from qjam.dataset import DataSet
 from qjam.master.master import Master
 from qjam.master.remote_worker import RemoteWorker
 
-# test modules
-import constant
-import sum_params
-from modules import multiply_sum_simple
+# Test modules.
+from modules import constant
 from modules import inner_prod
+from modules import multiply_sum_simple
+from modules import sum_params
 from modules import write_to_stdout
+
 
 class TestMaster:
   def test_single_worker_simple(self):

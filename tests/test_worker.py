@@ -10,11 +10,11 @@ import qjam.worker.worker
 from utils import source, encode, decode
 
 # Test modules. These are serialized and sent to the worker to execute.
-import constant
-import no_poe
-import raise_exc
-import sum_dataset
-import sum_params
+from modules import constant
+from modules import no_poe
+from modules import raise_exc
+from modules import sum_dataset
+from modules import sum_params
 
 
 class Test_Worker:
@@ -54,7 +54,7 @@ class Test_Worker:
   def write_str(self, s):
     print '\nSending string: %s' % s
     self._worker.stdin.write('%s\n' % s)
-  
+
   def write_message(self, msg):
     print '\nSending: %s' % json.dumps(msg)
     self._worker.stdin.write('%s\n' % json.dumps(msg))
@@ -104,7 +104,7 @@ class Test_Worker:
     '''Send non-JSON.'''
     self.write_str('asdf')
     assert_true('error parsing incoming message' in self.read_error_string())
-    
+
   def test_bad_message(self):
     '''Send a message without a type.'''
     self.write_message({'bogus_key': 1234})
