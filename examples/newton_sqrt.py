@@ -8,12 +8,15 @@ if __name__ == "__main__":
     from qjam import DataSet
     from qjam.master import Master, RemoteWorker
 
-    if len(sys.argv) != 2:
-        print "approximates sqrt(n)\nusage: %s <n>" % sys.argv[0]
+    if len(sys.argv) == 1:
+        print "approximates sqrt(n)\nusage: %s <n> [<hostname> ...]" % sys.argv[0]
         exit(1)
     n = float(sys.argv[1])
+    cluster = sys.argv[2:]
+    if not cluster:
+        cluster = ['localhost']
 
-    master = Master([RemoteWorker('localhost')])
+    master = Master([RemoteWorker(host) for host in cluster])
     x0 = DataSet([float(10)])
     mod = sys.modules[__name__]
 
