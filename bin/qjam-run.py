@@ -9,8 +9,6 @@ sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..'))
 from qjam import DataSet
 from qjam.master import Master, RemoteWorker
 
-logging.basicConfig(level=logging.DEBUG, format='%(message)s')
-logger = logging.getLogger('qjam')
 
 def parse_args():
     parser = OptionParser(usage="%prog [opts] <mapfunc> <dataset> [params]")
@@ -24,15 +22,18 @@ def parse_args():
         parser.error("missing required args <module> <dataset>")
     return (options, args)
 
+
 def print_workers(workers):
-    logger.debug("qjam using %d workers:" % len(workers))
+    logging.debug("qjam using %d workers:" % len(workers))
     for worker in workers:
-        logger.debug("  %s"  % worker)
+        logging.debug("  %s"  % worker)
+
 
 def resolve_module(name):
     __import__(name)
     return sys.modules[name]
-        
+
+
 def resolve_module_attr(name):
     """Returns the `someattr` attribute in `module1.module2` given the string
     'module1.module2.someattr` """
@@ -40,8 +41,12 @@ def resolve_module_attr(name):
     mod = resolve_module(hier)
     attr_val = getattr(mod, attr_name)
     return attr_val
-        
+
+
 def main():
+    _fmt = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    logging.basicConfig(level=logging.DEBUG, format=_fmt)
+
     # parse args
     options, args = parse_args()
     module_name = args[0]
@@ -62,6 +67,7 @@ def main():
     dataset = DataSet(list(dataset))
     result = master.run(mapfunc_mod, params=params, dataset=dataset)
     print result
+
 
 if __name__ == "__main__":
     main()

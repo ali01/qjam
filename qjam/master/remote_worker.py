@@ -18,6 +18,10 @@ REMOTE_CODE_PATH = os.path.join(os.sep, 'tmp')
 
 class RemoteWorker(object):
   def __init__(self, host, port=22):
+    # Adjust paramiko logging verbosity.
+    _logger = paramiko.util.logging.getLogger()
+    _logger.setLevel(paramiko.common.WARNING)
+
     self.__host = host
     self.__port = port
 
