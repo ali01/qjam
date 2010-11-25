@@ -301,11 +301,9 @@ class Worker(object):
 
   def _process_tasks(self):
     task = self._taskqueue.dequeue()
-    if task is None:
-      return  # Nothing to do
-
-    # TODO(ms): process all tasks that we can process now
-    self._process_task(task)
+    while task is not None:
+      self._process_task(task)
+      task = self._taskqueue.dequeue()
 
   def _process_task(self, task):
     self._send_message('state', id=task.id(), status='running')
