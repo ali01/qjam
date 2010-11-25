@@ -17,7 +17,9 @@ import sys
 
 import numpy
 
-sys.path.append('..')  # Set up the import path to qjam.
+# Set up import path to qjam.
+sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..'))
+
 from qjam.dataset import NumpyMatrixDataSet
 from qjam.master.master import Master
 from qjam.master.remote_worker import RemoteWorker
