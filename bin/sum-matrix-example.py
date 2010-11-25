@@ -56,12 +56,7 @@ def main():
   #
   # DataSet objects are necessary so the framework can determine how to split
   # up the data into smaller chunks and distribute the chunks to the workers.
-  #
-  # Here, we set the slice size to 1, so each row of the matrix has the
-  # potential to get distributed to a different worker. A larger slice size of
-  # two, say, would make the smallest 'work unit' be two rows. In that case,
-  # each worker would be given a minimum of two rows of the matrix.
-  dataset = NumpyMatrixDataSet(matrix, slice_size=1)
+  dataset = NumpyMatrixDataSet(matrix)
 
   print 'DataSet contains %d slices.' % len(dataset)
   print
