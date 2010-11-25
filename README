@@ -28,6 +28,52 @@ uses, does not currently support GSSAPI (kerberos logins).
     This is a simple example that explains how to use the qjam API to execute
     code across many machines.
 
+    Usage: ./sum-matrix-example.py localhost machine2 machine3
+
+
+ARCHITECTURE
+--------------------------------
+
+There are three main pieces to the qjam framework: the Master, the
+RemoteWorker, and the Worker.
+
+The Worker is a program that is copied to all of the remote machines during the
+bootstrapping process. It is responsible for waiting for instructions from the
+Master, and upon receiving work, processing that work and returning the result.
+
+The RemoteWorker is a special Python class that communicates with the remote
+machines. One RemoteWorker has a single target machine that can be reached via
+ssh. There can be many RemoteWorkers with the same target (say, in the case
+where there are many cores on a machine), but only one target per
+RemoteWorker. At creation, the RemoteWorker bootstraps the remote machine by
+copying the requisite files to run the Worker program, via ssh. After the
+bootstrapping process completes, the RemoteWorker starts a Worker process on
+the remote machine and attaches to it. The RemoteWorker is the proxy between
+the Master and the Worker.
+
+The Master is a Python class that divides up work and assigns the work units
+among its pool of RemoteWorker instances. These RemoteWorker instances relay
+the work to the Worker programs running on the remote machines and wait for the
+results.
+
+Usage of the qjam framework is simple. There is one primary point of entry on a
+Master instance: master.run(module, params, dataset). The 'module' argument is
+a Python module object that contains a function 'mapfunc(params, dataset)' that
+will be called by the worker on the params and slices of the whole dataset. The
+'params' argument specifies an arbitrary Python object that is passed directly
+to all workers. The 'dataset' argument is an instance of a DataSet type
+(defined in qjam.dataset) that helps qjam determine how to slice the input
+data.
+
+There is a difference between 'params' and 'dataset': multiple calls to
+master.run() can use the same 'params' and 'dataset', but the pieces of
+'dataset' will not be retransferred to all of the remote machines on the second
+call to master.run(); the slices of data are cached locally at the
+nodes. However, 'params' will be transferred in full on every call to
+master.run(). Therefore, 'params' is best used for data that changes between
+calls to master.run(), and 'dataset' should be used for data that does not
+change.
+
 
 TESTS
 --------------------------------
