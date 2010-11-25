@@ -11,6 +11,7 @@ shows how to:
 All of the significant pieces are sufficiently commented to help you understand
 how to write programs to use qjam.
 '''
+import logging
 import os
 import sys
 
@@ -27,6 +28,9 @@ from examples import sum_dataset
 
 
 def main():
+  _fmt = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+  logging.basicConfig(level=logging.INFO, format=_fmt)
+
   # Worker hostnames are the commandline options. Each hostname specified on
   # the commandline will be bootstrapped and have a worker started on it.
   if len(sys.argv) < 2:
