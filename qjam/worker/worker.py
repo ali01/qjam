@@ -396,11 +396,11 @@ class Worker(object):
         msg = json.loads(msg_str)
       except ValueError, e:
         self._send_error('error parsing incoming message')
-
-      try:
-        self._handle_message(msg)
-      except ValueError, e:
-        self._send_error(str(e))
+      else:
+        try:
+          self._handle_message(msg)
+        except ValueError, e:
+          self._send_error(str(e))
 
       # Run any ready tasks.
       self._process_tasks()

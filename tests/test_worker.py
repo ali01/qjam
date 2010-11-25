@@ -112,6 +112,15 @@ class Test_Worker:
     self.write_message({'bogus_key': 1234})
     assert_true('missing type' in self.read_error_string())
 
+  def test_send_garbage(self):
+    '''Send a message that isn't a parseable json object.'''
+    self.write_str('this is a bogus message')
+    assert_true('parsing' in self.read_error_string())
+
+    # Make sure the worker didn't die.
+    self.write_str('another bogus message')
+    assert_true('parsing' in self.read_error_string())
+
   def test_bad_type(self):
     '''Send a message of an unknown type.'''
     self.write_command('bogus_command', {})
