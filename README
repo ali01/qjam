@@ -30,6 +30,11 @@ uses, does not currently support GSSAPI (kerberos logins).
 
     Usage: ./sum-matrix-example.py localhost machine2 machine3
 
+  examples/newton_sqrt.py
+    Approximates the square root of a number using Newton's method.
+
+    Usage: python examples/newton_sqrt.py 123456789
+
 
 ARCHITECTURE
 --------------------------------
