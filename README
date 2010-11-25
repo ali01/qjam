@@ -1,23 +1,41 @@
+qjam is a framework for parallel computation.
+
+It leverages ssh public key setups to automatically bootstrap and start worker
+nodes without manual intervention.
+
+
 DEPENDENCIES
 --------------------------------
-* Python paramiko (python-paramiko)
-* Python Nose (python-nose)
+
+The following packages are required to use qjam:
+
+  * Python paramiko (sudo aptitude install python-paramiko)
+  * Python Nose (sudo aptitude install python-nose)
+  * Python numpy (sudo aptitude install python-numpy)
 
 
 EXAMPLES
 --------------------------------
-# You need to have passwordless ssh access to localhost as your current username.
-# Run qjam on localhost
-bin/qjam-run.py -w localhost examples.multiply_sum examples.sequences.onetoten examples.sequences.three
-# should print 165
-# see examples/multiply_sum.py and other files in examples/ for more
+
+You need to have passwordless ssh access to localhost as your current
+username. If `ssh localhost' at a terminal gets you to a new prompt, you're
+golden. If not, set up ssh keys and/or an ssh agent as
+appropriate. Alternatively, you can run the following examples on machines that
+you can login to with ssh keys. However, paramiko, the ssh library that qjam
+uses, does not currently support GSSAPI (kerberos logins).
+
+  bin/sum-matrix-example.py
+    This is a simple example that explains how to use the qjam API to execute
+    code across many machines.
 
 
 TESTS
 --------------------------------
-nosetests tests/
 
-LINKS
---------------------------------
-We should check these out.
+The tests for qjam are located in the 'tests' directory. To run the test suite,
+type:
 
+  nosetests
+
+in the root directory. The tests are a good way to learn more about the
+architecture of qjam.
