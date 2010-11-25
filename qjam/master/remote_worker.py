@@ -151,7 +151,7 @@ class RemoteWorker(object):
     sftp.close()
 
     # executing worker code
-    cmd = 'python %s' % (remote_worker_path)
+    cmd = 'python2.6 %s' % (remote_worker_path)
     stdin, stdout, stderr = self.__ssh_client.exec_command(cmd);
 
     self.__r_stdin  = stdin
