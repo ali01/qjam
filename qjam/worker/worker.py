@@ -9,7 +9,6 @@ import logging
 import os
 import sys
 import tempfile
-import types
 
 # Adjust path to have access to other qjam code.
 sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..', '..'))
