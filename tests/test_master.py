@@ -11,6 +11,7 @@ import constant
 import sum_params
 from modules import multiply_sum_simple
 from modules import inner_prod
+from modules import write_to_stdout
 
 class TestMaster:
   def test_single_worker_simple(self):
@@ -18,7 +19,7 @@ class TestMaster:
     master = Master([worker])
 
     assert_equals(42, master.run(constant))
-    
+
     params = [1, 2, 3, 6, 7, 9]
     assert_equals(sum(params), master.run(sum_params, params))
 
@@ -62,3 +63,12 @@ class TestMaster:
     result = master.run(inner_prod, params=params, dataset=dataset)
 
     assert_equals(170, result)
+
+  def test_write_to_stdout(self):
+    worker_1 = RemoteWorker('localhost')
+    master = Master([worker_1])
+
+    dataset = DataSet(range(0, 100))
+    result = master.run(write_to_stdout, params=1, dataset=dataset)
+
+    assert_equals(42, result)

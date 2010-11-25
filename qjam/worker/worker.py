@@ -304,10 +304,8 @@ class Worker(object):
     if task is None:
       return  # Nothing to do
 
-    try:
-      self._process_task(task)
-    except Exception, e:
-      self._send_error('callable raised exception: %s' % str(e))
+    # TODO(ms): process all tasks that we can process now
+    self._process_task(task)
 
   def _process_task(self, task):
     self._send_message('state', id=task.id(), status='running')
@@ -318,12 +316,12 @@ class Worker(object):
     # Run the callable.
     dataset = task.dataset()
     if len(dataset) == 0:
-      result = callable(task.params(), dataset)
+      result = self._run_callable(callable, task.params(), dataset)
     else:
       results = []
       for ref in dataset:
         chunk = self._refstore.ref(ref)
-        result = callable(task.params(), chunk)
+        result = self._run_callable(callable, task.params(), chunk)
         results.append(result)
 
       # In-mapper reducing.
@@ -332,6 +330,33 @@ class Worker(object):
     # Send the result to the master.
     enc_result = base64.b64encode(pickle.dumps(result))
     self._send_message('result', id=task.id(), result=enc_result)
+
+  def _run_callable(self, callable, params, dataset):
+    '''Runs the callable.
+
+    Args:
+      params: params to pass to the callable
+      dataset: dataset to pass to the callable
+
+    Raises:
+      any exception the callable might raise
+
+    Returns:
+      result returned by callable
+    '''
+    # Redirect stdout to stderr when running the callable.
+    old_stdout = sys.stdout
+    sys.stdout = sys.stderr
+
+    try:
+      result = callable(params, dataset)
+    except Exception, e:
+      self._send_error('callable raised exception: %s' % str(e))
+
+    # Restore old stdout.
+    sys.stdout = old_stdout
+
+    return result
 
   def _send_error(self, err_str):
     '''Send an error message to stdout.
