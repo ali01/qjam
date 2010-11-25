@@ -39,9 +39,10 @@ class Master(object):
 
     if dataset:
       slice_size = 1
+      dataset.slice_size_is(slice_size)
       if len(dataset) > len_workers:
         slice_size = int(math.ceil(float(len(dataset)) / len_workers))
-      dataset.slice_size_is(slice_size)
+        dataset.slice_size_is(slice_size)
       self.__logger.info('slicing dataset into %d slices of size %d' %
                          (len(dataset), slice_size))
 
