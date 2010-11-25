@@ -6,8 +6,10 @@ import sys
 
 import qjam.worker.worker
 
-# utils
-from utils import source, encode, decode
+# Utility functions.
+from utils import decode
+from utils import encode
+from utils import source
 
 # Test modules. These are serialized and sent to the worker to execute.
 from modules import constant
