@@ -1,4 +1,4 @@
-#!/usr/bin/python2.6
+#!/usr/bin/env python
 import base64
 import cPickle as pickle
 import hashlib
@@ -398,7 +398,7 @@ class Worker(object):
       try:
         msg = json.loads(msg_str)
       except ValueError, e:
-        _send_error('error parsing incoming message')
+        self._send_error('error parsing incoming message')
 
       try:
         self._handle_message(msg)
