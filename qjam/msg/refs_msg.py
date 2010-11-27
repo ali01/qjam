@@ -5,9 +5,13 @@ import json
 from qjam.dataset import DataSet, BaseDataSet
 from base_msg import BaseMsg, encode_msg_field, decode_msg_field
 
+
 class RefsMsg(BaseMsg):
-  def __init__(self, refs=[]):
+  def __init__(self, refs=None):
     BaseMsg.__init__(self, 'refs')
+    if refs is None:
+      refs = []
+
     if not isinstance(refs, list):
       raise TypeError, 'refs parameter must be of type list'
 

@@ -4,6 +4,7 @@ import json
 
 from base_msg import BaseMsg, encode_msg_field, decode_msg_field
 
+
 class ResultMsg(BaseMsg):
   def __init__(self, result_object):
     BaseMsg.__init__(self, 'result')

@@ -1,6 +1,7 @@
 import base64
 import cPickle as pickle
 
+
 class BaseMsg(object):
   def __init__(self, type):
     self.__type = type

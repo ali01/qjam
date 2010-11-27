@@ -6,6 +6,7 @@ from qjam.dataset import DataSet, BaseDataSet
 from qjam.utils import module_src
 from base_msg import BaseMsg, encode_msg_field, decode_msg_field
 
+
 class TaskMsg(BaseMsg):
   def __init__(self, module_object, params=None, dataset=None):
     BaseMsg.__init__(self, 'task')

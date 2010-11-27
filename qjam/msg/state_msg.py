@@ -2,9 +2,13 @@ import json
 
 from base_msg import BaseMsg, encode_msg_field, decode_msg_field
 
+
 class StateMsg(BaseMsg):
-  def __init__(self, status, missing_refs=[]):
+  def __init__(self, status, missing_refs=None):
     BaseMsg.__init__(self, 'state')
+    if missing_refs is None:
+      missing_refs = []
+
     if status != 'running' and status != 'blocked':
       raise ValueError, 'unknown value for status parameter'
 
@@ -43,5 +47,5 @@ def StateMsgFromDict(dict):
     missing_refs = dict['missing_refs']
   else:
     missing_refs = []
-  
+
   return StateMsg(status, missing_refs)
