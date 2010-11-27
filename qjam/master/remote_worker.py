@@ -175,7 +175,8 @@ class RemoteWorker(object):
         raise RemoteWorkerError(str(error_msg))
 
     except (KeyError, ValueError) as e:
-      raise RemoteWorkerError("ill-formed incoming message from remote worker")
+      raise RemoteWorkerError('ill-formed incoming message from remote worker: '
+                              '"%s"' % e)
 
     return msg
 
