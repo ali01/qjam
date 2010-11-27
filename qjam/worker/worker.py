@@ -311,18 +311,33 @@ class Worker(object):
     callable = getattr(task.module(), 'mapfunc')
 
     # Run the callable.
+    # All exceptions in the callable will cause immediate return from this
+    # function. No 'result' messages are sent in this case. The assumption is
+    # that if an exception occurred during the processing of any chunk, the
+    # result is invalid and is therefore not returned.
     dataset = task.dataset()
     if len(dataset) == 0:
-      result = self._run_callable(callable, task.params(), dataset)
+      try:
+        result = self._run_callable(callable, task.params(), dataset)
+      except Exception, e:
+        self._send_error('callable raised exception: %s' % str(e))
+        return
     else:
       results = []
       for ref in dataset:
         chunk = self._refstore.ref(ref)
-        result = self._run_callable(callable, task.params(), chunk)
+        try:
+          result = self._run_callable(callable, task.params(), chunk)
+        except Exception, e:
+          self._send_error('callable raised exception: %s' % str(e))
+          return
         results.append(result)
 
       # In-mapper reducing.
-      result = reduce(reducing.default_reduce, results)
+      if results:
+        result = reduce(reducing.default_reduce, results)
+      else:
+        result = None
 
     # Send the result to the master.
     enc_result = base64.b64encode(pickle.dumps(result))
@@ -345,10 +360,7 @@ class Worker(object):
     old_stdout = sys.stdout
     sys.stdout = sys.stderr
 
-    try:
-      result = callable(params, dataset)
-    except Exception, e:
-      self._send_error('callable raised exception: %s' % str(e))
+    result = callable(params, dataset)
 
     # Restore old stdout.
     sys.stdout = old_stdout

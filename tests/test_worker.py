@@ -171,6 +171,11 @@ class Test_Worker:
     state_msg = self.read_state()
     assert_true('exception' in self.read_error_string())
 
+    # Run again to make sure state is still consistent.
+    self.send_task(raise_exc, None, [])
+    state_msg = self.read_state()
+    assert_true('exception' in self.read_error_string())
+
   def test_multiple_tasks(self):
     '''Run multiple tasks on the same worker instance.'''
     self.test_constant()
