@@ -419,9 +419,15 @@ def print_message(msg):
 
 
 def main():
+  # Writing too much data to stderr will cause the worker to block if the other
+  # side does not read the stderr handle.
+  log_level = logging.CRITICAL
+  if len(sys.argv) > 1 and sys.argv[1] == '-d':
+    log_level = logging.DEBUG
+
   # Set up logging.
   _fmt = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
-  logging.basicConfig(level=logging.DEBUG, format=_fmt)
+  logging.basicConfig(level=log_level, format=_fmt)
 
   # Create a Worker and attach it to the stdin and stdout streams.
   worker = Worker(sys.stdin, sys.stdout)
