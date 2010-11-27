@@ -31,6 +31,7 @@ class RemoteWorker(object):
 
     self.__task = None
     self.__result = None
+    self.__logger = logging.getLogger('RemoteWorker')
 
   def __del__(self):
     self.__ssh_client.close()
@@ -163,20 +164,30 @@ class RemoteWorker(object):
     if (not issubclass(type(msg), BaseMsg)):
       raise TypeError
 
+    self.__logger.debug('sending: %s' % msg.json_str())
     self.__r_stdin.write(('%s\n' % msg.json_str()))
 
 
   def __recv(self):
     try:
-      msg = json.loads(self.__r_stdout.readline())
+      line = self.__r_stdout.readline()
+      self.__logger.debug('received: %s' % line)
+      if line == '':
+        self.__logger.info('%s crashed; reading stderr:' % str(self))
+        stderr_line = self.__r_stderr.readline()[0:-1]
+        while stderr_line:
+          self.__logger.info('  | %s' % stderr_line)
+          stderr_line = self.__r_stderr.readline()[0:-1]
+        raise RemoteWorkerError('remote worker crashed')
+
+      msg = json.loads(line)
 
       if msg['type'] == 'error':
         error_msg = ErrorMsgFromDict(msg)
         raise RemoteWorkerError(str(error_msg))
 
     except (KeyError, ValueError) as e:
-      raise RemoteWorkerError('ill-formed incoming message from remote worker: '
-                              '"%s"' % e)
+      raise RemoteWorkerError('ill-formed incoming message from remote worker')
 
     return msg
 
