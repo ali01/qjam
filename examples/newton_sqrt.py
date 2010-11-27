@@ -3,8 +3,12 @@ def mapfunc(n, x):
     x = x[0]
     return x - (x*x - n)/(2*x)
 
+
 if __name__ == "__main__":
+    import os
     import sys
+    # Add parent directory to path.
+    sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..'))
     from qjam import DataSet
     from qjam.master import Master, RemoteWorker
 
