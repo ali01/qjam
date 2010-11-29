@@ -17,12 +17,14 @@ The following packages are required to use qjam:
 EXAMPLES
 --------------------------------
 
-You need to have passwordless ssh access to localhost as your current
+You need to have passwordless public-key ssh access to localhost as your current
 username. If `ssh localhost' at a terminal gets you to a new prompt, you're
 golden. If not, set up ssh keys and/or an ssh agent as
-appropriate. Alternatively, you can run the following examples on machines that
-you can login to with ssh keys. However, paramiko, the ssh library that qjam
-uses, does not currently support GSSAPI (kerberos logins).
+appropriate.
+
+If you can't get public key auth working for SSH (for example, if you're using
+Kerberos/GSSAPI), then you can specify your SSH username and password in the
+environment variables QJAM_USER and QJAM_PASSWD. This is a temporary workaround.
 
   bin/sum-matrix-example.py
     This is a simple example that explains how to use the qjam API to execute
@@ -90,3 +92,34 @@ type:
 
 in the root directory. The tests are a good way to learn more about the
 architecture of qjam.
+
+
+RUNNING ON STANFORD AI LAB MACHINES
+----------------------------------------
+
+The yggdrasil machines are missing Python 2.6, Paramiko (Python SSH lib), and
+Numpy. They also don't support SSH public key auth.
+
+So, you must first install Python 2.6, Paramiko, and Numpy locally. As of
+2010/11/29, yggdrasil[1-4] all have these installed at the prefix
+/tmp/py26. Adapt the /tmp/update_yggdrasil_py26.sh script to install these on
+other yggdrasils. Set the env var QJAM_REMOTE_PYTHON=/tmp/py26/bin/python in
+your calls to qjam to use this Python.
+
+To work around the lack of SSH public key auth on the yggdrasil machines,
+specify your password in the env var QJAM_PASSWD. This is not ideal, but it
+works for now.
+
+Make sure /tmp/py26/bin/python is in your $PATH, and set $PYTHONPATH to the
+top-level `qjam` directory.
+
+Examples:
+
+yggdrasil1% QJAM_REMOTE_PYTHON=/tmp/py26/bin/python2.6 QJAM_PASSWD=passwd \
+            bin/sum-matrix-example.py yggdrasil1 yggdrasil2 yggdrasil3 yggdrasil4
+
+yggdrasil1% QJAM_REMOTE_PYTHON=/tmp/py26/bin/python2.6 QJAM_PASSWD=passwd \
+            python examples/newton_sqrt.py 123456789 yggdrasil1
+
+yggdrasil1% QJAM_REMOTE_PYTHON=/tmp/py26/bin/python2.6 QJAM_PASSWD=passwd \
+            nosetests tests/
