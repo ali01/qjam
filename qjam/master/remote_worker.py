@@ -166,7 +166,8 @@ class RemoteWorker(object):
     sftp.close()
 
     # executing worker code
-    cmd = 'python2.6 %s' % (remote_worker_path)
+    python = os.getenv('QJAM_REMOTE_PYTHON', 'python2.6')
+    cmd = '%s %s' % (python, remote_worker_path)
     stdin, stdout, stderr = self.__ssh_client.exec_command(cmd);
 
     self.__r_stdin  = stdin
