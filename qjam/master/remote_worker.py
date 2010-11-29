@@ -113,8 +113,22 @@ class RemoteWorker(object):
     hosts_path = os.path.expanduser(os.path.join('~', '.ssh', 'known_hosts'))
     self.__ssh_client = paramiko.SSHClient()
     self.__ssh_client.load_host_keys(hosts_path)
-    self.__ssh_client.connect(self.__host, self.__port,
-                              username=os.getenv('USER'))
+
+    # Paramiko does not (yet) support GSSAPI, so Kerberos-based logins will not
+    # work. Use environment variables to pass login information.
+    #
+    # For usernames, preference is 'QJAM_USER', then 'USER'.
+    # For passwords, try password authentication if 'QJAM_PASSWD' is specified.
+    #
+    # Note that 'QJAM_PASSWD' can also be a password for a private key.
+    user = os.getenv('QJAM_USER', os.getenv('USER'))
+    passwd = os.getenv('QJAM_PASSWD')
+
+    if passwd:
+      self.__ssh_client.connect(self.__host, self.__port,
+                                username=user, password=passwd)
+    else:
+      self.__ssh_client.connect(self.__host, self.__port, username=user)
 
 
   def __bootstrap_remote_worker(self):
