@@ -114,6 +114,14 @@ class RemoteWorker(object):
     self.__ssh_client = paramiko.SSHClient()
     self.__ssh_client.load_host_keys(hosts_path)
 
+    # Change the policy for missing host keys. This is a workaround for GSSAPI
+    # logins that is necessary in combination with the QJAM_PASSWD environment
+    # variable below.
+    # TODO(ms): I'm still not completely sure why host keys aren't loaded from
+    #   ~/.ssh/known_hosts with the load_host_keys() call earlier for GSSAPI
+    #   logins.
+    self.__ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
     # Paramiko does not (yet) support GSSAPI, so Kerberos-based logins will not
     # work. Use environment variables to pass login information.
     #
