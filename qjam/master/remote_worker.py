@@ -127,6 +127,7 @@ class RemoteWorker(object):
     rsync_cmd = ['rsync',
                  '-ru',
                  '--port=%d' % self.__port,
+                 '-e', 'ssh -o PasswordAuthentication=false',
                  local_pkg_path,
                  remote_host_path]
     retcode = subprocess.call(rsync_cmd)
