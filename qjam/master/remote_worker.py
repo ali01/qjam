@@ -139,6 +139,7 @@ class RemoteWorker(object):
     python = os.getenv('QJAM_REMOTE_PYTHON', 'python2.6')
     self.__r_ssh = subprocess.Popen(['ssh',
                                      '-p', str(self.__port),
+                                     '-o', 'PasswordAuthentication=false',
                                      host,
                                      python,
                                      remote_worker_path],
