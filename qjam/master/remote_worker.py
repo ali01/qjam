@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import paramiko
+import subprocess
 
 from qjam.exceptions.remote_worker_error import RemoteWorkerError
 from qjam.msg.base_msg import BaseMsg
@@ -10,8 +11,6 @@ from qjam.msg.refs_msg import RefsMsg
 from qjam.msg.result_msg import ResultMsg, ResultMsgFromDict
 from qjam.msg.state_msg import StateMsg, StateMsgFromDict
 from qjam.utils import module_path
-
-REMOTE_CODE_PATH = os.path.join(os.sep, 'tmp', 'qjam-%s' % os.getenv('USER'))
 
 # TODO(ali01): logging
 # TODO(ali01): overlooked, but necessary, exception handling
@@ -23,18 +22,19 @@ class RemoteWorker(object):
     _logger = paramiko.util.logging.getLogger('paramiko')
     _logger.setLevel(paramiko.common.WARNING)
 
+    self.__logger = logging.getLogger('RemoteWorker')
+
     self.__host = host
     self.__port = port
+    self.__user = os.getenv('QJAM_USER', None)
 
-    self.__init_worker_connection()
     self.__bootstrap_remote_worker()
 
     self.__task = None
     self.__result = None
-    self.__logger = logging.getLogger('RemoteWorker')
 
   def __del__(self):
-    self.__ssh_client.close()
+    self.__r_ssh.terminate()
 
 
   def taskIs(self, task_msg):
@@ -107,80 +107,48 @@ class RemoteWorker(object):
     self.__result = result_msg.result()
 
 
-  def __init_worker_connection(self):
-    '''initializes ssh client for worker connection'''
-
-    hosts_path = os.path.expanduser(os.path.join('~', '.ssh', 'known_hosts'))
-    self.__ssh_client = paramiko.SSHClient()
-    self.__ssh_client.load_host_keys(hosts_path)
-
-    # Change the policy for missing host keys. This is a workaround for GSSAPI
-    # logins that is necessary in combination with the QJAM_PASSWD environment
-    # variable below.
-    # TODO(ms): I'm still not completely sure why host keys aren't loaded from
-    #   ~/.ssh/known_hosts with the load_host_keys() call earlier for GSSAPI
-    #   logins.
-    self.__ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-    # Paramiko does not (yet) support GSSAPI, so Kerberos-based logins will not
-    # work. Use environment variables to pass login information.
-    #
-    # For usernames, preference is 'QJAM_USER', then 'USER'.
-    # For passwords, try password authentication if 'QJAM_PASSWD' is specified.
-    #
-    # Note that 'QJAM_PASSWD' can also be a password for a private key.
-    user = os.getenv('QJAM_USER', os.getenv('USER'))
-    passwd = os.getenv('QJAM_PASSWD')
-
-    if passwd:
-      self.__ssh_client.connect(self.__host, self.__port,
-                                username=user, password=passwd)
-    else:
-      self.__ssh_client.connect(self.__host, self.__port, username=user)
-
-
   def __bootstrap_remote_worker(self):
-    '''transfers worker/worker.py to the remote worker executes it on the
-       remote'''
+    '''Updates worker code on the remote machine and executes it.'''
+    # Determine path to qjam package.
+    import qjam
+    local_pkg_path = os.path.dirname(qjam.__file__)
 
-    # transferring common code
-    sftp = self.__ssh_client.open_sftp()
-
-    remote_qjam_dir = os.path.join(REMOTE_CODE_PATH, 'qjam')
-    remote_worker_dir = os.path.join(remote_qjam_dir, 'worker')
-    remote_common_dir = os.path.join(remote_qjam_dir, 'common')
-
-    self.__remote_mkdir(sftp, REMOTE_CODE_PATH)
-    self.__remote_mkdir(sftp, remote_qjam_dir)
-    self.__remote_mkdir(sftp, remote_worker_dir)
-    self.__remote_mkdir(sftp, remote_common_dir)
-
-    remote_qjam_init_path = os.path.join(remote_qjam_dir, '__init__.py')
-    remote_worker_init_path = os.path.join(remote_worker_dir, '__init__.py')
-    remote_common_init_path = os.path.join(remote_common_dir, '__init__.py')
-
-    self.__remote_touch(remote_qjam_init_path)
-    self.__remote_touch(remote_worker_init_path)
-    self.__remote_touch(remote_common_init_path)
-
-    from qjam.worker import worker
+    # Construct remote paths. The 'qjam' package directory is placed here on
+    # the remote side.
+    user = self.__user or os.getenv('USER', 'nobody')
+    remote_base_path = os.path.join(os.sep, 'tmp', 'qjam-%s' % user)
+    remote_worker_dir = os.path.join(remote_base_path, 'qjam', 'worker')
     remote_worker_path = os.path.join(remote_worker_dir, 'worker.py')
-    sftp.put(module_path(worker), remote_worker_path)
 
-    from qjam.common import reducing
-    remote_reducer_path = os.path.join(remote_common_dir, 'reducing.py')
-    sftp.put(module_path(reducing), remote_reducer_path)
+    # Update code on remote machine.
+    retcode = subprocess.call(['rsync', '-ru',
+                               local_pkg_path, remote_base_path])
+    self.__logger.debug('bootstrap rsync returned: %d' % retcode)
+    if retcode != 0:
+      raise RemoteWorkerError('failed to bootstrap %s: rsync returned %d' %
+                              str(self), retcode)
 
-    sftp.close()
-
-    # executing worker code
+    # Start remote worker process.
     python = os.getenv('QJAM_REMOTE_PYTHON', 'python2.6')
-    cmd = '%s %s' % (python, remote_worker_path)
-    stdin, stdout, stderr = self.__ssh_client.exec_command(cmd);
+    if self.__user:
+      host = '%s@%s' % (self.__user, self.__host)
+    else:
+      host = self.__host
+    self.__r_ssh = subprocess.Popen(['ssh',
+                                     '-p', str(self.__port),
+                                     host,
+                                     python,
+                                     remote_worker_path],
+                                    stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
 
-    self.__r_stdin  = stdin
-    self.__r_stdout = stdout
-    self.__r_stderr = stderr
+    if self.__r_ssh.poll() is not None:  # None = process is still running
+      raise RemoteWorkerError('failed to start remote worker: ' % str(self))
+
+    self.__r_stdin  = self.__r_ssh.stdin
+    self.__r_stdout = self.__r_ssh.stdout
+    self.__r_stderr = self.__r_ssh.stderr
 
 
   def __send(self, msg):
