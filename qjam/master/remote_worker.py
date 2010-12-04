@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import paramiko
 import subprocess
 
 from qjam.exceptions.remote_worker_error import RemoteWorkerError
@@ -18,10 +17,6 @@ from qjam.utils import module_path
 
 class RemoteWorker(object):
   def __init__(self, host, port=22):
-    # Adjust paramiko logging verbosity.
-    _logger = paramiko.util.logging.getLogger('paramiko')
-    _logger.setLevel(paramiko.common.WARNING)
-
     self.__logger = logging.getLogger('RemoteWorker')
 
     self.__host = host

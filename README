@@ -9,7 +9,6 @@ DEPENDENCIES
 
 The following packages are required to use qjam:
 
-  * Python paramiko (sudo aptitude install python-paramiko)
   * Python Nose (sudo aptitude install python-nose)
   * Python numpy (sudo aptitude install python-numpy)
 
@@ -97,8 +96,8 @@ architecture of qjam.
 RUNNING ON STANFORD AI LAB MACHINES
 ----------------------------------------
 
-The yggdrasil machines are missing Python 2.6, Paramiko (Python SSH lib), and
-Numpy. They also don't support SSH public key auth.
+The yggdrasil machines are missing Python 2.6 and Numpy. They also don't
+support SSH public key auth.
 
 So, you must first install Python 2.6, Paramiko, and Numpy locally. As of
 2010/11/29, yggdrasil[1-4] all have these installed at the prefix
