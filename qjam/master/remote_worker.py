@@ -143,9 +143,6 @@ class RemoteWorker(object):
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
 
-    if self.__r_ssh.poll() is not None:  # None = process is still running
-      raise RemoteWorkerError('failed to start remote worker: ' % str(self))
-
     self.__r_stdin  = self.__r_ssh.stdin
     self.__r_stdout = self.__r_ssh.stdout
     self.__r_stderr = self.__r_ssh.stderr
