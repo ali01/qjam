@@ -115,20 +115,26 @@ class RemoteWorker(object):
     remote_worker_dir = os.path.join(remote_base_path, 'qjam', 'worker')
     remote_worker_path = os.path.join(remote_worker_dir, 'worker.py')
 
-    # Update code on remote machine.
-    retcode = subprocess.call(['rsync', '-ru',
-                               local_pkg_path, remote_base_path])
-    self.__logger.debug('bootstrap rsync returned: %d' % retcode)
-    if retcode != 0:
-      raise RemoteWorkerError('failed to bootstrap %s: rsync returned %d' %
-                              str(self), retcode)
-
-    # Start remote worker process.
-    python = os.getenv('QJAM_REMOTE_PYTHON', 'python2.6')
     if self.__user:
       host = '%s@%s' % (self.__user, self.__host)
     else:
       host = self.__host
+
+    # Update code on remote machine.
+    remote_host_path = '%s:%s' % (host, remote_base_path)
+    rsync_cmd = ['rsync',
+                 '-ru',
+                 '--port=%d' % self.__port,
+                 local_pkg_path,
+                 remote_host_path]
+    retcode = subprocess.call(rsync_cmd)
+    self.__logger.debug('bootstrap rsync returned: %d' % retcode)
+    if retcode != 0:
+      raise RemoteWorkerError('failed to bootstrap %s: rsync returned %d' %
+                              (str(self), retcode))
+
+    # Start remote worker process.
+    python = os.getenv('QJAM_REMOTE_PYTHON', 'python2.6')
     self.__r_ssh = subprocess.Popen(['ssh',
                                      '-p', str(self.__port),
                                      host,
