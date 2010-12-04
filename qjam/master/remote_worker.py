@@ -23,13 +23,15 @@ class RemoteWorker(object):
     self.__port = port
     self.__user = os.getenv('QJAM_USER', None)
 
+    self.__r_ssh = None
     self.__bootstrap_remote_worker()
 
     self.__task = None
     self.__result = None
 
   def __del__(self):
-    self.__r_ssh.terminate()
+    if self.__r_ssh:
+      self.__r_ssh.terminate()
 
 
   def taskIs(self, task_msg):
