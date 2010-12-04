@@ -1,31 +1,24 @@
-
 \documentclass[%
-        %draft,
-        %submission,
-        %compressed,
-        final,
-        %
-        %technote,
-        %internal,
-        %submitted,
-        %inpress,
-        %reprint,
-        %
-        %titlepage,
-        notitlepage,
-        %anonymous,
-        narroweqnarray,
-        inline,
-        %twoside,
-        ]{ieee}
-%
-% some standard modes are:
-%
-% \documentclass[draft,narroweqnarray,inline]{ieee}
-% \documentclass[submission,anonymous,narroweqnarray,inline]{ieee}
-% \documentclass[final,narroweqnarray,inline]{ieee}
+  %draft,
+  %submission,
+  %compressed,
+  final,
+  %
+  %technote,
+  %internal,
+  %submitted,
+  %inpress,
+  %reprint,
+  %
+  %titlepage,
+  notitlepage,
+  %anonymous,
+  narroweqnarray,
+  inline,
+  %twoside,
+]{ieee}
 
-\usepackage{ieeefig,url,enumerate}
+\usepackage{ieeefig, url, enumerate}
 
 \begin{document}
 
@@ -41,15 +34,6 @@
   Ali Yahya
 }
 
-% specifiy the journal name
-%\journal{IEEE Transactions on Something, 1997}
-
-% Or, when the paper is a preprint, try this...
-%\journal{IEEE Transactions on Something, 1997, TN\#9999.}
-
-% Or, specify the conference place and date.
-%\confplacedate{Ottawa, Canada, May 19--21, 1997}
-
 \maketitle
 
 \begin{abstract}
@@ -57,23 +41,7 @@ We wish to provide a portable framework for the rapid prototyping of machine
 learning algorithms on a cluster of computers.
 \end{abstract}
 
-% do the keywords
-%\begin{keywords}
-%keyword 1, keyword 2 ...
-%\end{keywords}
-
 \section{Introduction}
-
-% try out a theorem...
-% \newtheorem{theorem}{Theorem}
-%
-% \begin{theorem}[Theorem name]
-%   Consider the system ...
-% \end{theorem}
-%
-% \begin{proof}
-%   The proof is trivial.
-% \end{proof}
 
 \section{Distributing Work}
 
@@ -105,7 +73,6 @@ For the implementation of this project, Python and Numpy have been the language
 and framework of choice. Our selection criteria included three points: First,
 clarity and ease of use; second, networking libraries to enable the
 implementation of a distributed framework; and third, performance.
-% I really wanted to find a fourth point to avoid being Cheritonistic...
 
 As an alternative, we also considered the use of R for the implementation of
 this project. The following is our comparison of Python vs. R and our rationale
