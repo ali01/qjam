@@ -159,7 +159,7 @@ class RemoteWorker(object):
     while stderr_line:
       self.__logger.info('  | %s' % stderr_line)
       stderr_line = self.__r_stderr.readline()[0:-1]
-      raise RemoteWorkerError('remote worker crashed')
+    raise RemoteWorkerError('remote worker crashed')
 
 
   def __send(self, msg):
