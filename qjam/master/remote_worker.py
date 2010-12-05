@@ -153,12 +153,24 @@ class RemoteWorker(object):
     self.__r_stderr = self.__r_ssh.stderr
 
 
+  def __handle_worker_crash(self):
+    self.__logger.info('%s crashed; reading stderr:' % str(self))
+    stderr_line = self.__r_stderr.readline()[0:-1]
+    while stderr_line:
+      self.__logger.info('  | %s' % stderr_line)
+      stderr_line = self.__r_stderr.readline()[0:-1]
+      raise RemoteWorkerError('remote worker crashed')
+
+
   def __send(self, msg):
     if (not issubclass(type(msg), BaseMsg)):
       raise TypeError
 
     self.__logger.debug('sending: %s' % msg.json_str())
-    self.__r_stdin.write(('%s\n' % msg.json_str()))
+    try:
+      self.__r_stdin.write(('%s\n' % msg.json_str()))
+    except IOError:
+      self.__handle_worker_crash()
 
 
   def __recv(self):
@@ -166,12 +178,7 @@ class RemoteWorker(object):
       line = self.__r_stdout.readline()
       self.__logger.debug('received: %s' % line)
       if line == '':
-        self.__logger.info('%s crashed; reading stderr:' % str(self))
-        stderr_line = self.__r_stderr.readline()[0:-1]
-        while stderr_line:
-          self.__logger.info('  | %s' % stderr_line)
-          stderr_line = self.__r_stderr.readline()[0:-1]
-        raise RemoteWorkerError('remote worker crashed')
+        self.__handle_worker_crash()
 
       msg = json.loads(line)
 
