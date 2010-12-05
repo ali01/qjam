@@ -187,6 +187,7 @@ class RemoteWorker(object):
         raise RemoteWorkerError(str(error_msg))
 
     except (KeyError, ValueError) as e:
+      self.__logger.info('bad message from worker: %s' % line)
       raise RemoteWorkerError('ill-formed incoming message from remote worker')
 
     return msg
