@@ -7,6 +7,7 @@ import inspect
 import json
 import logging
 import os
+import signal
 import sys
 import tempfile
 
@@ -418,6 +419,11 @@ class Worker(object):
       self._process_tasks()
 
 
+def signal_handler(signum, frame):
+  logging.critical('received signal %d; exiting.' % signum)
+  sys.exit(-1)
+
+
 def print_message(msg):
   '''Log a message object.
 
@@ -440,6 +446,10 @@ def main():
   # Set up logging.
   _fmt = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
   logging.basicConfig(level=log_level, format=_fmt)
+
+  # Signal handler.
+  signal.signal(signal.SIGTERM, signal_handler)
+  signal.signal(signal.SIGALRM, signal_handler)
 
   # Create a Worker and attach it to the stdin and stdout streams.
   worker = Worker(sys.stdin, sys.stdout)
