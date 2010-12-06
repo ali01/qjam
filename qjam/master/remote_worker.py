@@ -17,7 +17,7 @@ from qjam.utils import module_path
 
 class RemoteWorker(object):
   def __init__(self, host, port=22):
-    self.__logger = logging.getLogger('RemoteWorker')
+    self.__logger = logging.getLogger('[%s:%d]' % (host, port))
 
     self.__host = host
     self.__port = port
@@ -133,8 +133,8 @@ class RemoteWorker(object):
     retcode = subprocess.call(rsync_cmd)
     self.__logger.debug('bootstrap rsync returned: %d' % retcode)
     if retcode != 0:
-      raise RemoteWorkerError('failed to bootstrap %s: rsync returned %d' %
-                              (str(self), retcode))
+      raise RemoteWorkerError('failed to bootstrap; rsync returned %d' %
+                              retcode)
 
     # Start remote worker process.
     python = os.getenv('QJAM_REMOTE_PYTHON', 'python2.6')
@@ -163,7 +163,7 @@ class RemoteWorker(object):
       # return value for this condition.
       return False
 
-    self.__logger.info('%s crashed; stderr output:' % str(self))
+    self.__logger.info('remote worker crashed; stderr output:')
     for line in stderr_output:
       self.__logger.info('  | %s' % line)
     raise RemoteWorkerError('remote worker crashed')
@@ -182,7 +182,7 @@ class RemoteWorker(object):
         # connection was served unexpectedly. Retry.
         self.__logger.info('ssh session died unexpectedly; reconnecting')
         self.__bootstrap_remote_worker()
-        self.__logger.info('connection to %s reestablished' % str(self))
+        self.__logger.info('connection reestablished')
         return self.__send(msg)
 
 
