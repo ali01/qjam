@@ -4,16 +4,24 @@ def mapfunc(n, x):
     return x - (x*x - n)/(2*x)
 
 
-if __name__ == "__main__":
+def main():
+    import logging
     import os
     import sys
+
     # Add parent directory to path.
+    # Note that these imports cannot be at the top level because the worker
+    # does not have these modules.
     sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..'))
     from qjam import DataSet
     from qjam.master import Master, RemoteWorker
 
+    _fmt = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    logging.basicConfig(level=logging.WARNING, format=_fmt)
+
     if len(sys.argv) == 1:
-        print "approximates sqrt(n)\nusage: %s <n> [<hostname> ...]" % sys.argv[0]
+        print "approximates sqrt(n)"
+        print "usage: %s <n> [<hostname> ...]" % sys.argv[0]
         exit(1)
     n = float(sys.argv[1])
     cluster = sys.argv[2:]
@@ -36,3 +44,6 @@ if __name__ == "__main__":
             break
         i += 1
 
+
+if __name__ == "__main__":
+    main()

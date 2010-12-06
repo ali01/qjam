@@ -9,7 +9,6 @@ DEPENDENCIES
 
 The following packages are required to use qjam:
 
-  * Python paramiko (sudo aptitude install python-paramiko)
   * Python Nose (sudo aptitude install python-nose)
   * Python numpy (sudo aptitude install python-numpy)
 
@@ -17,12 +16,19 @@ The following packages are required to use qjam:
 EXAMPLES
 --------------------------------
 
-You need to have passwordless ssh access to localhost as your current
-username. If `ssh localhost' at a terminal gets you to a new prompt, you're
-golden. If not, set up ssh keys and/or an ssh agent as
-appropriate. Alternatively, you can run the following examples on machines that
-you can login to with ssh keys. However, paramiko, the ssh library that qjam
-uses, does not currently support GSSAPI (kerberos logins).
+You need to have passwordless public-key ssh access to localhost as your
+current username. If `ssh localhost' at a terminal gets you to a new prompt,
+you're golden. If not, set up ssh keys and/or an ssh agent as appropriate.
+
+The username used to access remote machines via ssh is the username used on the
+master machine. You can specify an alternate username to be used on the remote
+machines in two ways:
+
+  * Set the QJAM_USER environment variable.
+  * Use a 'User' directive in your ~/.ssh/config.
+
+With the proper ssh setup, these example programs can be run directly from the
+commandline:
 
   bin/sum-matrix-example.py
     This is a simple example that explains how to use the qjam API to execute
@@ -90,3 +96,30 @@ type:
 
 in the root directory. The tests are a good way to learn more about the
 architecture of qjam.
+
+
+RUNNING ON STANFORD AI LAB MACHINES
+----------------------------------------
+
+The yggdrasil machines are missing Python 2.6 and Numpy.
+
+So, you must first install Python 2.6 and Numpy locally. As of
+2010/11/29, yggdrasil[1-4] all have these installed at the prefix
+/tmp/py26. Adapt the /tmp/update_yggdrasil_py26.sh script to install these on
+other yggdrasils. Set the env var QJAM_REMOTE_PYTHON=/tmp/py26/bin/python in
+your calls to qjam to use this Python.
+
+Make sure /tmp/py26/bin/python is in your $PATH, and set $PYTHONPATH to the
+top-level 'qjam' directory.
+
+Examples:
+
+yggdrasil1% QJAM_REMOTE_PYTHON=/tmp/py26/bin/python2.6 \
+            bin/sum-matrix-example.py \
+            yggdrasil1 yggdrasil2 yggdrasil3 yggdrasil4
+
+yggdrasil1% QJAM_REMOTE_PYTHON=/tmp/py26/bin/python2.6 \
+            python examples/newton_sqrt.py 123456789 yggdrasil1
+
+yggdrasil1% QJAM_REMOTE_PYTHON=/tmp/py26/bin/python2.6 \
+            nosetests tests/
