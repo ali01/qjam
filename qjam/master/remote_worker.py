@@ -154,11 +154,18 @@ class RemoteWorker(object):
 
 
   def __handle_worker_crash(self):
-    self.__logger.info('%s crashed; reading stderr:' % str(self))
-    stderr_line = self.__r_stderr.readline()[0:-1]
-    while stderr_line:
-      self.__logger.info('  | %s' % stderr_line)
-      stderr_line = self.__r_stderr.readline()[0:-1]
+    # Read all lines from stderr. This contains errors from the worker process.
+    stderr_output = self.__r_stderr.readlines()
+    if not stderr_output:
+      # If worker really crashed, it should have written to stderr before
+      # exiting. The lack of output indicates that the connection to the worker
+      # was severed prematurely. Callers of this function should check the
+      # return value for this condition.
+      return False
+
+    self.__logger.info('%s crashed; stderr output:' % str(self))
+    for line in stderr_output:
+      self.__logger.info('  | %s' % line)
     raise RemoteWorkerError('remote worker crashed')
 
 
@@ -170,7 +177,12 @@ class RemoteWorker(object):
     try:
       self.__r_stdin.write(('%s\n' % msg.json_str()))
     except IOError:
-      self.__handle_worker_crash()
+      if not self.__handle_worker_crash():
+        # False was returned instead of raising an exception. The ssh
+        # connection was served unexpectedly. Retry.
+        self.__logger.info('ssh session died unexpectedly; reconnecting.')
+        self.__bootstrap_remote_worker()
+        return self.__send(msg)
 
 
   def __recv(self):
