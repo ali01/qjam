@@ -6,6 +6,7 @@ import math
 import os
 import paramiko
 import threading
+import time
 
 from remote_worker import RemoteWorker
 from remote_task_thread import RemoteTaskThread
@@ -32,6 +33,7 @@ class Master(object):
     self.__logger = logging.getLogger('Master')
 
   def run(self, module, params=None, dataset=None):
+    start = time.time()
     self.__thread_pool = []
 
     len_workers = len(self.__workers)
@@ -73,4 +75,6 @@ class Master(object):
     except AttributeError:
       reducefn = default_reduce
 
-    return reduce(reducefn, results)
+    reduced = reduce(reducefn, results)
+    self.__logger.info('elapsed time: %.3fs' % (time.time() - start))
+    return reduced
