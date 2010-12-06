@@ -58,6 +58,7 @@ class Master(object):
         task_msg = TaskMsg(module, params, None)
 
       thread = RemoteTaskThread(worker, task_msg)
+      thread.daemon = True
       self.__thread_pool.append(thread)
       thread.start()
 
