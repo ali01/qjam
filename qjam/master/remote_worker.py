@@ -173,22 +173,23 @@ class RemoteWorker(object):
     if (not issubclass(type(msg), BaseMsg)):
       raise TypeError
 
-    self.__logger.debug('sending: %s' % msg.json_str())
+    self.__logger.debug('sending %d bytes' % len(msg.json_str()))
     try:
       self.__r_stdin.write(('%s\n' % msg.json_str()))
     except IOError:
       if not self.__handle_worker_crash():
         # False was returned instead of raising an exception. The ssh
         # connection was served unexpectedly. Retry.
-        self.__logger.info('ssh session died unexpectedly; reconnecting.')
+        self.__logger.info('ssh session died unexpectedly; reconnecting')
         self.__bootstrap_remote_worker()
+        self.__logger.info('connection to %s reestablished' % str(self))
         return self.__send(msg)
 
 
   def __recv(self):
     try:
       line = self.__r_stdout.readline()
-      self.__logger.debug('received: %s' % line)
+      self.__logger.debug('received %d bytes' % len(line))
       if line == '':
         self.__handle_worker_crash()
 
