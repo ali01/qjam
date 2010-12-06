@@ -109,11 +109,15 @@ class BaseDataSet(object):
 
     return self._slice_hashes.keys()
 
+  def __len__(self):
+    '''Returns the number of slices in the dataset.'''
+    return math.ceil(float(self.chunks()) / self.slice_size())
+
   # subclasses may override:
 
   # subclasses must implement:
-  def __len__(self):
-    '''Returns the length of data.'''
+  def chunks(self):
+    '''Number of chunks into which the internal data can be divided.'''
     raise NotImplementedError
 
   def slice(self, index):
@@ -128,9 +132,8 @@ class ListDataSet(BaseDataSet):
     BaseDataSet.__init__(self, slice_size)
     self._data = _list
 
-  def __len__(self):
-    '''Returns the length of data list.'''
-    return math.ceil(len(self._data) * 1.0 / self.slice_size())
+  def chunks(self):
+    return len(self._data)
 
   def slice(self, index):
     '''Returns the slice of data at the given index.'''
@@ -148,9 +151,8 @@ class NumpyMatrixDataSet(BaseDataSet):
     # support easy slicing of column-major matrices:
     self._data = matrix if row_major else matrix.transpose()
 
-  def __len__(self):
-    '''Returns the number of entries (major) in the matrix.'''
-    return math.ceil(self._data.shape[0] * 1.0 / self.slice_size())
+  def chunks(self):
+    return self._data.shape[0]
 
   def slice(self, index):
     '''Returns the slice of the matrix at the given index.'''
@@ -187,9 +189,8 @@ class NumpyMatrixFileDataSet(BaseDataSet):
 
     return self._filesize if hasattr(self, '_filesize') else None
 
-  def __len__(self):
-    '''Returns the number of entries (major) in the matrix.'''
-    return math.ceil(self.line_count() * 1.0 / self.slice_size())
+  def chunks(self):
+    return self.line_count()
 
   def slice(self, index):
     if index < 0 or index >= len(self):
