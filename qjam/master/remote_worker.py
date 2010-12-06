@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import subprocess
+import time
 
 from qjam.exceptions.remote_worker_error import RemoteWorkerError
 from qjam.msg.base_msg import BaseMsg
@@ -26,6 +27,7 @@ class RemoteWorker(object):
     self.__r_ssh = None
     self.__bootstrap_remote_worker()
 
+    self.__start_time = None
     self.__task = None
     self.__result = None
 
@@ -42,6 +44,7 @@ class RemoteWorker(object):
     self.__dataset = task_msg.dataset()
 
     # assigning task
+    self.__start_time = time.time()
     self.__send(task_msg)
 
     # waiting and processing running/blocking/result response
@@ -68,9 +71,19 @@ class RemoteWorker(object):
       raise TypeError
 
     if state_msg.status() == 'running':
+      task_start_time = time.time()
+      comm_elapsed = task_start_time - self.__start_time
+      self.__logger.debug('communication time: %.3fs' % comm_elapsed)
+
       # remote has all necessary refs and is processing the task
       msg = self.__recv()
       if msg['type'] == 'result':
+        now = time.time()
+        elapsed = now - task_start_time
+        total_time = now - self.__start_time
+        self.__logger.debug('computation time: %.3fs' % elapsed)
+        self.__logger.debug('total time: %.3fs' % total_time)
+
         result_msg = ResultMsgFromDict(msg)
         self.__process_result_msg(result_msg)
 
