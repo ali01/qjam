@@ -10,6 +10,9 @@ import logging
 import os
 import sys
 
+sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..'))
+
+
 global imgSize
 global numImages
 global filename
@@ -33,6 +36,10 @@ def sae_test ():
     from qjam.master.remote_worker import RemoteWorker
     from qjam.dataset import NumpyMatrixDataSet
 
+    if len(sys.argv) < 2:
+        print "usage: %s <#patches> [<worker> ...]" % sys.argv[0]
+        exit(1)
+    
     cluster = sys.argv[2:]
     if not cluster:
         cluster = ['localhost']
@@ -58,7 +65,7 @@ def sae_test ():
     # Initialize constants
     imgSize = 512;
     numImages = 10;
-    filename = 'olsh.dat';
+    filename = 'sparse_autoencoder/olsh.dat'
     lambda_W = 0.002
     lambda_p = 4
     patchSize = 8;
