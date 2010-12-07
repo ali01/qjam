@@ -7,6 +7,7 @@ import inspect
 import json
 import logging
 import os
+import shutil
 import signal
 import sys
 import tempfile
@@ -18,8 +19,46 @@ from qjam.common import reducing
 
 
 class RefStore(object):
-  def __init__(self):
+  def __init__(self, file_cache=True):
     self._refs = {}
+
+    if file_cache:
+      # For storage of refs on disk.
+      self._cache_dir = os.path.join('/tmp',
+                                     'qjam-%s' % os.getenv('USER'), 'refs')
+      self._load_cached_refs()
+    else:
+      self._cache_dir = None
+
+  def _load_cached_refs(self):
+    '''Load ref objects from disk.'''
+    try:
+      os.mkdir(self._cache_dir)
+    except OSError:
+      pass
+    try:
+      filenames = os.listdir(self._cache_dir)
+    except OSError:
+      return
+
+    for filename in filenames:
+      path = os.path.join(self._cache_dir, filename)
+      name, ext = os.path.splitext(filename)
+      if ext != '.ref':
+        continue  # Only load ref files.
+      with open(path, 'r') as file:
+        value = pickle.load(file)
+        self.ref_is(name, value)
+
+  def _write_ref_cache(self, name):
+    value = self._refs[name]
+    path = os.path.join(self._cache_dir, '%s.ref' % name)
+    with open(path, 'w') as file:
+      pickle.dump(value, file)
+
+  def _delete_cached_refs(self):
+    if self._cache_dir:
+      shutil.rmtree(self._cache_dir, ignore_errors=True)
 
   def refs(self):
     '''Get number of refs in store.
@@ -48,6 +87,13 @@ class RefStore(object):
       None
     '''
     self._refs[name] = value
+    if self._cache_dir:
+      self._write_ref_cache(name)
+
+  def refs_empty(self):
+    '''Clear all cached refs, and remove file cache if it exists.'''
+    self._refs = {}
+    self._delete_cached_refs()
 
   def missing(self, refs):
     '''Get list of refs not in the store.
@@ -168,7 +214,7 @@ class Worker(object):
     self._input = input
     self._output = output
     if refstore is None:
-      refstore = RefStore()
+      refstore = RefStore(file_cache=False)
     self._refstore = refstore
     self._taskqueue = TaskQueue(self._refstore)
 
