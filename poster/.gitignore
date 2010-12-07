@@ -1,0 +1,6 @@
+*.aux
+*.dvi
+*.log
+*.fmt
+*.prv
+_region_.*
