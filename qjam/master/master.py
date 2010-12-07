@@ -27,7 +27,7 @@ class Master(object):
       if not isinstance(worker, RemoteWorker):
         exc_msg = '''elements in the parameter list, remote_workers,
                      must be of type RemoteWorker'''
-        raise TypeErrer, exc_msg
+        raise TypeError, exc_msg
 
     self.__workers = remote_workers
     self.__logger = logging.getLogger('Master')
