@@ -7,10 +7,10 @@ class TestSumMatrixExample:
     return subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0]
 
   def run_with_hosts(self, hosts):
-    cmd = ['bin/sum-matrix-example.py']
+    cmd = ['bin/sum-matrix-example.py', '10']
     cmd.extend(hosts)
     output = self.__get_output(cmd)
-    assert_true('Result is: 78\n' in output)
+    assert_true('Computed element sum of X = 5050\n' in output)
 
   def test_run1(self):
     self.run_with_hosts(['localhost'])
