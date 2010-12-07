@@ -24,25 +24,40 @@ class Test_Worker:
   def setup(self):
     _path = qjam.worker.worker.__file__
     _path = _path.replace('.pyc', '.py')
-    self._worker = subprocess.Popen(_path,
-                                    stdin=subprocess.PIPE,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE,
-                                    bufsize=0)
+    self._worker = self.create_worker()
 
   def teardown(self):
     self._worker.kill()
+    self.destroy_file_cache()
 
-    # Remove file cache.
+  def create_worker(self):
+    _path = qjam.worker.worker.__file__
+    _path = _path.replace('.pyc', '.py')
+    return subprocess.Popen(_path,
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            bufsize=0)
+
+  def restart_worker(self):
+    self._worker.kill()
+    self._worker = self.create_worker()
+
+  def destroy_file_cache(self):
+    '''Remove file cache.'''
     cache_path = os.path.join('/tmp', 'qjam-%s' % os.getenv('USER'), 'refs')
     if os.path.isdir(cache_path):
       shutil.rmtree(cache_path)
 
-  def read_stderr(self):
+  def read_stderr(self, worker=None):
+    if worker is None:
+      worker = self._worker
     return self._worker.stderr.readline()
 
-  def read_message(self):
-    msg_str = self._worker.stdout.readline()
+  def read_message(self, worker=None):
+    if worker is None:
+      worker = self._worker
+    msg_str = worker.stdout.readline()
     try:
       return json.loads(msg_str.strip())
     except ValueError, e:
@@ -59,41 +74,55 @@ class Test_Worker:
     assert_equals('error', msg['type'], 'expecting error message type')
     return msg['error']
 
-  def write_str(self, s):
+  def write_str(self, s, worker=None):
+    if worker is None:
+      worker = self._worker
     print '\nSending string: %s' % s
-    self._worker.stdin.write('%s\n' % s)
+    worker.stdin.write('%s\n' % s)
 
-  def write_message(self, msg):
+  def write_message(self, msg, worker=None):
+    if worker is None:
+      worker = self._worker
     print '\nSending: %s' % json.dumps(msg)
-    self._worker.stdin.write('%s\n' % json.dumps(msg))
+    worker.stdin.write('%s\n' % json.dumps(msg))
 
-  def write_command(self, cmd, data):
+  def write_command(self, cmd, data, worker=None):
+    if worker is None:
+      worker = self._worker
     data['type'] = cmd
-    self.write_message(data)
+    self.write_message(data, worker=worker)
 
-  def send_refs(self, refs):
+  def send_refs(self, refs, worker=None):
+    if worker is None:
+      worker = self._worker
     # Encode the objects in the refs.
     refs = [(x, encode(y)) for (x, y) in refs]
     msg = {'refs': refs}
-    self.write_command('refs', msg)
+    self.write_command('refs', msg, worker=worker)
 
-  def send_task(self, module, params, dataset):
+  def send_task(self, module, params, dataset, worker=None):
+    if worker is None:
+      worker = self._worker
     msg = {'module': encode(source(module)),
            'params': encode(params),
            'dataset': dataset}
-    self.write_command('task', msg)
+    self.write_command('task', msg, worker=worker)
 
-  def read_result(self):
+  def read_result(self, worker=None):
     '''Reads worker's stdout and expects a result message. Returns result.'''
-    msg = self.read_message()
+    if worker is None:
+      worker = self._worker
+    msg = self.read_message(worker=worker)
     assert_equal('result', msg['type'])
     assert_true('result' in msg)
     result = decode(msg['result'])
     return result
 
-  def read_state(self):
+  def read_state(self, worker=None):
     '''Reads worker's stdout and expects a state message. Returns message.'''
-    msg = self.read_message()
+    if worker is None:
+      worker = self._worker
+    msg = self.read_message(worker=worker)
     assert_equal('state', msg['type'])
     return msg
 
@@ -260,3 +289,39 @@ class Test_Worker:
     # Read result.
     result = self.read_result()
     assert_equal(sum(chunk1) + sum(chunk2) + sum(chunk3), result)
+
+  def test_file_cache(self):
+    '''Send two tasks with common refs.'''
+    dataset = ['ref1', 'ref2', 'ref3']
+    chunk1 = [1, 2, 3]
+    chunk2 = [3, 4, 5, 6]
+    chunk3 = [6, 7, 8]
+    self.send_task(sum_dataset, None, dataset)
+    state_msg = self.read_state()
+    self.assert_status(state_msg, 'blocked')
+    self.send_refs([(dataset[0], chunk1),
+                    (dataset[1], chunk2),
+                    (dataset[2], chunk3)])
+    state_msg = self.read_state()
+    self.assert_status(state_msg, 'running')
+    result = self.read_result()
+    expected_result = sum(chunk1) + sum(chunk2) + sum(chunk3)
+    assert_equal(expected_result, result)
+
+    # Restart the worker and send the same task. Expect it to start
+    # immediately.
+    self.restart_worker()
+    self.send_task(sum_dataset, None, dataset)
+    state_msg = self.read_state()
+    self.assert_status(state_msg, 'running')
+    result = self.read_result()
+    assert_equal(expected_result, result)
+
+    # Clear file cache.
+    self.destroy_file_cache()
+
+    # Final worker with same task should block.
+    self.restart_worker()
+    self.send_task(sum_dataset, None, dataset)
+    state_msg = self.read_state()
+    self.assert_status(state_msg, 'blocked')
