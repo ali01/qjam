@@ -7,6 +7,8 @@ if len(sys.argv) != 5:
         sys.argv[0]
     print "example: %s examples/newton_sqrt.py localhost 1,1 12345" % \
         sys.argv[0]
+    print "example: %s examples/sparse_autoencoder.py corn12,corn13" \
+        " 2 1000" % sys.argv[0]
     exit(1)
 
 pyfile   = sys.argv[1]
@@ -17,7 +19,7 @@ stats = []
 
 for nw in nworkers:
     for arg in jobargs:
-        cmd = ["python", pyfile]
+        cmd = ['python', pyfile]
         cmd.append(arg)
         cmd += cluster[:nw]
         sys.stderr.write("--> %s\n" % ' '.join(cmd))
