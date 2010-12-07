@@ -36,9 +36,10 @@ def main():
   # Worker hostnames are the commandline options. Each hostname specified on
   # the commandline will be bootstrapped and have a worker started on it.
   if len(sys.argv) < 2:
-    print 'usage: %s <hostnames> [<hostname> ...]' % sys.argv[0]
+    print 'usage: %s <matrixsize> [<worker> ...]' % sys.argv[0]
     sys.exit(1)
-  hostnames = sys.argv[1:]
+  matsize = int(sys.argv[1])
+  hostnames = sys.argv[2:] or ['localhost']
 
   # Start the worker processes on the specified hostnames.
   workers = []
@@ -46,19 +47,25 @@ def main():
     worker = RemoteWorker(hostname)
     workers.append(worker)
     print 'Started worker %d on %s' % (i, hostname)
+  print
 
   # Create a numpy matrix.
-  matrix = numpy.matrix('1 2 3 4; 5 6 7 8; 9 10 11 12')
+  X = numpy.random.permutation(numpy.arange(1,matsize*matsize+1))
+  X = X.reshape(matsize, matsize)
 
-  print 'Created matrix:'
-  print matrix
-  print
+  print 'Creating and permuting %dx%d matrix X with integers 1 .. %d^2' % \
+      (matsize, matsize, matsize)
+  numpy.set_printoptions(threshold=256)
+  print 'X = %s' % (str(X).replace("\n", "\n    "))
+  exp_sum = (1+matsize**2)*(matsize**2)/2
+  print 'Expected element sum of X = %d = (1/2)(%d^2+1)(%d^2)' % \
+      (exp_sum, matsize, matsize)
 
   # Create a DataSet object from this matrix.
   #
   # DataSet objects are necessary so the framework can determine how to split
   # up the data into smaller chunks and distribute the chunks to the workers.
-  dataset = NumpyMatrixDataSet(matrix)
+  dataset = NumpyMatrixDataSet(X)
 
   # Sum the matrix!
   master = Master(workers)
@@ -66,7 +73,7 @@ def main():
   result = master.run(sum_dataset, params, dataset)
 
   # Print the result.
-  print 'Result is: %d' % result
+  print 'Computed element sum of X = %d' % result
 
 
 if __name__ == '__main__':
