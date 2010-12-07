@@ -20,6 +20,36 @@ from qjam.common import reducing
 class RefStore(object):
   def __init__(self):
     self._refs = {}
+    # For storage of refs on disk.
+    self._cache_dir = os.path.join('/tmp',
+                                   'qjam-%s' % os.getenv('USER'), 'refs')
+    self._load_cached_refs()
+
+  def _load_cached_refs(self):
+    '''Load ref objects from disk.'''
+    try:
+      os.mkdir(self._cache_dir)
+    except OSError:
+      pass
+    try:
+      filenames = os.listdir(self._cache_dir)
+    except OSError:
+      return
+
+    for filename in filenames:
+      path = os.path.join(self._cache_dir, filename)
+      name, ext = os.path.splitext(filename)
+      if ext != '.ref':
+        continue  # Only load ref files.
+      with open(path, 'r') as file:
+        value = pickle.load(file)
+        self.ref_is(name, value)
+
+  def _write_ref_cache(self, name):
+    value = self._refs[name]
+    path = os.path.join(self._cache_dir, '%s.ref' % name)
+    with open(path, 'w') as file:
+      pickle.dump(value, file)
 
   def refs(self):
     '''Get number of refs in store.
@@ -48,6 +78,7 @@ class RefStore(object):
       None
     '''
     self._refs[name] = value
+    self._write_ref_cache(name)
 
   def missing(self, refs):
     '''Get list of refs not in the store.
