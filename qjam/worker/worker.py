@@ -214,7 +214,7 @@ class Worker(object):
     self._input = input
     self._output = output
     if refstore is None:
-      refstore = RefStore()
+      refstore = RefStore(file_cache=False)
     self._refstore = refstore
     self._taskqueue = TaskQueue(self._refstore)
 
