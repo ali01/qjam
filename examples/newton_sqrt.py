@@ -17,7 +17,7 @@ def main():
     from qjam.master import Master, RemoteWorker
 
     _fmt = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
-    logging.basicConfig(level=logging.WARNING, format=_fmt)
+    logging.basicConfig(level=logging.INFO, format=_fmt)
 
     if len(sys.argv) == 1:
         print "approximates sqrt(n)"

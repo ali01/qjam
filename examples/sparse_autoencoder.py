@@ -4,6 +4,11 @@ import numpy as np
 from scipy import optimize as opt
 import time
 import math
+import sys
+import saecost
+import logging
+import os
+import sys
 
 global imgSize
 global numImages
@@ -17,10 +22,23 @@ global rho
 global cg_iter
 global lambda_p
 global func_count
+global master
+global dataset
 
 def sae_test ():
     time.clock()
     np.seterr(over='raise') # Raise error in case of overflow
+
+    from qjam.master.master import Master
+    from qjam.master.remote_worker import RemoteWorker
+    from qjam.dataset import NumpyMatrixDataSet
+
+    cluster = sys.argv[2:]
+    if not cluster:
+        cluster = ['localhost']
+
+    global master
+    master = Master([RemoteWorker(host) for host in cluster])
 
     global imgSize
     global numImages
@@ -35,6 +53,7 @@ def sae_test ():
     global lambda_W
     global lambda_p
     global func_count
+    global dataset
 
     # Initialize constants
     imgSize = 512;
@@ -46,7 +65,7 @@ def sae_test ():
     numL1units = 64;
     numL2units = 30;
     numL3units = 64;
-    numPatches = np.power(10, 5);
+    numPatches = int(sys.argv[1])
 
     beta = 5 # not used in optimize package
     rho = 0.002 # add sparsity term later !!!
@@ -83,8 +102,10 @@ def sae_test ():
         patch = patch.reshape((patchSize*patchSize), 1, order='F') # reshape as a 64x1 vector to be used as input
         X[iter,:] = patch.T
 
+    dataset = NumpyMatrixDataSet(X)
+
     func_count = 0;
-    result_list = opt.fmin_l_bfgs_b(SAECostFunction, WB0, fprime = None, \
+    result_list = opt.fmin_l_bfgs_b(parallelSAECostFunction, WB0, fprime = None, \
        args = (), approx_grad = 0, bounds = None, m = 10, factr = 1e4, \
        pgtol = 1.0000000000000001e-04 , epsilon = 0.001, iprint = 1,
        maxfun = 500);
@@ -109,63 +130,15 @@ def sae_test ():
     outputFileHandle.close()
 # End sparse_autoencoder
 
-def SAECostFunction (WB):
-    global func_count;
-
-    inputSize = X.shape[1];
-    numExamples = X.shape[0];
-    outputSize = inputSize;
-
-    # Vector to Layers
-    W1 = WB[0 : numL1units*numL2units].reshape (numL2units, numL1units, order='C')
-    W2 = WB[numL1units*numL2units : numL1units*numL2units + numL2units*numL3units].reshape (numL3units, numL2units, order='C')
-    B1 = WB[numL1units*numL2units + numL2units*numL3units : numL1units*numL2units + numL2units*numL3units + numL2units]
-    B2 = WB[numL1units*numL2units + numL2units*numL3units + numL2units : numL1units*numL2units + numL2units*numL3units + numL2units + numL3units]
-
-    b1 = np.tile(B1.reshape(numL2units,1), numExamples); #repmat(b1, 1, numExamples);
-    b2 = np.tile(B2.reshape(numL3units,1), numExamples); #repmat(b2, 1, numExamples);
-
-    a1 = np.transpose(X);
-
-    z2 = np.dot(W1,a1) + b1; #W1 * a1 + b1;
-    a2 = np.tanh(z2);
-
-    z3 = np.dot(W2,a2) + b2; #W2 * a2 + b2;
-    a3 = np.tanh(z3);
-
-    p2 = np.sum(.5 * (1 + a2), 1) / numExamples
-
-    cost = (.5 / numExamples) * np.sum((a1 - a3)**2) \
-       + .5 * lambda_W *(np.sum(W1**2) + np.sum(W2**2)) \
-       + lambda_p * np.sum(rho * np.log(rho / p2) + (1 - rho) * np.log((1 - rho) / (1 - p2)));
-
-    delta3 = -np.multiply((a1 - a3) , (1 - a3**2));
-    delta2 = np.multiply(np.dot(np.transpose(W2), delta3), (1 - a2**2));
-
-    deltap = (.5 / numExamples) * (1 - a2**2);
-    deltakL = (1 - rho) / (1 - p2) - (rho / p2);
-    deltakL = np.multiply(np.tile(np.reshape(deltakL, (numL2units,1)), numExamples), deltap);
-
-    gradW1 = (1.0 / numExamples) * np.dot(delta2, np.transpose(a1)) \
-       + lambda_W * W1 \
-       + lambda_p * np.dot(deltakL, np.transpose(a1))
-
-    gradb1 = (1.0 / numExamples) * np.dot(delta2, np.ones((numExamples, 1))) \
-       + lambda_p * np.dot(deltakL, np.ones((numExamples, 1)))
-
-    gradW2 = (1.0 / numExamples) * np.dot(delta3, np.transpose(a2)) \
-       + lambda_W * W2;
-
-    gradb2 = (1.0 / numExamples) * np.dot(delta3, np.ones((numExamples, 1)));
-
-    grad = np.concatenate((gradW1.reshape(numL2units*numL1units,), gradW2.reshape(numL2units*numL3units,), gradb1.reshape(numL2units,), gradb2.reshape(numL3units,)))
-
-    return cost, grad;
-# End SAECostFunction
+def parallelSAECostFunction(WB) :
+    result = master.run(saecost, WB, dataset)
+    return result
 
 # Main starts here
 if __name__ == '__main__':
-    pass
+    _fmt = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    logging.basicConfig(level=logging.DEBUG, format=_fmt)
+
     # Raise error in case of an overflow
     np.seterr(over='raise');
 
@@ -173,5 +146,6 @@ if __name__ == '__main__':
     #cProfile.run('sae_test()', 'sae_prof.bin') # profiler run, save as binary so that it can be reloaded and used with the stats packages
 
 # End main
+
 
 
