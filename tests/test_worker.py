@@ -1,6 +1,7 @@
 from nose.tools import *
 import json
 import os
+import shutil
 import subprocess
 import sys
 
@@ -31,6 +32,11 @@ class Test_Worker:
 
   def teardown(self):
     self._worker.kill()
+
+    # Remove file cache.
+    cache_path = os.path.join('/tmp', 'qjam-%s' % os.getenv('USER'), 'refs')
+    if os.path.isdir(cache_path):
+      shutil.rmtree(cache_path)
 
   def read_stderr(self):
     return self._worker.stderr.readline()

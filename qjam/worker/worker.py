@@ -7,6 +7,7 @@ import inspect
 import json
 import logging
 import os
+import shutil
 import signal
 import sys
 import tempfile
@@ -18,12 +19,16 @@ from qjam.common import reducing
 
 
 class RefStore(object):
-  def __init__(self):
+  def __init__(self, file_cache=True):
     self._refs = {}
-    # For storage of refs on disk.
-    self._cache_dir = os.path.join('/tmp',
-                                   'qjam-%s' % os.getenv('USER'), 'refs')
-    self._load_cached_refs()
+
+    if file_cache:
+      # For storage of refs on disk.
+      self._cache_dir = os.path.join('/tmp',
+                                     'qjam-%s' % os.getenv('USER'), 'refs')
+      self._load_cached_refs()
+    else:
+      self._cache_dir = None
 
   def _load_cached_refs(self):
     '''Load ref objects from disk.'''
@@ -50,6 +55,10 @@ class RefStore(object):
     path = os.path.join(self._cache_dir, '%s.ref' % name)
     with open(path, 'w') as file:
       pickle.dump(value, file)
+
+  def _delete_cached_refs(self):
+    if self._cache_dir:
+      shutil.rmtree(self._cache_dir, ignore_errors=True)
 
   def refs(self):
     '''Get number of refs in store.
@@ -78,7 +87,13 @@ class RefStore(object):
       None
     '''
     self._refs[name] = value
-    self._write_ref_cache(name)
+    if self._cache_dir:
+      self._write_ref_cache(name)
+
+  def refs_empty(self):
+    '''Clear all cached refs, and remove file cache if it exists.'''
+    self._refs = {}
+    self._delete_cached_refs()
 
   def missing(self, refs):
     '''Get list of refs not in the store.
