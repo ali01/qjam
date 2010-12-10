@@ -273,41 +273,32 @@ multiple machines.
 
 \subsection{Qjam Library API}
 
+% TODO(ms): Write this section. (Someone else, not me)
+
 TODO. Use Listings package.
 
 \subsection{DataSet Objects}
 
-The difference between examples and parameters is that examples will not be
-resent on each iteration. We will check whether the slave already has the {\tt
-  examples} object (with the same hash) and only resend it if needed. The
-parameters data, however, will be resent for each iteration. These two objects
-can be arbitrarily typed, as long as they are serializable. For example, for
-large datasets, we might implement a list/dictionary proxy (that behaves like
-its standard Python counterpart but doesn't store everything in memory). Also,
-typically they will hold {\tt numpy} arrays and matrices instead of Python
-tuples as shown in the example above.
+% TODO(ms): Write this section. (Someone else, not me)
 
-To start the job, call:
+\subsection{Serialization and Worker-Local Storage}
 
-\begin{verbatim}
- master.run(mymap, examples, params)
-\end{verbatim}
-
-This instructs the master to serialize the map function, training data, and
-initial parameters, and send them to the slaves, each of which is listening for
-jobs. Each slave will run the {\tt mymap} function, with the parameters in {\tt
-  params} and some portion of the training set available in {\tt examples}.
-
-This call will block until all slaves respond with their partial sums. The {\tt
-  run} method will apply the {\tt sum} reduce function to each slave's response
-and will return the total sum. (For easy local testing, the {\tt mymap}
-function can also be run on the local machine in the same Python process.)
-
-We will not address slave/network failure tolerance for now. This can be added
-later, and we don't anticipate it being a major problem for the small clusters
-we are initially targeting.
-
-\subsection{Serialization and Slave-Local Storage}
+% TODO(ms): This section needs to be entirely rewritten.
+%
+% Some things that might be worth mentioning:
+%   - define worker-local storage
+%   - why is it important?
+%     Iterations can be short-lived, and often need to use old data. This data
+%     needs to be accessed fast, so in-memory storage for low-latency access is
+%     key. This is one of the reasons we didn't use hadoop.)
+%   - how the worker gets the data
+%     it compares the refs it receives in a task message, asks for those it
+%     doesn't have
+% Serialization may not be that important, but just in case:
+%   - how we do serialization of the python code
+%     package up the self-contained module code, ship it over the wire, load it
+%   - how we serialize data
+%     for now, json/base64. Mostly for simplicity.
 
 We initially aim to support training sets around 30 GB, so we must have a way
 to distribute this dataset to the slaves without having to send it to each
