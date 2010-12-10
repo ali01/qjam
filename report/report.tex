@@ -55,26 +55,6 @@ ones. We present Qjam, a Python library that abstracts this overhead away,
 providing a simple framework that different algorithm implementations can
 easily leverage to parallelize work across a number of machines and processors.
 
-\section{Distributing Work}
-
-In order for an algorithm to be run in parallel on several machines, some part
-of it must be amenable to parallelization. More specifically, some component or
-step of the algorithm must be able to be subdivided into \emph{workunits} that
-can be processed in parallel by multiple nodes with little or no communication
-between the nodes. If communication between nodes is excessive, the overhead of
-distributing the work becomes dominant and any potential performance gained by
-running in parallel is lost.
-
-A significant fraction of learning algorithms work in an iterative manner and
-depend on generic optimization routines like gradient descent, conjugate
-gradient, or L-BFGS~\cite{lbfgs}. Many of these routines are well suited for
-parallelization. As an example, each iteration of batch gradient descent
-evaluates a function on every input vector and then sums their
-results. Consequently, each iteration of batch gradient descent can easily be
-parallelized by dividing the sum into $n$ disjoint partial sums, computing each
-partial sum on a separate slave machine, and aggregating the results to compute
-the full sum.
-
 \section{Previous Work}
 
 Significant research has been done in the area of distributed data
