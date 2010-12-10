@@ -268,49 +268,32 @@ TODO. Use Listings package.
 \subsection{Serialization and Worker-Local Storage}
 \label{Storage}
 
-% TODO(ms): This section needs to be entirely rewritten.
-%
-% Some things that might be worth mentioning:
-%   - define worker-local storage
-%   - why is it important?
-%     Iterations can be short-lived, and often need to use old data. This data
-%     needs to be accessed fast, so in-memory storage for low-latency access is
-%     key. This is one of the reasons we didn't use hadoop.)
-%   - how the worker gets the data
-%     it compares the refs it receives in a task message, asks for those it
-%     doesn't have
+% TODO(ms): 
 % Serialization may not be that important, but just in case:
 %   - how we do serialization of the python code
 %     package up the self-contained module code, ship it over the wire, load it
 %   - how we serialize data
 %     for now, json/base64. Mostly for simplicity.
 
-We initially aim to support training sets around 30 GB, so we must have a way
-to distribute this dataset to the slaves without having to send it to each
-slave on each iteration. In the MapReduce model we're adopting, {\tt map}
-function only relies on data given to it; there is no global data. This lets
-the master control distribution of the data using its superior knowledge about
-the cluster size and capabilities, and it reduces data transmission overhead.
+Each worker stores its slices of the data set in memory, not on disk. When it
+is given a task and references to data on which to perform that task, it
+requests all missing data slices from the master. This will generally only
+happen on the first iteration, after which the master will heed data locality
+in assigning tasks. The data slices are then deserialized on the worker and
+passed as arguments to the {\tt map} function.
 
-When the master runs a job on $n$ slaves, it creates $n$ equal slices of the
-training set and assigns one to each slave. On subsequent iterations, each
-slave will be assigned the same data slice, as long as no slaves join or leave
-the cluster. The master then sends the data slice to the slave, but only if the
-slave doesn't already have the data.
+Using Python's reflection facilities, we also send the code for the Qjam
+library and the {\tt map} function to the workers for each job. This frees
+developers from having to manually update their code, and the Qjam code, on
+each worker. (In fact, any computer with Python and an SSH server can become a
+Qjam worker, with no additional manual setup.)
 
-We expect that the initial serialization and transmission of the training set
-to each slave will take quite a while. This is an area ripe for future
-optimization. However, we won't naively succumb to the vice of premature
-optimization unless this is a major bottleneck.
-
-Each slave will know what data slice it has, and will use that data slice as an
-argument to the {\tt map} function.
-
-This is similar to the SlaveRefs in Adam Coates' Matlab parallel framework, but
-we are able to use Python's superior syntax to hide the implementation details
-of references to data on slaves. Also, our system as described will only send
-portions of the data to each slave, which will decrease data transmission
-overhead.
+Our implementation of worker-local storage is similar to the SlaveRefs in Adam
+Coates' Matlab parallel framework, but we are able to use Python's superior
+syntax to hide the implementation details of references to data on
+workers. Also, our system as described will only send portions of the data to
+each worker, which entails lower data transmission overhead relative to
+distributing the entire data set to each worker.
 
 \section{Evaluation}
 
