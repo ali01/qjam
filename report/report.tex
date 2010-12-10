@@ -229,8 +229,9 @@ takes 82\% of the time that R takes.
 This section describes the architecture of the qjam framework. Subsection
 \ref{Components} defines the major components of the system and how they
 communicate. Subsection \ref{Library} explains the programming
-interface. Finally, Subsection \ref{Library} explains our \texttt{DataSet}
-objects and how they are used to divide data among workers.
+interface. Subsection \ref{DataSet} explains our \texttt{DataSet} objects and
+how they are used to divide data among workers. Finally, Subsection
+\ref{Storage} covers how the worker obtains and stores data.
 
 \subsection{Components}
 \label{Components}
@@ -272,16 +273,19 @@ multiple machines.
 \end{figure}
 
 \subsection{Qjam Library API}
+\label{Library}
 
 % TODO(ms): Write this section. (Someone else, not me)
 
 TODO. Use Listings package.
 
 \subsection{DataSet Objects}
+\label{DataSet}
 
 % TODO(ms): Write this section. (Someone else, not me)
 
 \subsection{Serialization and Worker-Local Storage}
+\label{Storage}
 
 % TODO(ms): This section needs to be entirely rewritten.
 %
