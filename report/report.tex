@@ -36,24 +36,21 @@
 \maketitle
 
 \begin{abstract}
-Qjam provides a portable framework for the rapid prototyping of machine
-learning algorithms on a cluster of computers.
+Qjam is a framework for the rapid prototyping of parallel machine
+learning algorithms on clusters.
 \end{abstract}
 
 \section{Introduction}
 
-The sheer number of computations that Machine Learning algorithms perform yield
-considerably slow performance in single processors. This slow performance,
-coupled with increasingly larger data sets, hinders the execution of existing
-algorithms, and obstructs the prototyping of new, more sophisticated
-algorithms. Thus, it is becoming imperative to parallelize algorithms and take
-advantage of multiple computers with multiple cores. Fortunately, many machine
-learning algorithms lend themselves to parallelization. However, the
-overhead of creating a distributed system that organizes and manages the work
-is a roadblock to parallelizing existing algorithms and prototyping new
-ones. We present Qjam, a Python library that abstracts this overhead away,
-providing a simple framework that different algorithm implementations can
-easily leverage to parallelize work across a number of machines and processors.
+The core of machine learning is performing computationally intensive operations
+on large data sets. As these data sets grow in size and algorithms grow in
+complexity, it becomes necessary to spread the work among multiple computers
+and multiple cores. Fortunately, many machine learning algorithms are easy to
+parallelize in theory. However, the fixed cost of creating a distributed system
+that organizes and manages the work is an obstacle to parallelizing existing
+algorithms and prototyping new ones. We present Qjam, a Python library that
+transparently parallelizes certain machine learning algorithms that adhere to a
+constrained MapReduce model of computation.
 
 \section{Previous Work}
 
