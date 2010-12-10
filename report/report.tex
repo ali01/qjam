@@ -42,7 +42,18 @@ learning algorithms on a cluster of computers.
 \end{abstract}
 
 \section{Introduction}
-The sheer number of computations that Machine Learning algorithms perform yield considerably slow performance in single processors. This slow performance, coupled with increasingly larger data sets, hinders the execution of existing algorithms, and obstructs the prototyping of new, more sophisticated algorithms. Thus, it is becoming imperative to parallelize algorithms and take advantage of multiple computers with multiple cores. Fortunately, many machine learning algorithms lend themselves well to parallelization. Unfortunately, the overhead of creating a distributed system that organizes and manages the work is a roadblock to parallelizing existing algorithms and prototyping new ones. We present Qjam, a Python library that abstracts this overhead away, providing a simple framework that different algorithm implementations can easily leverage to handle work parallelization.
+The sheer number of computations that Machine Learning algorithms perform yield
+considerably slow performance in single processors. This slow performance,
+coupled with increasingly larger data sets, hinders the execution of existing
+algorithms, and obstructs the prototyping of new, more sophisticated
+algorithms. Thus, it is becoming imperative to parallelize algorithms and take
+advantage of multiple computers with multiple cores. Fortunately, many machine
+learning algorithms lend themselves well to parallelization. Unfortunately, the
+overhead of creating a distributed system that organizes and manages the work
+is a roadblock to parallelizing existing algorithms and prototyping new
+ones. We present Qjam, a Python library that abstracts this overhead away,
+providing a simple framework that different algorithm implementations can
+easily leverage to handle work parallelization.
 
 \section{Distributing Work}
 
@@ -322,9 +333,18 @@ We benchmarked the framework running various algorithms with multiple workers.
 
 \subsection{L-BFGS Sparse Auto-Encoder}
 
-We benchmarked qjam using a sparse autoencoder with L-BFGS. A sparse autoencoder is an unsupervised learning algorithm that automatically learns features from unlabeled data. It is implemented as a neural network with one hidden layer (parameters) that adjusts its weight values at each iteration over the training set. L-BFGS is a limited-memory, quasi-Newton optimization method for unconstrained optimization.
+We benchmarked qjam using a sparse autoencoder with L-BFGS. A sparse
+autoencoder is an unsupervised learning algorithm that automatically learns
+features from unlabeled data. It is implemented as a neural network with one
+hidden layer (parameters) that adjusts its weight values at each iteration over
+the training set. L-BFGS is a limited-memory, quasi-Newton optimization method
+for unconstrained optimization.
 
-We benchmarked the running time of the sparse autoencoder using a parallelized cost function (with L-BFGS optimizing it). We tested a regular single-core implementation against 2, 4, 8, and 16 workers over four multicore machines. We tested with three datasets (of sizes 1000, 10 000, and 100 000). We obtained the following results:
+We benchmarked the running time of the sparse autoencoder using a parallelized
+cost function (with L-BFGS optimizing it). We tested a regular single-core
+implementation against 2, 4, 8, and 16 workers over four multicore machines. We
+tested with three datasets (of sizes 1000, 10 000, and 100 000). We obtained
+the following results:
 
 \begin{center}
 
@@ -352,9 +372,20 @@ workers  & 1k  &  10k   & 100k   \\
 \end{tabular}
 \end{center}
 
-The running times show a remarkable speedup when using qjam with multiple workers. For our longest run, we saw a drop to under 14\% of the single-core's running time. For big jobs (10,000, 100,000), qjam performs very well, beating the single-core every time. For non-intensive jobs (1000), the overhead of many workers can drive the performance beyond that of the single-core's implementation.
+The running times show a remarkable speedup when using qjam with multiple
+workers. For our longest run, we saw a drop to under 14\% of the single-core's
+running time. For big jobs (10,000, 100,000), qjam performs very well, beating
+the single-core every time. For non-intensive jobs (1000), the overhead of many
+workers can drive the performance beyond that of the single-core's
+implementation.
 
-This leads to another observation: a particular number of workers seems to be suited for a particular job size: for the 10,000 patches runs, the best run was that with 2 workers. Though the others still performed better then the single core, they performed worse. For the largest job, though the 16 worker runtime was the lowest, the savings from 8 workers to 16 were small. This further confirms that the number of workers should be picked according to the job size, to minimize the overhead of distributing the job.
+This leads to another observation: a particular number of workers seems to be
+suited for a particular job size: for the 10,000 patches runs, the best run was
+that with 2 workers. Though the others still performed better then the single
+core, they performed worse. For the largest job, though the 16 worker runtime
+was the lowest, the savings from 8 workers to 16 were small. This further
+confirms that the number of workers should be picked according to the job size,
+to minimize the overhead of distributing the job.
 
 % do the biliography:
 %\bibliographystyle{IEEEbib}
