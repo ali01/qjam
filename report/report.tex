@@ -67,12 +67,13 @@ by running in parallel is lost.
 
 A significant fraction of learning algorithms work in an iterative manner and
 depend on generic optimization routines like gradient descent, conjugate
-gradient, or L-BFGS. Many of these routines are well suited for parallelization.
-As an example, each iteration of batch gradient descent evaluates a function on
-every input vector and then sums their results. Consequently, each iteration of
-batch gradient descent can easily be parallelized by dividing the sum into $n$
-disjoint partial sums, computing each partial sum on a separate slave machine,
-and aggregating the results to compute the full sum.
+gradient, or L-BFGS \cite{lbfgs}. Many of these routines are well suited for
+parallelization. As an example, each iteration of batch gradient descent
+evaluates a function on every input vector and then sums their
+results. Consequently, each iteration of batch gradient descent can easily be
+parallelized by dividing the sum into $n$ disjoint partial sums, computing each
+partial sum on a separate slave machine, and aggregating the results to compute
+the full sum.
 
 \section{Language \& Framework}
 
@@ -387,9 +388,8 @@ was the lowest, the savings from 8 workers to 16 were small. This further
 confirms that the number of workers should be picked according to the job size,
 to minimize the overhead of distributing the job.
 
-% do the biliography:
-%\bibliographystyle{IEEEbib}
-%\bibliography{my-bibliography-file}
+\bibliographystyle{IEEEbib}
+\bibliography{report}
 
 %----------------------------------------------------------------------
 % FIGURES
