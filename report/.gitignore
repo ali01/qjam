@@ -8,3 +8,5 @@
 *.log
 *.watcher_pid
 .*.tex
+*.bbl
+*.blg
