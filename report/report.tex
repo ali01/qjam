@@ -224,55 +224,58 @@ takes 82\% of the time that R takes.
 %interested in processing lots of data by distributing it to enough nodes such
 %that the data can fit in memory and be processed effectively.
 
-\section{Framework Design}
+\section{Architecture}
 
-% \subsection{Conventional Approaches}
-%
-% Some words here about how the batch gradient descent example easily lends
-% itself to a straight mapreduce workflow. Because of this workflow, we first
-% considered using an existing mapreduce framework for our project.
-%
+This section describes the architecture of the qjam framework. Subsection
+\ref{Components} defines the major components of the system and how they
+communicate. Subsection \ref{Library} explains the programming
+interface. Finally, Subsection \ref{Library} explains our \texttt{DataSet}
+objects and how they are used to divide data among workers.
 
-% One such framework we considered is Hadoop MapReduce. Some words here about
-% why Hadoop doesn't apply well to our problem. Consider the batch gradient
-% decent example again. Each iteration is essentially a mapreduce operation:
-% the examples are split up and distributed, the individual sums are calculated
-% at each node, and the reduce operation is calculating the final sum. The
-% examples considered at each node must remain stored locally at that node,
-% ideally in memory, for later recall during the next mapreduce operation for
-% the subsequent iteration.  Some words here about Disco and its attempt to
-% solve this problem?
+\subsection{Components}
+\label{Components}
 
-\subsection{Our design}
+Qjam is a single-master distributed system made up of instances of the
+following components: \\
 
-Our design consists of a single master and one or more slaves, as shown in
-Fig. \ref{diagram}.
+\begin{description}
+  \item[Worker] --- The Worker is a program that is copied to all of the remote
+    machines during the bootstrapping process. It is responsible for waiting
+    for instructions from the Master, and upon receiving work, processing that
+    work and returning the result. \\
 
-\begin{figure}[hb]
+  \item[RemoteWorker] --- The RemoteWorker is a special Python class that
+    communicates with the remote machines. One RemoteWorker has a single target
+    machine that can be reached via ssh. There can be many RemoteWorkers with
+    the same target (say, in the case where there are many cores on a machine),
+    but only one target per RemoteWorker. At creation, the RemoteWorker
+    bootstraps the remote machine by copying the requisite files to run the
+    Worker program, via ssh. After the bootstrapping process completes, the
+    RemoteWorker starts a Worker process on the remote machine and attaches to
+    it. The RemoteWorker is the proxy between the Master and the Worker. \\
+
+  \item[Master] --- The Master is a Python class that divides up work and
+    assigns the work units among its pool of RemoteWorker instances. These
+    RemoteWorker instances relay the work to the Worker programs running on the
+    remote machines and wait for the results. \\
+\end{description}
+
+Fig. \ref{diagram} shows the communication channels between components on
+multiple machines.
+
+\begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=3in]{fwk_diagram/fwk_diagram.pdf}
+    \includegraphics[width=3.3in]{fwk_diagram/fwk_diagram.pdf}
   \end{center}
-  \caption{Diagram of our framework.}
+  \caption{Master controlling four RemoteWorkers with Workers in two machines.}
   \label{diagram}
 \end{figure}
 
-First, on the master, you define a Python map function with the following
-prototype:
-\begin{verbatim}
- def mymap(examples, params):
-   psum = 0
-   for (xi,yi) in examples:
-       # ...
-       psum += (yi - g(params.theta.T * xi)) * xi
-   return psum
-\end{verbatim}
+\subsection{Qjam Library API}
 
-Then, also on the master, you specify your training examples and initial
-parameters:
-\begin{verbatim}
- examples = ((x1, y1), (x2, y2), (x3, y3))
- params   = (0, 0, 0)
-\end{verbatim}
+TODO. Use Listings package.
+
+\subsection{DataSet Objects}
 
 The difference between examples and parameters is that examples will not be
 resent on each iteration. We will check whether the slave already has the {\tt
