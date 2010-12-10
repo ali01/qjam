@@ -342,12 +342,12 @@ We benchmarked the framework running various algorithms with multiple workers.
 
 \subsection{L-BFGS Sparse Auto-Encoder}
 
-We benchmarked qjam using a sparse autoencoder with L-BFGS. A sparse
-autoencoder is an unsupervised learning algorithm that automatically learns
-features from unlabeled data. It is implemented as a neural network with one
-hidden layer (parameters) that adjusts its weight values at each iteration over
-the training set. L-BFGS is a limited-memory, quasi-Newton optimization method
-for unconstrained optimization.
+We benchmarked qjam using a sparse autoencoder with L-BFGS~\cite{lbfgs}. A
+sparse autoencoder is an unsupervised learning algorithm that automatically
+learns features from unlabeled data. It is implemented as a neural network with
+one hidden layer (parameters) that adjusts its weight values at each iteration
+over the training set. L-BFGS is a limited-memory, quasi-Newton optimization
+method for unconstrained optimization.
 
 We benchmarked the running time of the sparse autoencoder using a parallelized
 cost function (with L-BFGS optimizing it). We tested a regular single-core
@@ -355,6 +355,7 @@ implementation against 2, 4, 8, and 16 workers over four multicore machines. We
 tested with three datasets (of sizes 1000, 10 000, and 100 000). We obtained
 the following results:
 
+% TODO(ms): use table environment here with a label.
 \begin{center}
 
 \textbf{Iteration Mean Time (seconds)} \\
