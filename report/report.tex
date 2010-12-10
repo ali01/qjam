@@ -72,33 +72,20 @@ that requires minimal server configuration.
 
 \section{Choosing a Language}
 
-One of the goals of this project is to enable rapid prototyping of machine
-learning algorithms. Thus, we must support a language that allows fast
-development. Further, support for linear algebra operations must be available
-natively or through a library.
+Our two criteria for language choice were ease of development and good support
+for linear algebra operations. C++ is known to provide excellent performance,
+but it is not conducive to rapid prototyping. MATLAB's licensing costs make it
+infeasible for use on large clusters. We evaluated Python and R as possible
+options.
 
-C++ is known to provide excellent performance, but it does not satisfy our
-rapid prototyping requirement. MATLAB is an excellent candidate for
-implementing machine learning algorithms, but unfortunately, licensing
-constraints make it infeasible for use on large clusters. For this project, we
-evaluated Python as R as possible options for our library, and chose
-Python.
-
-The following sections compare Python with R and detail our rationale for
-selecting Python for this project.
+The following sections compare Python and R and explain why we chose Python.
 
 \subsection{Code Style}
 
-When prototyping algorithms, the clarity of a language plays a significant
-role. MATLAB's simplicity and conciseness, yielding very clear and readable
-code, can significantly reduce implementation bugs and adds minimal overhead to
-expressing the algorithm in code. This is not the case for languages like C++,
-where performance and reliability are more important than readability.
-
-R is stylistically very similar to MATLAB. Matrix and list operations are just
-as straightforward, and it provides inbuilt equivalents of most of MATLAB's
-probability and statistics packages. Further, the R interpreter makes it just
-as easy as MATLAB to plot and visualize data structures.
+R is stylistically very similar to MATLAB. Matrix and list operations are
+first-class operations, and it provides built-in equivalents to most of
+MATLAB's probability and statistics functions. Also, the R interpreter makes
+it just as easy as MATLAB to plot and visualize data structures.
 
 While Python's syntax is less suited for matrix operations, the NumPy
 package~\cite{numpy} for Python includes Matlib, an interface that attempts to
@@ -107,35 +94,34 @@ to ease the porting of MATLAB code. Certain syntactic elements are still overly
 verbose, e.g. \texttt{M.transpose()} vs \texttt{M'}, and may hinder the
 readability of an algorithm.
 
-Strictly from a syntactic and stylistic perspective, R may be preferable to
-Python because of its simplicity and closeness to MATLAB. However, because of
-the results of the performance and functionality benchmarks presented below,
-Python continues to be the best contender.
+Strictly from a syntactic and stylistic perspective, R wins on its simplicity
+and resemblance to MATLAB. However, Python's slight disadvantage here is far
+outweighed by the considerations presented below.
 
 \subsection{Functionality}
 
-We had two options when implementing our framework. We could write the
-internals in something like C++ and provide a loadable extension to Python or
-R, or we could implement the internals in the scripting language itself. Each
-approach has its advantages, but under time pressure, the latter approach is
-safer. Because Python is a far more general scripting language than R, it is by
-far the better choice with respect to functionality. R is primarily a language
-for statistical computing, and therefore lacks a lot of the functionality that
-may be critical in the implementation of a distributed system.
+We had two options when implementing our framework. We could have written the
+internals in something like C++ and make external calls to Python or R, or we
+could have implemented the internals in the scripting language itself. Each
+approach has its advantages, but under time pressure, the latter approach was
+preferable. Because Python is general-purpose scripting language, it is by far
+the better choice with respect to functionality. R is primarily a language for
+statistical computing and therefore lacks the library support necessary for the
+implementation of a distributed system.
 
 \subsection{Performance}
 
 Python is not a mathematical language, but it is easily extensible and provides
-numerous packages that provide mathematics-specific support; NumPy is the most
-popular of these packages. Though interpreted, Python can easily call down to C
-and offload computationally-intensive operations. For instance, NumPy's matrix
-multiplication is interally implemented in C, yielding very good performance
+many high-quality mathematics packages (NumPy in particular). Though
+interpreted, Python can easily call down to C and avoid dynamic-language
+overhead in computationally intensive operations. For instance, NumPy's matrix
+multiplication is implemented in C, yielding very good performance
 without sacrificing ease of use or readability in the Python code.
 
 We benchmarked the performance of R against Python's (using the NumPy package).
-In order to avoid implementation or algorithm-specific bias, we decided to
-benchmark common linear algebra functions, such as matrix multiplication,
-ubiquitous in learning algorithms.
+In order to avoid implementation- or algorithm-specific bias, we decided to
+benchmark the common linear algebra functions, such as matrix multiplication,
+that are ubiquitous in learning algorithms.
 
 Table \ref{PythonvsR} shows the running times of Python and R on various
 operations using different matrix or vector sizes, as well as the time ratio of
