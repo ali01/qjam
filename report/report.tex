@@ -42,15 +42,16 @@ learning algorithms on clusters.
 
 \section{Introduction}
 
-The core of machine learning is performing computationally intensive operations
-on large data sets. As these data sets grow in size and algorithms grow in
-complexity, it becomes necessary to spread the work among multiple computers
-and multiple cores. Fortunately, many machine learning algorithms are easy to
-parallelize in theory. However, the fixed cost of creating a distributed system
-that organizes and manages the work is an obstacle to parallelizing existing
-algorithms and prototyping new ones. We present Qjam, a Python library that
-transparently parallelizes certain machine learning algorithms that adhere to a
-constrained MapReduce model of computation.
+Implementing machine learning algorithms consists of performing computationally
+intensive operations on large data sets. As these data sets grow in size and
+algorithms grow in complexity, it becomes necessary to spread the work among
+multiple computers and multiple cores. Fortunately, many machine learning
+algorithms are easy to parallelize in theory. However, the fixed cost of
+creating a distributed system that organizes and manages the work is an
+obstacle to parallelizing existing algorithms and prototyping new ones. We
+present Qjam, a Python library that transparently parallelizes certain machine
+learning algorithms that adhere to a constrained MapReduce model of
+computation.
 
 \section{Previous Work}
 
