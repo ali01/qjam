@@ -149,90 +149,94 @@ far the better choice with respect to functionality. R is primarily a language
 for statistical computing, and therefore lacks a lot of the functionality that
 may be critical in the implementation of a distributed system.
 
-\subsection{Performance Benchmarks}
+\subsection{Performance}
 
 Python is not a mathematical language, but it is easily extensible and provides
-numerous packages that provide mathematics specific support; numpy is the most
+numerous packages that provide mathematics-specific support; NumPy is the most
 popular of these packages. Though interpreted, Python can easily call down to C
-and offload computationally intensive operations (e.g. numpy's matrix
-multiplication is in C), yielding very good performance without sacrificing ease
-of use or readability.
+and offload computationally-intensive operations. For instance, NumPy's matrix
+multiplication is interally implemented in C, yielding very good performance
+without sacrificing ease of use or readability in the Python code.
 
-We benchmarked the performance of R against Python's (using the Numpy package).
+We benchmarked the performance of R against Python's (using the NumPy package).
 In order to avoid implementation or algorithm-specific bias, we decided to
-benchmark common linear algebra functions (e.g. matrix multiplication)
+benchmark common linear algebra functions, such as matrix multiplication,
 ubiquitous in learning algorithms.
 
-The following tables show the running times of python and R on various
+Table \ref{PythonvsR} shows the running times of Python and R on various
 operations using different matrix or vector sizes, as well as the time ratio of
-python / R. Every test ran 10000 operations.
+$Python / R$. Every test ran 10,000 operations.
 
-\begin{center}
-  \vspace{1em}
+\begin{table}[h!]
+  \begin{center}
+    \vspace{1em}
     \textbf{Matrix Addition} \\
-\begin{tabular}{cccc}
-size  & python  &  R       & python / R \\
-  \hline
-50  & 0.0060 & 0.0159 & 0.3774 \\
-75  & 0.0110 & 0.0302 & 0.3642 \\
-100 & 0.0170 & 0.0519 & 0.3276 \\
-150 & 0.0350 & 0.1161 & 0.3015 \\
-250 & 0.0950 & 0.3396 & 0.2797 \\
-\end{tabular}
+    \begin{tabular}{cccc}
+      Size  & Python  &  R      & Python / R \\
+      \hline
+      50  & 0.0060 & 0.0159 & 0.3774 \\
+      75  & 0.0110 & 0.0302 & 0.3642 \\
+      100 & 0.0170 & 0.0519 & 0.3276 \\
+      150 & 0.0350 & 0.1161 & 0.3015 \\
+      250 & 0.0950 & 0.3396 & 0.2797 \\
+    \end{tabular}
 
-\vspace{1em}
+    \vspace{1em}
     \textbf{Matrix Multiplication} \\
-\begin{tabular}{cccc}
-size  & python  &  R       & python / R \\
-  \hline
-50  & 0.1600  & 0.2208  & 0.7246 \\
-75  & 0.5800  & 0.7339  & 0.7903 \\
-100 & 1.3030  & 1.6323  & 0.7983 \\
-150 & 4.2350  & 5.2311  & 0.8096 \\
-250 & 18.9190 & 22.9759 & 0.8234 \\
-\end{tabular}
+    \begin{tabular}{cccc}
+      Size  & Python  &  R    & Python / R \\
+      \hline
+      50  & 0.1600  & 0.2208  & 0.7246 \\
+      75  & 0.5800  & 0.7339  & 0.7903 \\
+      100 & 1.3030  & 1.6323  & 0.7983 \\
+      150 & 4.2350  & 5.2311  & 0.8096 \\
+      250 & 18.9190 & 22.9759 & 0.8234 \\
+    \end{tabular}
 
-\vspace{1em}
+    \vspace{1em}
     \textbf{Element-Wise Matrix Multiplication} \\
-\begin{tabular}{cccc}
-size  & python  &  R       & python / R \\
-  \hline
-150   & 0.0350  &  0.1576  &  0.2221 \\
-225   & 0.0760  &  0.3741  &  0.2032 \\
-300   & 0.1510  &  0.6859  &  0.2201 \\
-450   & 0.9310  &  2.0938  &  0.4446 \\
-750   & 3.3010  &  5.4117  &  0.6100 \\
-\end{tabular}
+    \begin{tabular}{cccc}
+      Size  & Python  &  R       & Python / R \\
+      \hline
+      150   & 0.0350  &  0.1576  &  0.2221 \\
+      225   & 0.0760  &  0.3741  &  0.2032 \\
+      300   & 0.1510  &  0.6859  &  0.2201 \\
+      450   & 0.9310  &  2.0938  &  0.4446 \\
+      750   & 3.3010  &  5.4117  &  0.6100 \\
+    \end{tabular}
 
-\vspace{1em}
+    \vspace{1em}
     \textbf{Matrix Transpose} \\
-\begin{tabular}{cccc}
-size  & python  &  R       & python / R \\
-  \hline
-50  & 0.0010  & 0.0325 & 0.0308 \\
-75  & 0.0010  & 0.0610 & 0.0164 \\
-100 & 0.0010  & 0.1030 & 0.0097 \\
-150 & 0.0010  & 0.2196 & 0.0046 \\
-250 & 0.0010  & 0.6119 & 0.0016 \\
-\end{tabular}
+    \begin{tabular}{cccc}
+      Size  & Python  &  R       & Python / R \\
+      \hline
+      50  & 0.0010  & 0.0325 & 0.0308 \\
+      75  & 0.0010  & 0.0610 & 0.0164 \\
+      100 & 0.0010  & 0.1030 & 0.0097 \\
+      150 & 0.0010  & 0.2196 & 0.0046 \\
+      250 & 0.0010  & 0.6119 & 0.0016 \\
+    \end{tabular}
 
-\vspace{1em}
-\textbf{Vector inner product} \\
-\begin{tabular}{cccc}
-size  & python  &  R       & python / R \\
-  \hline
-2500  & 0.0040 & 0.0523 & 0.0765 \\
-3750  & 0.0060 & 0.0772 & 0.0777 \\
-5000  & 0.0070 & 0.1030 & 0.0680 \\
-7500  & 0.0100 & 0.1519 & 0.0658 \\
-12500 & 0.0160 & 0.2514 & 0.0636 \\
-\end{tabular}
-
-\end{center}
+    \vspace{1em}
+    \textbf{Vector inner product} \\
+    \begin{tabular}{cccc}
+      Size  & Python &  R       & Python / R \\
+      \hline
+      2500  & 0.0040 & 0.0523 & 0.0765 \\
+      3750  & 0.0060 & 0.0772 & 0.0777 \\
+      5000  & 0.0070 & 0.1030 & 0.0680 \\
+      7500  & 0.0100 & 0.1519 & 0.0658 \\
+      12500 & 0.0160 & 0.2514 & 0.0636 \\
+    \end{tabular}
+  \end{center}
+  \caption{Benchmarks of Python and R for linear algebra
+    operations.}
+  \label{PythonvsR}
+\end{table}
 
 In terms of performance, Python is the clear winner. It outperforms R in every
 case, most of the cases by an order of magnitude. In the worst case, Python
-takes 80\% of the time that R takes.
+takes 82\% of the time that R takes.
 
 %Perhaps also some words here about why Python is still acceptable even if it
 %is significantly slower than MATLAB. In particular, we are doing rapid
