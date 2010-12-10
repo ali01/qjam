@@ -48,7 +48,7 @@ coupled with increasingly larger data sets, hinders the execution of existing
 algorithms, and obstructs the prototyping of new, more sophisticated
 algorithms. Thus, it is becoming imperative to parallelize algorithms and take
 advantage of multiple computers with multiple cores. Fortunately, many machine
-learning algorithms lend themselves well to parallelization. However, the
+learning algorithms lend themselves to parallelization. However, the
 overhead of creating a distributed system that organizes and manages the work
 is a roadblock to parallelizing existing algorithms and prototyping new
 ones. We present Qjam, a Python library that abstracts this overhead away,
@@ -67,7 +67,7 @@ by running in parallel is lost.
 
 A significant fraction of learning algorithms work in an iterative manner and
 depend on generic optimization routines like gradient descent, conjugate
-gradient, or L-BFGS \cite{lbfgs}. Many of these routines are well suited for
+gradient, or L-BFGS~\cite{lbfgs}. Many of these routines are well suited for
 parallelization. As an example, each iteration of batch gradient descent
 evaluates a function on every input vector and then sums their
 results. Consequently, each iteration of batch gradient descent can easily be
@@ -212,12 +212,11 @@ In terms of performance, Python is the clear winner. It outperforms R in every
 case, most of the cases by an order of magnitude. In the worst case, Python
 takes 80\% of the time that R takes.
 
-Perhaps also some words here about why Python is still acceptable even if it is
-significantly slower than MATLAB. In particular, we are doing rapid
-prototyping, so peak CPU performance isn't the deciding factor. We are more
-interested in processing lots of data by distributing it to enough nodes such
-that the data can fit in memory and be processed effectively.
-
+%Perhaps also some words here about why Python is still acceptable even if it
+%is significantly slower than MATLAB. In particular, we are doing rapid
+%prototyping, so peak CPU performance isn't the deciding factor. We are more
+%interested in processing lots of data by distributing it to enough nodes such
+%that the data can fit in memory and be processed effectively.
 
 \section{Framework Design}
 
@@ -245,7 +244,7 @@ Fig. \ref{diagram}.
 
 \begin{figure}[hb]
   \begin{center}
-    \includegraphics[width=2.5in]{fwk_diagram/fwk_diagram.pdf}
+    \includegraphics[width=3in]{fwk_diagram/fwk_diagram.pdf}
   \end{center}
   \caption{Diagram of our framework.}
   \label{diagram}
