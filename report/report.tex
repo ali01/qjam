@@ -96,45 +96,46 @@ extends their ideas to a cluster of networked computers. Rather than utilize a
 framework like Hadoop, which is more oriented for large batch processing jobs,
 we have designed and implemented a lightweight framework for low-latency tasks.
 
-\section{Language \& Framework}
+\section{Choosing a Language}
 
-Previous work has been done in distributing MATLAB. However, due to licensing
-constraints, this is not feasible for large clusters. We needed to choose
-another environment in which to develop and test machine learning
-algorithms.
+One of the goals of this project is to enable rapid prototyping of machine
+learning algorithms. Thus, we must support a language that allows fast
+development. Further, support for linear algebra operations must be available
+natively or through a library.
 
-For the implementation of this project, Python and Numpy have been the language
-and framework of choice. Our selection criteria included three points: First,
-clarity and ease of use; second, networking libraries to enable the
-implementation of a distributed framework; and third, performance.
+C++ is known to provide excellent performance, but it does not satisfy our
+rapid prototyping requirement. MATLAB is an excellent candidate for
+implementing machine learning algorithms, but unfortunately, licensing
+constraints make it infeasible for use on large clusters. For this project, we
+evaluated Python as R as possible options for our library, and chose
+Python.
 
-As an alternative, we also considered the use of R for the implementation of
-this project. The following is our comparison of Python vs. R and our rationale
-for selecting Python.
+The following sections compare Python with R and detail our rationale for
+selecting Python for this project.
 
-\subsection{Style Benchmarks}
+\subsection{Code Style}
 
-When prototyping algorithms, the clarity of a language plays a significant role.
-MATLAB's simplicity and conciseness, yielding very clear and readable code, can
-significantly reduce implementation bugs and ads minimal overhead to expressing
-the algorithm in code. This is not the case for languages like C++, where
-performance and reliability are more important than readability.
+When prototyping algorithms, the clarity of a language plays a significant
+role. MATLAB's simplicity and conciseness, yielding very clear and readable
+code, can significantly reduce implementation bugs and adds minimal overhead to
+expressing the algorithm in code. This is not the case for languages like C++,
+where performance and reliability are more important than readability.
 
-On one hand, R is stylistically very similar to MATLAB. Matrix and list
-operations are just as straightforward, and it provides inbuilt equivalents of
-most of MATLAB's probability and statistics packages. Further, the R interpreter
-makes it just as easy as MATLAB to plot and visualize data structures.
+R is stylistically very similar to MATLAB. Matrix and list operations are just
+as straightforward, and it provides inbuilt equivalents of most of MATLAB's
+probability and statistics packages. Further, the R interpreter makes it just
+as easy as MATLAB to plot and visualize data structures.
 
-On the other hand, Python's syntax is less suited for matrix operations.
-However, Python's Numpy package includes Matlib, an interface that attempts to
-emulate MATLAB's syntax. It is designed specifically for MATLAB programmers and
-to ease the porting of MATLAB code. Certain syntactic elements are still overly
-verbose (e.g. M.transpose() vs M') and may hinder the readability of any given
-algorithm.
+While Python's syntax is less suited for matrix operations, Python's NumPy
+package~\cite{numpy} includes Matlib, an interface that attempts to emulate
+MATLAB's syntax. It is designed specifically for MATLAB programmers and to ease
+the porting of MATLAB code. Certain syntactic elements are still overly
+verbose, e.g. \texttt{M.transpose()} vs \texttt{M'}, and may hinder the
+readability of an algorithm.
 
 Strictly from a syntactic and stylistic perspective, R may be preferable to
-Python because of its simplicity and closeness to MATLAB. However, because
-of the results of the performance and functionality benchmarks presented below,
+Python because of its simplicity and closeness to MATLAB. However, because of
+the results of the performance and functionality benchmarks presented below,
 Python continues to be the best contender.
 
 \subsection{Functionality Benchmarks}
