@@ -382,6 +382,9 @@ workers  & 1k  &  10k   & 100k   \\
 \end{tabular}
 \end{center}
 
+% TODO(ms): A graph or two of this data would be nice. It would be best to use
+% the same style (i.e., axes) as in the Chu et al. paper.
+
 The running times show a remarkable speedup when using qjam with multiple
 workers. For our longest run, we saw a drop to under 14\% of the single-core's
 running time. For big jobs (10,000, 100,000), qjam performs very well, beating
@@ -398,6 +401,24 @@ confirms that the number of workers should be picked according to the job size,
 to minimize the overhead of distributing the job.
 
 \section{Future Work}
+
+% TODO(ms): Add mentions about the following:
+%
+% Possible future improvements:
+%   binary formats (BSON) for sending larger data on wire
+%   more profiling for optimization
+%   doing stuff over ssh has some nice properties, but it is also unnecessary
+%     setup overhead. Might want to consider using it only for bootstrapping
+%     but not communication.
+%   splitting data into smaller chunks (like the code currently almost does)
+%   handling worker failure (reroute work to other workers)
+%   handling stragglers (duplicate work to other workers if one is slow)
+%     ^^^ the above two are common in mapreduce
+%   more datasets (maybe one that references files on a shared filesystem)
+%   persistent worker caches -- I implemented this recently, but a problem in
+%     the dataset library stopped us from using it for the experiments.
+%     Persistent here means that the ref cache lives across restarts of the
+%     workers, so starting a new job on old data is fast.
 
 \section{Conclusion}
 
