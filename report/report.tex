@@ -126,10 +126,10 @@ as straightforward, and it provides inbuilt equivalents of most of MATLAB's
 probability and statistics packages. Further, the R interpreter makes it just
 as easy as MATLAB to plot and visualize data structures.
 
-While Python's syntax is less suited for matrix operations, Python's NumPy
-package~\cite{numpy} includes Matlib, an interface that attempts to emulate
-MATLAB's syntax. It is designed specifically for MATLAB programmers and to ease
-the porting of MATLAB code. Certain syntactic elements are still overly
+While Python's syntax is less suited for matrix operations, the NumPy
+package~\cite{numpy} for Python includes Matlib, an interface that attempts to
+emulate MATLAB's syntax. It is designed specifically for MATLAB programmers and
+to ease the porting of MATLAB code. Certain syntactic elements are still overly
 verbose, e.g. \texttt{M.transpose()} vs \texttt{M'}, and may hinder the
 readability of an algorithm.
 
@@ -138,16 +138,16 @@ Python because of its simplicity and closeness to MATLAB. However, because of
 the results of the performance and functionality benchmarks presented below,
 Python continues to be the best contender.
 
-\subsection{Functionality Benchmarks}
+\subsection{Functionality}
 
-In order to avoid reinventing the wheel, one important consideration in our
-selection of a language/framework for this project was the availability of hooks
-to existing frameworks for distributed computing (like Hadoop or Disco) and the
-existence of networking libraries. Because Python is a far more general
-scripting language than R, it is by far the better choice when it comes to
-functionality. R is primarily a language for statistical computing, and
-therefore lacks a lot of the functionality that may be critical in the
-implementation of a distributed system.
+We had two options when implementing our framework. We could write the
+internals in something like C++ and provide a loadable extension to Python or
+R, or we could implement the internals in the scripting language itself. Each
+approach has its advantages, but under time pressure, the latter approach is
+safer. Because Python is a far more general scripting language than R, it is by
+far the better choice with respect to functionality. R is primarily a language
+for statistical computing, and therefore lacks a lot of the functionality that
+may be critical in the implementation of a distributed system.
 
 \subsection{Performance Benchmarks}
 
