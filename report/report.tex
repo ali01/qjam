@@ -260,14 +260,140 @@ multiple machines.
 \subsection{Qjam Library API}
 \label{Library}
 
-% TODO(ms): Write this section. (Someone else, not me)
+This section describes the interface exposed by Qjam and provides a simple
+example of its use. The workflow of a typical distributed computation on Qjam
+divided into two phases. In the initialization phase, the client creates an
+instance of the class \texttt{Master} by passing its constructor a list of
+remote workers. In the execution phase, the client specifies a function,
+\texttt{mapfunc}, to be executed on each worker along with a dataset and a list
+of parameters for the computation. The framework then takes care of forwarding
+the parameter list to all workers, sending each worker an adequate partition of
+the dataset, and remotely executing \texttt{mapfunc}. The following two
+subsections elaborate on the details:
 
-TODO. Use Listings package.
+\subsubsection{Initialization}
 
-\subsection{DataSet Objects}
-\label{DataSet}
+At a fundamental level, the Qjam library is built on top of the class
+\texttt{RemoteWorker}. An instance of \texttt{RemoteWorker} defines
+a single connection to a worker node. The first parameter to the constructor of
+\texttt{RemoteWorker} is a python string containing the hostname at which the
+worker node is located. The second parameter to the constructor is an optional
+TCP port number that defaults to the standard SSH port, $22$.
 
-% TODO(ms): Write this section. (Someone else, not me)
+Once the client has created a \texttt{RemoteWorker} object for each desired
+worker node, the next initialization step is to create an instance of the class
+\texttt{Master}. The single parameter that must be passed
+to the constructor of \texttt{Master} is a Python list of \texttt{RemoteWorker}
+objects.
+
+The following is short example that includes the initialization of a list
+of \texttt{RemoteWorker}s and \texttt{Master}:
+
+{\tt \small
+\begin{verbatim}
+  from qjam import *
+  
+  workers = [
+              RemoteWorker(`corn15.stanford.edu'),
+              RemoteWorker(`corn16.stanford.edu'),
+              RemoteWorker(`corn17.stanford.edu')
+            ]
+
+  master = Master(workers)
+\end{verbatim}}
+
+\subsubsection{Execution}
+
+Once the list of \texttt{RemoteWorker}s and the \texttt{Master} have been
+initialized, the client must follow three steps to execute a distributed
+computation. In the first step, the client wraps any data that is required for
+the computation within a \texttt{DataSet} object; subsequently, the client
+places the code that is to be executed on every \texttt{RemoteWorker} in an
+independent python module; and finally, the client makes a call to
+\texttt{master.run}.
+
+\paragraph{Creating a \texttt{DataSet} Object}
+\label{DataSets}
+
+In order for \texttt{Master} to know how to partition the task data between the
+registered \texttt{RemoteWorker}s it needs to have some notion of how the data
+is structured. In order to fulfill that requirement, the client can either
+resort to one of the convenience \texttt{DataSet} classes provided by Qjam, or
+define a custom data class that inherits from \texttt{BaseDataSet}.
+
+The \texttt{DataSet} classes provided by Qjam include support for python tuples
+or lists of any kind, or NumPy matrices. In the case the client wishes to
+represent the data as a matrix, he/she can choose between
+\texttt{NumpyMatrixDataSet}, which simply represents the matrix in-memory, or
+\texttt{NumpyMatrixFileDataSet}, which represents the matrix as a file on-disk
+in the case that it is too large to fit in-memory.
+
+In the case that the client wishes to define a custom data set class that
+inherits from Qjam's \texttt{BaseDataSet} class, he/she must implement at least
+the following two member functions:
+\begin{enumerate}
+  \item
+    \texttt{chunks()}
+    Returns the number of chunks into which the internal data can be divided.
+  \item
+    \texttt{slice(index)}
+    Returns the slice of data at the given index where index is an integer
+    between 1 and the value returned by \texttt{chunks()}
+\end{enumerate}
+
+
+\paragraph{Defining a Code Module}
+
+The code that is to be executed at each remote worker must be written by the
+client in an independent Python module. The module must contain a function
+called \texttt{mapfunc} that will be called by the framework. The function
+\texttt{mapfunc} must take two arguments: The first argument are the parameters,
+$\theta$, passed by the client in the call to \texttt{master.run}. $\theta$ can
+be of any type and is passed, without modification, to every remote worker. The
+second argument of \texttt{mapfunc} is a subset of the \texttt{DataSet} created
+by the client as described in section \ref{DataSets}. Note that Qjam guarantees
+that different workers will receive different, non-overlapping subset of the
+data.
+
+The client also has the option of defining a \texttt{reduce} function as part
+of the same module. If the client opts out of this option, then the return
+value of \texttt{mapfunc} must be of a type that defines the sum operator or
+a list of types that define the sum operator. More complex return values are
+possible if the client defines a custom reduce function.
+
+The following is a simple example of a simple code module:
+
+{\tt \small
+\begin{verbatim}
+  def multiply_sum(theta, dataset):
+    return sum([theta * x_i for x_i in dataset])
+
+  mapfunc = multiply_sum
+\end{verbatim}}
+
+
+\paragraph{Calling \texttt{master.run}}
+
+Once the code module and the dataset object have been defined, the client can
+make a call to the function \texttt{master.run} to initiate the computation. The
+arguments that \texttt{master.run} takes are: first, the client defined code
+module; second, the parameters, $\theta$, to be forwarded to each worker; and
+third, a dataset object. The return value of \texttt{master.run} is the result
+of the computation.
+
+The following is an example of a call to \texttt{master.run}:
+
+{\tt \small
+\begin{verbatim}
+  from qjam.dataset import ListDataSet
+  import examples import multiply_sum
+
+  params = 42
+  dataset = ListDataSet(range(1, 100))
+  
+  result = master.run(multiply_sum, params, dataset)
+\end{verbatim}}
+
 
 \subsection{Serialization and Worker-Local Storage}
 \label{Storage}
