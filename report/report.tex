@@ -376,11 +376,10 @@ communication workflow.
 \subsubsection{\textsc{task} Message}
 
 The \textsc{task} message type is sent by the master to each worker to initiate
-a task. It contains an encoded\footnote{base64 representation of the serialized
-  Python object} representation of the client's code module, a hash of the
-chunks that compose the worker's assigned dataset, and an encoded
-representation of the client-specified parameters.
-
+a task. It contains an encoded\footnote{Objects are encoded using a base64
+  representation of the serialized Python object.} representation of the
+client's code module, a hash of the chunks that compose the worker's assigned
+dataset, and an encoded representation of the client-specified parameters.
 
 
 \subsubsection{\textsc{state} Message}
@@ -393,14 +392,12 @@ whose value is a list of hash values where each hash value identifies a chunk
 of the dataset that the worker is missing.
 
 
-
 \subsubsection{\textsc{refs} Message}
 
 If the master receives a \textsc{state} message whose status is set to
 ``\texttt{blocked}'', then it responds with a \textsc{refs} message. This type
 of message includes a list of encoded objects that correspond to the data
 chunks that the worker identified as missing.
-
 
 
 \subsubsection{\textsc{result} Message}
@@ -415,7 +412,6 @@ representation of the computation's result.
 In the case that the worker encounters an unexpected state, it can send an
 \textsc{error} reply to any message sent by the master. This message contains
 a description of the error.
-
 
 
 \subsection{Implementation}
