@@ -376,10 +376,10 @@ communication workflow.
 \subsubsection{\textsc{task} Message}
 
 The \textsc{task} message type is sent by the master to each worker to initiate
-a task. It contains an encoded\footnote{base64 representation of the pickled
-python object} representation of the client's \texttt{mapfunc} code module,
-a hash of the chunks that compose the worker's assigned dataset, and an
-encoded representation of client specified parameters, $\theta$.
+a task. It contains an encoded\footnote{base64 representation of the serialized
+  Python object} representation of the client's code module, a hash of the
+chunks that compose the worker's assigned dataset, and an encoded
+representation of the client-specified parameters.
 
 
 
