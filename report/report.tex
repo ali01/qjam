@@ -395,12 +395,111 @@ The following is an example of a call to \texttt{master.run}:
 \subsection{Protocol}
 \label{Protocol}
 
-% TODO(ms): 
-% Serialization may not be that important, but just in case:
-%   - how we do serialization of the python code
-%     package up the self-contained module code, ship it over the wire, load it
-%   - how we serialize data
-%     for now, json/base64. Mostly for simplicity.
+Communication between the Qjam master and each of the workers occurs via
+a connection that is persistent throughout the existence of the \texttt{master}
+object. This section describes the details of the communication protocol that
+is used by our implementation to assign tasks to remote workers, efficiently
+distribute data, and coalesce results.
+
+The protocol implementation relies on five different types of messages.
+Figure \ref{ProtocolDiagram} the use of those messages in a typical
+communication workflow.
+
+\begin{figure}[!h]
+  \centering
+  \includegraphics[scale=0.35]{protocol.png}
+  \caption{Communication between \texttt{Master} and a single
+           \texttt{RemoteWorker} during the execution of a typical Qjam
+           distributed computation}
+  \label{ProtocolDiagram}
+\end{figure}
+
+
+All Qjam messages are ASCII encoded JSON dictionaries of the following form:
+
+{\tt \small
+\begin{verbatim}
+  {"type": <type-name>,
+   <other params>}\n
+\end{verbatim}}
+
+Note that the newline character is used to denote \texttt{EOF}. Consequently,
+newline characters in the middle of the message must be escaped or otherwise
+avoided.
+
+\subsubsection{\texttt{TASK} Message}
+
+\paragraph{Message Structure}
+{\tt \small
+\begin{verbatim}
+  {"type": "task",
+   "module" : <base64 pickled python module source code>,
+   "dataset" : [<ref1>, <ref2>, ...],
+   "params" : <base64 pickled python object>}\n
+\end{verbatim}}
+
+\paragraph{Message Description}
+This message type is sent by the master to each worker to initiate a task.
+
+
+
+\subsubsection{\texttt{STATE} Message}
+
+\paragraph{Message Structure}
+{\tt \small
+\begin{verbatim}
+  {"type": "state",
+   "status": "running" | "blocked",
+   "missing_refs" : ["ref1", "ref2", ...]}\n
+\end{verbatim}}
+
+\paragraph{Message Description}
+
+
+\subsubsection{\texttt{REFS} Message}
+
+\paragraph{Message Structure}
+{\tt \small
+\begin{verbatim}
+  {"type": <type-name>,
+   <other params>,}\n
+\end{verbatim}}
+
+\paragraph{Message Description}
+
+
+
+\subsubsection{\texttt{RESULT} Message}
+
+\paragraph{Message Structure}
+{\tt \small
+\begin{verbatim}
+  {"type": "result",
+   "result": <base64 pickled python object>}\n
+\end{verbatim}}
+
+\paragraph{Message Description}
+
+
+
+\subsubsection{\texttt{ERROR} Message}
+
+\paragraph{Message Structure}
+{\tt \small
+\begin{verbatim}
+  {"type": <type-name>,
+   <other params>}\n
+\end{verbatim}}
+
+\paragraph{Message Description}
+
+
+
+
+\subsection{Implementation}
+\label{Implementation}
+
+\subsubsection{Caching}
 
 Each worker stores its slices of the data set in memory, not on disk. When it
 is given a task and references to data on which to perform that task, it
@@ -422,8 +521,6 @@ workers. Also, our system only sends portions of the data to each worker, which
 entails lower data transmission overhead relative to distributing the entire
 data set to each worker.
 
-\subsection{Implementation}
-\label{Implementation}
 
 
 \section{Evaluation}
