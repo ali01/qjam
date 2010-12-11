@@ -516,24 +516,26 @@ overhead.
     \includegraphics[width=1.6in]{graphs/per_iteration_vs_total_speedup.pdf}
     \label{fig:graphs-b}
   }
-  \caption{a) Total Running Time Speedup. b) Per-Iteration and Total speedups (100k)}
+  \caption{a) Total Running Time Speedup. b) Per-Iteration and Total speedups
+  (100k). Per-Iteration times reflect only client code, whereas Total times
+  incorporate the master's coordination overhead.}
   \label{fig:graphs}
 \end{figure}
 
-For large jobs (100k), qjam performs very well, beating the single-core every
-time, as seen in Figure \ref{fig:graphs-a}. The running times show a remarkable
-speedup when using qjam with multiple workers. In the 16 worker trial, we saw a
-speedup of over 7 times the single-core's running time. Comparing the speedups
-observed per-iteration against the total running time of this trial reveals that
-the master overhead is very small, yielding no significant slowdown, as seen in
-Figure \ref{fig:graphs-b}.
+For the large job (100k), qjam performs better than the single-core every
+time, as seen in Figure \ref{fig:graphs-a}. The running times show a significant
+speedup when using qjam with multiple workers. In particular, the 16 worker
+trial saw a speedup of over 7 times the single-core's running time. Comparing
+the speedups observed per-iteration against the total running time of this trial
+(Figure \ref{fig:graphs-b}) reveals that the master overhead is very small,
+yielding no significant slowdown.
 
 The non-intensive job (10k) saw a small increase in performance, but not
-significantly. For the smallest, trivial jobs (1k), the overhead of coordinating
+significantly. For the smallest, trivial job (1k), the overhead of coordinating
 many workers with very little to compute drove the performance below that of the
 single-core's implementation, just as expected.
 
-This leads to another observation: a particular number of workers seems to be
+A particular number of workers seems to be
 suited for a particular job size: for the 10k patches trials, the best run was
 that with 2 workers. The others performed worse, though still most performed
 better than the single core. For the largest job, though the 16 worker runtime
