@@ -545,6 +545,11 @@ various job sizes with different worker pools.
 
 \section{Future Work}
 
+Running more benchmarks with significantly larger data sets, to better examine
+qjam's performance gains and stability under stress, is the logical next step.
+In addition, benchmarking with other parallelizable algorithms could yield
+different performance gains.
+
 Much more work can be done in achieving feature parity with other, more general
 MapReduce parallel frameworks. Handling worker failures, anticipating
 stragglers, and using a smarter job scheduling algorithm would give performance
@@ -562,8 +567,6 @@ formats beyond those that encapsulate matrices and lists (e.g., ImageDataSet,
 AudioDataSet). We could also provide a modified NumPy package that
 transparently parallelizes large matrix operations, which could mean even fewer
 changes to code would be necessary to parallelize algorithms.
-
-TODO: run benchmarks with longer running times / larger number of patches
 
 \section{Conclusion}
 We have presented a framework that greatly simplifies the rapid prototyping of
