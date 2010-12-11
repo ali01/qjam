@@ -52,6 +52,9 @@ machine learning algorithms that adhere to a constrained MapReduce model of
 computation.
 \section{Previous Work}
 
+% TODO(ms): this section is a little strange to read. The second sentence is
+% mostly correct but confusing.
+
 Significant research has been done in the area of distributed data
 processing. We targeted algorithms written in the MapReduce programming
 model~\cite{mapreduce}, as constrained by the ``summation form'' introduced by
@@ -63,9 +66,9 @@ a near-linear speedup as the number of cores was increased.
 
 Whereas Chu et al. experimented on single multicore machines, our project
 extends their ideas to a cluster of networked computers. Rather than use a
-framework like Hadoop, which is intended for large batch processing jobs, we
-have designed and implemented a lightweight framework for low-latency tasks
-that requires minimal server configuration.
+framework like Hadoop~\cite{hadoop}, which is intended for large batch
+processing jobs, we have designed and implemented a lightweight framework for
+low-latency tasks that requires minimal server configuration.
 
 \section{Choosing a Language}
 
@@ -82,18 +85,18 @@ The following sections compare Python and R and explain why we chose Python.
 R is stylistically very similar to MATLAB. Matrix and list operations are
 first-class operations, and it provides built-in equivalents to most of
 MATLAB's probability and statistics functions. Also, the R interpreter makes
-plotting and visualizing data structures just as easy as MATLAB does.
+plotting and visualizing data structures just as easy as in MATLAB.
 
 While Python's syntax is less suited for matrix operations, the NumPy
-package~\cite{numpy} for Python includes Matlib, an interface that attempts to
+package for Python~\cite{numpy} includes Matlib, an interface that attempts to
 emulate MATLAB's syntax. It is designed specifically for MATLAB programmers and
 to ease the porting of MATLAB code. Certain syntactic elements are still overly
 verbose (e.g., \texttt{M.transpose()} vs \texttt{M'}) and may hinder the
 readability of an algorithm.
 
 Strictly from a syntactic and stylistic perspective, R wins on its simplicity
-and resemblance to MATLAB. However, Python's slight disadvantage here is far
-outweighed by the considerations presented below.
+and similarity to MATLAB. However, Python's slight disadvantage here is far
+outweighed by its relative performance, as described below.
 
 \subsection{Performance}
 
@@ -169,27 +172,25 @@ $Python / R$. Every test ran 10,000 operations.
   \label{PythonvsR}
 \end{table}
 
-
 In terms of performance, Python is the clear winner. It outperforms R in every
 case, most of the cases by an order of magnitude. In the worst case, Python
 takes 82\% of the time that R takes.
 
-Although naive Python implementations of {\it serial} machine learning algorithms
-tend to be slower than their MATLAB equivalents, recent benchmarks of the {\it
-  parallel} sparse autoencoder show that Python's performance penalty is not as
-significant in parallel execution. Also, since we are targeting rapid
-prototyping, not peak production performance, a small performance hit is
-acceptable.
+Although na\"{i}ve Python implementations of {\it serial} machine learning
+algorithms tend to be slower than their MATLAB equivalents, recent benchmarks
+of the {\it parallel} sparse autoencoder show that Python's performance penalty
+is not as significant in parallel execution as it is amortized over the number
+of workers. Also, since we are targeting rapid prototyping, not peak production
+performance, a small performance hit is acceptable.
 
 \section{Architecture}
 
 This section describes the architecture of the qjam framework. Subsection
 \ref{Components} defines the major components of the system and how they
-communicate. Subsection \ref{Library} explains the programming interface.
-Subsection \ref{Protocol} describes the protocol that Qjam uses to communicate.
-And finally, subsection \ref{Implementation} describes details of Qjam's
-python implementation.
-
+communicate with each other. Subsection \ref{Library} explains the programming
+interface. Subsection \ref{Protocol} describes the protocol that Qjam uses to
+communicate. Finally, subsection \ref{Implementation} describes details of
+Qjam's Python implementation.
 
 \subsection{Components}
 \label{Components}
@@ -235,43 +236,30 @@ multiple machines.
 
 This section describes the interface exposed by Qjam and provides a simple
 example of its use. The workflow of a typical distributed computation on Qjam
-divided into two phases. In the initialization phase, the client creates an
-instance of the class \texttt{Master} by passing its constructor a list of
-remote workers. In the execution phase, the client specifies a function,
-\texttt{mapfunc}, to be executed on each worker along with a dataset and a list
-of parameters for the computation. The framework then takes care of forwarding
-the parameter list to all workers, sending each worker an adequate partition of
-the dataset, and remotely executing \texttt{mapfunc}. The following two
-subsections elaborate on the details:
+is divided into two phases. In the initialization phase, the client creates an
+instance of the \texttt{Master} class by passing its constructor a list of
+remote workers. In the execution phase, the client specifies a Python module
+containing a function, \texttt{mapfunc}, to be executed on each worker along
+with a dataset and a list of parameters for the computation. The framework then
+breaks the dataset into smaller pieces and distributes the work to the worker
+processes. The following two subsections elaborate on the details.
 
 \subsubsection{Initialization}
 
-At a fundamental level, the Qjam library is built on top of the class
-\texttt{RemoteWorker}. An instance of \texttt{RemoteWorker} defines
-a single connection to a worker node. The first parameter to the constructor of
-\texttt{RemoteWorker} is a python string containing the hostname at which the
-worker node is located. The second parameter to the constructor is an optional
-TCP port number that defaults to the standard SSH port, $22$.
+At a fundamental level, the Qjam library is built on top of the
+\texttt{RemoteWorker} class. An instance of \texttt{RemoteWorker} defines a
+single connection to a worker node. A collection of \texttt{RemoteWorker}
+objects is passed to the constructor of \texttt{Master} to define the pool of
+workers available to the master.
 
-Once the client has created a \texttt{RemoteWorker} object for each desired
-worker node, the next initialization step is to create an instance of the class
-\texttt{Master}. The single parameter that must be passed
-to the constructor of \texttt{Master} is a Python list of \texttt{RemoteWorker}
-objects.
-
-The following is short example that includes the initialization of a list
-of \texttt{RemoteWorker}s and \texttt{Master}:
+The following code demonstrates the initialization of the worker pool and
+master.
 
 {\tt \small
 \begin{verbatim}
-  from qjam import *
-
-  workers = [
-              RemoteWorker(`corn15.stanford.edu'),
-              RemoteWorker(`corn16.stanford.edu'),
-              RemoteWorker(`corn17.stanford.edu')
-            ]
-
+  workers = [RemoteWorker(`corn15.stanford.edu'),
+             RemoteWorker(`corn16.stanford.edu'),
+             RemoteWorker(`corn17.stanford.edu')]
   master = Master(workers)
 \end{verbatim}}
 
