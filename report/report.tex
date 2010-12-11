@@ -191,9 +191,9 @@ takes 82\% of the time that R takes.
 Although na\"{i}ve Python implementations of {\it serial} machine learning
 algorithms tend to be slower than their MATLAB equivalents, recent benchmarks
 of the {\it parallel} sparse autoencoder show that Python's performance penalty
-is not as significant in parallel execution. Also, since we are targeting rapid
-prototyping, not peak production performance, a small performance hit is
-acceptable.
+is not as significant in parallel execution as it is amortized over the number
+of workers. Also, since we are targeting rapid prototyping, not peak production
+performance, a small performance hit is acceptable.
 
 \section{Architecture}
 
