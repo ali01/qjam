@@ -37,7 +37,7 @@ class WorkersData(object):
 
 def plot_graph(data, title, filename=None, **kwds):
   if not filename:
-    filename = title.lower().replace(' ', '_') + '.pdf'
+    filename = title.lower().replace(' ', '_').replace('-', '_') + '.pdf'
 
   workers = map(WorkersData.workers, data)
 
@@ -50,18 +50,22 @@ def plot_graph(data, title, filename=None, **kwds):
     kwds['xlabel'] = 'workers'
   if 'xticks' not in kwds:
     kwds['xticks'] = [0] + workers
+  if 'xticks_loc' not in kwds:
+    kwds['xticks_loc'] = [0, len(workers) + 2]
 
-  plt.figure(figsize=(4, 4))
-
+  plt.figure(figsize=(4, 4.5))
 
   for entry_num in range(0, data[0].entries()):
     X = range(1, len(workers) + 1)
     Y = map(lambda workerData: workerData[entry_num], data)
     plt.plot(X, Y, '-o', lw=1, label=kwds['labels'][entry_num])
 
+  if 'show-single-core' in kwds and kwds['show-single-core']:
+    plt.plot(kwds['xticks_loc'], [1, 1], '--', color='red', label='singe core')
+
   plt.xlabel(kwds['xlabel'])
   plt.ylabel(kwds['ylabel'])
-  plt.xticks( range(0, len(workers) + 2), kwds['xticks'])
+  plt.xticks(kwds['xticks_loc'], kwds['xticks'])
 
   if 'ylim' in kwds:
     plt.ylim(kwds['ylim'])
@@ -96,6 +100,7 @@ def plot_iteration_mean_time(dataSet):
   params['labels'] = ['1k', '10k', '100k']
   params['ylabel'] = 'percent running time'
   params['ylim'] = [0, 1.5]
+  params['show-single-core'] = True
   plot_graph(data, 'Iteration Mean Time', **params)
 
 def plot_iteration_mean_time_speedup(dataSet):
@@ -112,6 +117,7 @@ def plot_iteration_mean_time_speedup(dataSet):
   params['xlim'] = [0.5, 5.5]
   params['ylim'] = [0, 8]
   params['labels'] = ['1k', '10k', '100k']
+  params['show-single-core'] = True
   plot_graph(data, 'Iteration Mean Time Speedup', **params)
 
 def plot_total_running_time(dataSet):
@@ -128,6 +134,7 @@ def plot_total_running_time(dataSet):
   params['labels'] = ['1k', '10k', '100k']
   params['ylabel'] = 'percent running time'
   params['ylim'] = [0, 1.5]
+  params['show-single-core'] = True
   plot_graph(data, 'Total Running Time', **params)
 
 def plot_total_running_time_speedup(dataSet):
@@ -144,8 +151,8 @@ def plot_total_running_time_speedup(dataSet):
   params['xlim'] = [0.5, 5.5]
   params['ylim'] = [0, 8]
   params['labels'] = ['1k', '10k', '100k']
+  params['show-single-core'] = True
   plot_graph(data, 'Total Running Time Speedup', **params)
-
 
 def hundredk_iteration_vs_total(dataSet):
   runs = [dataSet['iter'][2], dataSet['total'][2]]
@@ -161,7 +168,7 @@ def hundredk_iteration_vs_total(dataSet):
   params['labels'] = ['per iteration', 'total time']
   params['ylabel'] = 'percent running time'
   params['ylim'] = [0, 1.5]
-  plot_graph(data, '100k Per Iteration vs Total Time', **params)
+  plot_graph(data, 'Per-Iteration vs Total Time', **params)
 
 def hundredk_iteration_vs_total_speedup(dataSet):
   runs = [dataSet['iter'][2], dataSet['total'][2]]
@@ -174,8 +181,10 @@ def hundredk_iteration_vs_total_speedup(dataSet):
   data.append(WorkersData(16, inverseEntriesFromRuns(runs, 4)))
 
   params = {}
+  params['xlim'] = [0.5, 5.5]
+  params['ylim'] = [0, 8]
   params['labels'] = ['per iteration', 'total time']
-  plot_graph(data, '100k Per Iteration vs Total Time Speedup', **params)
+  plot_graph(data, 'Per-Iteration vs Total Speedup', **params)
 
 
 def readData():
