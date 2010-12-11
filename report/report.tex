@@ -52,17 +52,19 @@ machine learning algorithms that adhere to a constrained MapReduce model of
 computation.
 \section{Previous Work}
 
-% TODO(ms): this section is a little strange to read. The second sentence is
-% mostly correct but confusing.
-
 Significant research has been done in the area of distributed data
-processing. We targeted algorithms written in the MapReduce programming
-model~\cite{mapreduce}, as constrained by the ``summation form'' introduced by
-Chu et al.~\cite{chu2007map}. This form separates the parallel work from the
-serial work in machine learning algorithms, and the authors showed that many
-common algorithms can be written in this way. They implemented these algorithms
-on a MapReduce-like framework and ran them on multicore machines, which yielded
-a near-linear speedup as the number of cores was increased.
+processing. Perhaps the most notable and relevant contribution is the MapReduce
+programming model~\cite{mapreduce}, which applies the \textsl{map} and
+\textsl{reduce} functions from functional programming to large datasets spread
+over a cluster of machines. Since their introduction, the MapReduce concepts
+have been implemented in several projects for highly parallel computing, such
+as Apache Hadoop~\cite{hadoop}.
+
+Chu et al.~\cite{chu2007map} show how ten popular machine learning algorithms
+can be written in a ``summation form'' in which parallelization is
+straightforward. The authors implemented these algorithms on a MapReduce-like
+framework and ran them on multicore machines. They yielded a near-linear
+speedup as the number of cores was increased.
 
 Whereas Chu et al. experimented on single multicore machines, our project
 extends their ideas to a cluster of networked computers. Rather than use a
