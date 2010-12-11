@@ -367,7 +367,7 @@ module; second, the parameters, $\theta$, to be forwarded to each worker; and
 third, a dataset object. The return value of \texttt{master.run} is the result
 of the computation.
 
-The following is an example of a call to \texttt{master.run}:
+The following is a simple example of a call to \texttt{master.run}:
 
 {\tt \small
 \begin{verbatim}
@@ -396,7 +396,7 @@ communication workflow.
 
 \begin{figure}[!h]
   \centering
-  \includegraphics[scale=0.35]{protocol.png}
+  \includegraphics[scale=0.35]{protocol-diagram.pdf}
   \caption{Communication between \texttt{Master} and a single
            \texttt{RemoteWorker} during the execution of a typical Qjam
            distributed computation}
@@ -404,84 +404,48 @@ communication workflow.
 \end{figure}
 
 
-All Qjam messages are ASCII encoded JSON dictionaries of the following form:
-
-{\tt \small
-\begin{verbatim}
-  {"type": <type-name>,
-   <other params>}\n
-\end{verbatim}}
-
-Note that the newline character is used to denote \texttt{EOF}. Consequently,
-newline characters in the middle of the message must be escaped or otherwise
-avoided.
-
 \subsubsection{\texttt{TASK} Message}
 
-\paragraph{Message Structure}
-{\tt \small
-\begin{verbatim}
-  {"type": "task",
-   "module" : <base64 pickled python module source code>,
-   "dataset" : [<ref1>, <ref2>, ...],
-   "params" : <base64 pickled python object>}\n
-\end{verbatim}}
-
-\paragraph{Message Description}
-This message type is sent by the master to each worker to initiate a task.
+The \textsc{task} message type is sent by the master to each worker to initiate
+a task. It contains an encoded\footnote{base64 representation of the pickled
+python object} representation of the client's \texttt{mapfunc} code module,
+a hash of the chunks that compose the worker's assigned dataset, and an
+encoded representation of client specified parameters, $\theta$.
 
 
 
 \subsubsection{\texttt{STATE} Message}
 
-\paragraph{Message Structure}
-{\tt \small
-\begin{verbatim}
-  {"type": "state",
-   "status": "running" | "blocked",
-   "missing_refs" : ["ref1", "ref2", ...]}\n
-\end{verbatim}}
+Upon receiving a \textsc{task} message, the worker must respond with a
+\textsc{result} message. This message contains a status field that can take one
+of two values: ``\texttt{running}'' or ``\texttt{blocked}''. In the case that
+the status field is set to blocked, the worker must include a separate field
+whose value is a list of hash values where each hash value identifies a chunk of
+the dataset that the worker is missing.
 
-\paragraph{Message Description}
 
 
 \subsubsection{\texttt{REFS} Message}
 
-\paragraph{Message Structure}
-{\tt \small
-\begin{verbatim}
-  {"type": <type-name>,
-   <other params>,}\n
-\end{verbatim}}
-
-\paragraph{Message Description}
+If the master receives a \textsc{state} message whose status is set to
+``\texttt{blocked}'', then it responds with a \textsc{refs} message. This type
+of message includes a list of encoded objects that correspond to the data
+chunks that the worker identified as missing.
 
 
 
 \subsubsection{\texttt{RESULT} Message}
 
-\paragraph{Message Structure}
-{\tt \small
-\begin{verbatim}
-  {"type": "result",
-   "result": <base64 pickled python object>}\n
-\end{verbatim}}
-
-\paragraph{Message Description}
-
+Finally, the \textsc{result} message is sent to the from the worker to the
+master whenever it completes its task. This message contains an encoded
+representation of the computation's result.
 
 
 \subsubsection{\texttt{ERROR} Message}
 
-\paragraph{Message Structure}
-{\tt \small
-\begin{verbatim}
-  {"type": <type-name>,
-   <other params>}\n
-\end{verbatim}}
-
-\paragraph{Message Description}
-
+In the case that the worker encounters an unexpected state, it can send an
+\textsc{error} reply to any message sent by the master. This message contains
+a description of the error.
 
 
 

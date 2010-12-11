@@ -1,7 +1,6 @@
 *.sty
 *.aux
 *.ent
-*.pdf
 *.fls
 *.fmt
 *.ini
@@ -10,3 +9,4 @@
 .*.tex
 *.bbl
 *.blg
+report.pdf
