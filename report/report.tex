@@ -120,7 +120,6 @@ order of magnitude. In the worst case, Python takes 82\% of the time that R
 takes.
 
 \begin{table}[h!]
-  \scriptsize
   \begin{center}
     \vspace{1em}
     \textbf{Matrix Multiplication} \\
@@ -219,7 +218,7 @@ following components: \\
     remote machines and wait for the results. \\
 \end{description}
 
-Fig. \ref{diagram} shows the communication channels between components on
+Figure \ref{diagram} shows the communication channels between components on
 multiple machines.
 
 \begin{figure}[h!]
@@ -359,8 +358,8 @@ object. This section describes the details of the communication protocol that
 is used by our implementation to assign tasks to remote workers, efficiently
 distribute data, and coalesce results.
 
-The protocol implementation relies on five different types of messages.
-Figure \ref{ProtocolDiagram} the use of those messages in a typical
+The protocol implementation relies on five different types of messages. Figure
+\ref{ProtocolDiagram} shows the use of those messages in a typical
 communication workflow.
 
 \begin{figure}[!h]
@@ -373,29 +372,26 @@ communication workflow.
 \end{figure}
 
 
-\subsubsection{\texttt{TASK} Message}
+\subsubsection{\textsc{task} Message}
 
 The \textsc{task} message type is sent by the master to each worker to initiate
-a task. It contains an encoded\footnote{base64 representation of the pickled
-python object} representation of the client's \texttt{mapfunc} code module,
-a hash of the chunks that compose the worker's assigned dataset, and an
-encoded representation of client specified parameters, $\theta$.
+a task. It contains an encoded\footnote{Objects are encoded using a base64
+  representation of the serialized Python object.} representation of the
+client's code module, a hash of the chunks that compose the worker's assigned
+dataset, and an encoded representation of the client-specified parameters.
 
 
-
-\subsubsection{\texttt{STATE} Message}
+\subsubsection{\textsc{state} Message}
 
 Upon receiving a \textsc{task} message, the worker must respond with a
-\textsc{result} message. This message contains a status field that can take one
+\textsc{state} message. This message contains a status field that can take one
 of two values: ``\texttt{running}'' or ``\texttt{blocked}''. In the case that
 the status field is set to blocked, the worker must include a separate field
-whose value is a list of hash values where each hash value identifies a chunk of
-the dataset that the worker is missing.
+whose value is a list of hash values where each hash value identifies a chunk
+of the dataset that the worker is missing.
 
 
-
-
-\subsubsection{\texttt{REFS} Message}
+\subsubsection{\textsc{refs} Message}
 
 If the master receives a \textsc{state} message whose status is set to
 ``\texttt{blocked}'', then it responds with a \textsc{refs} message. This type
@@ -403,57 +399,47 @@ of message includes a list of encoded objects that correspond to the data
 chunks that the worker identified as missing.
 
 
-
-\subsubsection{\texttt{RESULT} Message}
+\subsubsection{\textsc{result} Message}
 
 Finally, the \textsc{result} message is sent to the from the worker to the
 master whenever it completes its task. This message contains an encoded
 representation of the computation's result.
 
 
-\subsubsection{\texttt{ERROR} Message}
+\subsubsection{\textsc{error} Message}
 
 In the case that the worker encounters an unexpected state, it can send an
 \textsc{error} reply to any message sent by the master. This message contains
 a description of the error.
 
 
-
-\subsection{Implementation}
+\subsection{Feature Highlights}
 \label{Implementation}
 
+\subsubsection{Remote Data Caching}
+One important feature of Qjam is caching of data by each remote worker. The
+master initially sends each worker a list of the hash values of each data chunk
+that the worker will need for a given task. If a worker cannot find the data
+object that corresponds to one or more hash values, it requests them from the
+master and caches them. In later iterations, the master can take advantage of
+data locality by assigning workers data chunks that they have seen before.
 
-\subsubsection{Caching}
-
-TODO: section needs revision; there are a few things that could be added
-
-Each worker stores its slices of the data set in memory, not on disk. When it
-is given a task and references to data on which to perform that task, it
-requests all missing data slices from the master. This will generally only
-happen on the first iteration, after which the master will heed data locality
-in assigning tasks. The data slices are then deserialized on the worker and
-passed as arguments to the {\tt map} function.
-
-Using Python's reflection facilities, we also send the code for the Qjam
-library and the {\tt map} function to the workers for each job. This frees
-developers from having to manually update their code, and the Qjam code, on
-each worker. (In fact, any computer with Python and an SSH server can become a
-Qjam worker, with no additional manual setup.)
-
-Our implementation of worker-local storage is similar to the SlaveRefs in Adam
-Coates' Matlab parallel framework, but we are able to use Python's superior
-syntax to hide the implementation details of references to data on
-workers. Also, our system only sends portions of the data to each worker, which
-entails lower data transmission overhead relative to distributing the entire
-data set to each worker.
-
+\subsubsection{Automatic Bootstrapping}
+An important design goal for Qjam is to make the execution of a distributed
+computation as easy as possible. To that end, our implementation strives to
+minimize the amount of setup necessary on each worker machine. Qjam has the
+ability to transparently bootstrap each remote worker with all of the code it
+needs to communicate with the master. After initiating an SSH connection to a
+worker, the master sends a source code of the worker protocol implementation and
+remotely executes it on the worker node. This allows any computer with Python
+and an SSH server to serve as a remote worker---no manual setup required.
 
 
 \section{Evaluation}
 
 We benchmarked the framework running various algorithms with multiple workers.
 
-\subsection{L-BFGS Sparse Auto-Encoder}
+\subsection{L-BFGS Sparse Autoencoder}
 
 We benchmarked qjam using a sparse autoencoder with L-BFGS~\cite{lbfgs}. A
 sparse autoencoder is an unsupervised learning algorithm that automatically
@@ -466,13 +452,11 @@ We benchmarked the running time of the sparse autoencoder using a parallelized
 cost function (with L-BFGS optimizing it). We tested a regular single-core
 implementation against 2, 4, 8, and 16 workers over four multicore machines. We
 tested with three datasets (of 1,000, 10,000, and 100,000 patches each). Table
-\ref{table_iteration_timea} summarizes per-iteration results, while table
+\ref{table_iteration_timea} summarizes per-iteration results, while Table
 \ref{table_total_time} is the sum of all iterations plus the master's setup
 overhead.
 
 \begin{table}[htbp]
-  \label{table_iteration_timea}
-  \caption{Iteration Mean Time (seconds)}
   \small
   \begin{center}
     \begin{tabular}{crrr}
@@ -486,10 +470,10 @@ overhead.
     16 & 0.9969 (0.2x) & 1.0186 (0.7x) & 1.4376  (6.9x) \\
     \end{tabular}
   \end{center}
+  \caption{Iteration Mean Time (seconds)}
+  \label{table_iteration_timea}
 \end{table}
 \begin{table}[htbp]
-  \label{table_total_time}
-  \caption{Total Running Time (seconds)}
   \small
   \begin{center}
     \begin{tabular}{crrr}
@@ -503,8 +487,9 @@ overhead.
     16 & 544  (0.1x) & 529 (0.7x) & 703  (7.2x) \\
     \end{tabular}
   \end{center}
+  \caption{Total Running Time (seconds)}
+  \label{table_total_time}
 \end{table}
-
 
 \begin{figure}[ht!]
   \centering
@@ -516,8 +501,8 @@ overhead.
     \includegraphics[width=1.6in]{graphs/per_iteration_vs_total_speedup.pdf}
     \label{fig:graphs-b}
   }
-  \caption{a) Total Running Time Speedup. b) Per-Iteration and Total speedups
-  (100k). Per-Iteration times reflect only client code, whereas Total times
+  \caption{a) Total Running Time Speedup. b) Per-Iteration and Total Speedups
+  (100k patches). Per-Iteration times reflect only client code, whereas Total times
   incorporate the master's coordination overhead.}
   \label{fig:graphs}
 \end{figure}
@@ -541,9 +526,9 @@ that with 2 workers. The others performed worse, though still most performed
 better than the single core. For the largest job, though the 16 worker runtime
 was the lowest, the savings from 8 workers to 16 were proportionally small,
 requiring twice the number of workers for 1x more. This further confirms that
-in order to minimize the overhead of distributing the job, the number of workers
-should be picked according to the job size. Further research should explore
-various job sizes with different worker pools.
+in order to minimize the overhead of distributing the job, the number of
+workers should be picked according to the job size. Further research should
+explore various job sizes with different worker pools.
 
 \section{Future Work}
 
@@ -571,17 +556,18 @@ transparently parallelizes large matrix operations, which could mean even fewer
 changes to code would be necessary to parallelize algorithms.
 
 \section{Conclusion}
+
 We have presented a framework that greatly simplifies the rapid prototyping of
 distributed machine learning algorithms. Qjam provides an abstraction of the
-complexities associated with building an entire distributed system just to run a
-task on multiple computers in parallel. As a result, it is now possible rapidly
-prototype and execute distributed computations without having to explicitly
-manage communication overheard and the distribution of code and data to
-remote workers.
+complexities associated with building an entire distributed system just to run
+a task on multiple computers in parallel. As a result, it is now possible
+rapidly prototype and execute distributed computations without having to
+explicitly manage communication overheard and the distribution of code and data
+to remote workers.
 
 Moreover, Qjam offers satisfactory performance. On a computation that takes a
-mean of 10 seconds to complete on a single machine, we observed 4x speed-up on 4
-workers and 7x speedup on 16 workers.
+mean of 10 seconds to complete on a single machine, we observed 4x speed-up on
+4 workers and 7x speedup on 16 workers.
 
 \section{Acknowledgements}
 We would like to recognize the assistance of those in our CS 229 class research
