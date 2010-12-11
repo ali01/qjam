@@ -18,7 +18,7 @@
   %twoside,
 ]{ieee}
 
-\usepackage{ieeefig, url, enumerate}
+\usepackage{ieeefig, url, enumerate, subfigure}
 
 \begin{document}
 
@@ -480,11 +480,13 @@ method for unconstrained optimization.
 We benchmarked the running time of the sparse autoencoder using a parallelized
 cost function (with L-BFGS optimizing it). We tested a regular single-core
 implementation against 2, 4, 8, and 16 workers over four multicore machines. We
-tested with three datasets (of sizes 1,000, 10,000, and 100,000). We obtained
-the following results:
+tested with three datasets (of 1,000, 10,000, and 100,000 patches each). Table
+\ref{table_iteration_timea} summarizes per-iteration results, while table
+\ref{table_total_time} is the sum of all iterations plus the master's setup
+overhead.
 
 \begin{table}[htbp]
-  \label{table_iteration_mean_time}
+  \label{table_iteration_timea}
   \caption{Iteration Mean Time (seconds)}
   \small
   \begin{center}
@@ -500,10 +502,8 @@ the following results:
     \end{tabular}
   \end{center}
 \end{table}
-
-
 \begin{table}[htbp]
-  \label{table_total_running_time}
+  \label{table_total_time}
   \caption{Total Running Time (seconds)}
   \small
   \begin{center}
@@ -523,30 +523,40 @@ the following results:
 
 \begin{figure}[ht!]
   \centering
-  \includegraphics[width=1.6in]{graphs/total_running_time_speedup.pdf}
-  \includegraphics[width=1.6in]{graphs/iteration_mean_time_speedup.pdf}
-  \label{graph_total_running_time_speedup}
+  \subfigure{
+    \label{fig:graphs-a}
+    \includegraphics[width=1.6in]{graphs/total_running_time_speedup.pdf}
+  }
+  \subfigure{
+    \includegraphics[width=1.6in]{graphs/per_iteration_vs_total_speedup.pdf}
+    \label{fig:graphs-b}
+  }
+  \caption{a) Total Running Time Speedup. b) Per-Iteration and Total speedups (100k)}
+  \label{fig:graphs}
 \end{figure}
 
+For large jobs (100k), qjam performs very well, beating the single-core every
+time, as seen in Figure \ref{fig:graphs-a}. The running times show a remarkable
+speedup when using qjam with multiple workers. In the 16 worker trial, we saw a
+speedup of over 7 times the single-core's running time. Comparing the speedups
+observed per-iteration against the total running time of this trial reveals that
+the master overhead is very small, yielding no significant slowdown, as seen in
+Figure \ref{fig:graphs-b}.
 
-
-% TODO(ms): A graph or two of this data would be nice. It would be best to use
-% the same style (i.e., axes) as in the Chu et al. paper.
-
-The running times show a remarkable speedup when using qjam with multiple
-workers. For our longest run, we saw a drop to under 14\% of the single-core's
-running time. For big jobs (10,000, 100,000), qjam performs very well, beating
-the single-core every time. For non-intensive jobs (1,000), the overhead of many
-workers can drive the performance beyond that of the single-core's
-implementation.
+The non-intensive job (10k) saw a small increase in performance, but not
+significantly. For the smallest, trivial jobs (1k), the overhead of coordinating
+many workers with very little to compute drove the performance below that of the
+single-core's implementation, just as expected.
 
 This leads to another observation: a particular number of workers seems to be
-suited for a particular job size: for the 10,000 patches runs, the best run was
-that with 2 workers. Though the others still performed better then the single
-core, they performed worse. For the largest job, though the 16 worker runtime
-was the lowest, the savings from 8 workers to 16 were small. This further
-confirms that the number of workers should be picked according to the job size,
-to minimize the overhead of distributing the job.
+suited for a particular job size: for the 10k patches trials, the best run was
+that with 2 workers. The others performed worse, though still most performed
+better than the single core. For the largest job, though the 16 worker runtime
+was the lowest, the savings from 8 workers to 16 were proportionally small,
+requiring twice the number of workers for 1x more. This further confirms that
+in order to minimize the overhead of distributing the job, the number of workers
+should be picked according to the job size. Further research should explore
+various job sizes with different worker pools.
 
 \section{Future Work}
 
