@@ -96,7 +96,7 @@ readability of an algorithm.
 
 Strictly from a syntactic and stylistic perspective, R wins on its simplicity
 and similarity to MATLAB. However, Python's slight disadvantage here is far
-outweighed by the considerations presented below.
+outweighed by its relative performance, as described below.
 
 \subsection{Performance}
 
@@ -184,15 +184,14 @@ $Python / R$. Every test ran 10,000 operations.
   \label{PythonvsR}
 \end{table}
 
-
 In terms of performance, Python is the clear winner. It outperforms R in every
 case, most of the cases by an order of magnitude. In the worst case, Python
 takes 82\% of the time that R takes.
 
-Although naive Python implementations of {\it serial} machine learning algorithms
-tend to be slower than their MATLAB equivalents, recent benchmarks of the {\it
-  parallel} sparse autoencoder show that Python's performance penalty is not as
-significant in parallel execution. Also, since we are targeting rapid
+Although na\"{i}ve Python implementations of {\it serial} machine learning
+algorithms tend to be slower than their MATLAB equivalents, recent benchmarks
+of the {\it parallel} sparse autoencoder show that Python's performance penalty
+is not as significant in parallel execution. Also, since we are targeting rapid
 prototyping, not peak production performance, a small performance hit is
 acceptable.
 
@@ -200,11 +199,10 @@ acceptable.
 
 This section describes the architecture of the qjam framework. Subsection
 \ref{Components} defines the major components of the system and how they
-communicate. Subsection \ref{Library} explains the programming interface.
-Subsection \ref{Protocol} describes the protocol that Qjam uses to communicate.
-And finally, subsection \ref{Implementation} describes details of Qjam's
-python implementation.
-
+communicate with each other. Subsection \ref{Library} explains the programming
+interface. Subsection \ref{Protocol} describes the protocol that Qjam uses to
+communicate. Finally, subsection \ref{Implementation} describes details of
+Qjam's Python implementation.
 
 \subsection{Components}
 \label{Components}
