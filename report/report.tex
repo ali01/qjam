@@ -36,23 +36,20 @@
 \maketitle
 
 \begin{abstract}
-Qjam is a framework for the rapid prototyping of parallel machine
-learning algorithms on clusters.
-\end{abstract}
-
-\section{Introduction}
-
 Implementing machine learning algorithms consists of performing computationally
 intensive operations on large data sets. As these data sets grow in size and
 algorithms grow in complexity, it becomes necessary to spread the work among
-multiple computers and multiple cores. Fortunately, many machine learning
-algorithms are easy to parallelize in theory. However, the fixed cost of
-creating a distributed system that organizes and manages the work is an
-obstacle to parallelizing existing algorithms and prototyping new ones. We
-present Qjam, a Python library that transparently parallelizes certain machine
-learning algorithms that adhere to a constrained MapReduce model of
-computation.
+multiple computers and multiple cores. Qjam is a framework for the rapid
+prototyping of parallel machine learning algorithms on clusters.
+\end{abstract}
 
+\section{Introduction}
+Many machine learning algorithms are easy to parallelize in theory. However,
+the fixed cost of creating a distributed system that organizes and manages the
+work is an obstacle to parallelizing existing algorithms and prototyping new
+ones. We present Qjam, a Python library that transparently parallelizes certain
+machine learning algorithms that adhere to a constrained MapReduce model of
+computation.
 \section{Previous Work}
 
 % TODO(ms): this section is a little strange to read. The second sentence is
@@ -100,17 +97,6 @@ readability of an algorithm.
 Strictly from a syntactic and stylistic perspective, R wins on its simplicity
 and similarity to MATLAB. However, Python's slight disadvantage here is far
 outweighed by the considerations presented below.
-
-\subsection{Functionality}
-
-We had two options when implementing our framework. We could have written the
-internals in something like C++ and make external calls to Python or R, or we
-could have implemented the internals in the scripting language itself. Each
-approach has its advantages. We settled with the latter as it is the simpler
-approach. Because Python is general-purpose scripting language, it is by far
-the better choice with respect to functionality. R is primarily a language for
-statistical computing and therefore lacks the library support necessary for the
-implementation of a distributed system.
 
 \subsection{Performance}
 
@@ -502,7 +488,10 @@ This message type is sent by the master to each worker to initiate a task.
 \subsection{Implementation}
 \label{Implementation}
 
+
 \subsubsection{Caching}
+
+TODO: section needs revision; there are a few things that could be added
 
 Each worker stores its slices of the data set in memory, not on disk. When it
 is given a task and references to data on which to perform that task, it
