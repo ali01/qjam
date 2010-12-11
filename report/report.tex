@@ -36,7 +36,7 @@
 \maketitle
 
 \begin{abstract}
-Implementing machine learning algorithms consists of performing computationally
+Implementing machine learning algorithms involves of performing computationally
 intensive operations on large data sets. As these data sets grow in size and
 algorithms grow in complexity, it becomes necessary to spread the work among
 multiple computers and multiple cores. Qjam is a framework for the rapid
@@ -119,18 +119,6 @@ $Python / R$. Every test ran 10,000 operations.
 \begin{table}[h!]
   \scriptsize
   \begin{center}
-    \vspace{1em}
-    \textbf{Matrix Addition} \\
-    \begin{tabular}{cccc}
-      Size  & Python  &  R      & Python / R \\
-      \hline
-      50  & 0.0060 & 0.0159 & 0.3774 \\
-      75  & 0.0110 & 0.0302 & 0.3642 \\
-      100 & 0.0170 & 0.0519 & 0.3276 \\
-      150 & 0.0350 & 0.1161 & 0.3015 \\
-      250 & 0.0950 & 0.3396 & 0.2797 \\
-    \end{tabular}
-
     \vspace{1em}
     \textbf{Matrix Multiplication} \\
     \begin{tabular}{cccc}
@@ -358,12 +346,10 @@ The following is a simple example of a call to \texttt{master.run}:
 
 {\tt \small
 \begin{verbatim}
-  from qjam.dataset import ListDataSet
   import examples import multiply_sum
 
   params = 42
   dataset = ListDataSet(range(1, 100))
-
   result = master.run(multiply_sum, params, dataset)
 \end{verbatim}}
 
@@ -494,11 +480,11 @@ the following results:
     workers  & \multicolumn{1}{c}{1k} & \multicolumn{1}{c}{10k}
              & \multicolumn{1}{c}{100k} \\
       \hline
-    1  & 0.1458 (1.00) & 0.7310 (1.00) & 10.0282 (1.00) \\
-    2  & 0.1752 (1.20) & 0.3321 (0.45) & 4.6782  (0.47) \\
-    4  & 0.2634 (1.80) & 0.3360 (0.46) & 2.4858  (0.25) \\
-    8  & 0.5339 (3.66) & 0.5251 (0.72) & 1.8046  (0.18) \\
-    16 & 0.9969 (6.84) & 1.0186 (1.39) & 1.4376  (0.14) \\
+    1  & 0.1458 (1.0x) & 0.7310 (1.0x) & 10.0282 (1.0x) \\
+    2  & 0.1752 (0.8x) & 0.3321 (2.2x) & 4.6782  (2.1x) \\
+    4  & 0.2634 (0.5x) & 0.3360 (2.2x) & 2.4858  (4.0x) \\
+    8  & 0.5339 (0.3x) & 0.5251 (1.4x) & 1.8046  (5.6x) \\
+    16 & 0.9969 (0.2x) & 1.0186 (0.7x) & 1.4376  (6.9x) \\
     \end{tabular}
   \end{center}
 \end{table}
@@ -513,14 +499,24 @@ the following results:
     workers  & \multicolumn{1}{c}{1k} & \multicolumn{1}{c}{10k}
              & \multicolumn{1}{c}{100k} \\
       \hline
-    1  &  76  (1.00) & 370 (1.00) & 5030 (1.00) \\
-    2  &  92  (1.21) & 170 (0.46) & 2350 (0.47) \\
-    4  & 137  (1.80) & 173 (0.46) & 1253 (0.25) \\
-    8  & 275  (3.61) & 270 (0.73) & 914  (0.18) \\
-    16 & 544  (7.51) & 529 (1.43) & 703  (0.14) \\
+    1  &  76  (1.0x) & 370 (1.0x) & 5030 (1.0x) \\
+    2  &  92  (0.8x) & 170 (2.2x) & 2350 (2.1x) \\
+    4  & 137  (0.5x) & 173 (2.1x) & 1253 (4.0x) \\
+    8  & 275  (0.3x) & 270 (1.2x) & 914  (5.5x) \\
+    16 & 544  (0.1x) & 529 (0.7x) & 703  (7.2x) \\
     \end{tabular}
   \end{center}
 \end{table}
+
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=1.6in]{graphs/total_running_time_speedup.pdf}
+  \includegraphics[width=1.6in]{graphs/iteration_mean_time_speedup.pdf}
+  \label{graph_total_running_time_speedup}
+\end{figure}
+
+
 
 % TODO(ms): A graph or two of this data would be nice. It would be best to use
 % the same style (i.e., axes) as in the Chu et al. paper.
