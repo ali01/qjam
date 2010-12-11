@@ -386,11 +386,11 @@ representation of the client-specified parameters.
 \subsubsection{\textsc{state} Message}
 
 Upon receiving a \textsc{task} message, the worker must respond with a
-\textsc{result} message. This message contains a status field that can take one
+\textsc{state} message. This message contains a status field that can take one
 of two values: ``\texttt{running}'' or ``\texttt{blocked}''. In the case that
 the status field is set to blocked, the worker must include a separate field
-whose value is a list of hash values where each hash value identifies a chunk of
-the dataset that the worker is missing.
+whose value is a list of hash values where each hash value identifies a chunk
+of the dataset that the worker is missing.
 
 
 
