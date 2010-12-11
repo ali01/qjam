@@ -36,23 +36,20 @@
 \maketitle
 
 \begin{abstract}
-Qjam is a framework for the rapid prototyping of parallel machine
-learning algorithms on clusters.
+Implementing machine learning algorithms involves of performing computationally
+intensive operations on large data sets. As these data sets grow in size and
+algorithms grow in complexity, it becomes necessary to spread the work among
+multiple computers and multiple cores. Qjam is a framework for the rapid
+prototyping of parallel machine learning algorithms on clusters.
 \end{abstract}
 
 \section{Introduction}
-
-Implementing machine learning algorithms consists of performing computationally
-intensive operations on large data sets. As these data sets grow in size and
-algorithms grow in complexity, it becomes necessary to spread the work among
-multiple computers and multiple cores. Fortunately, many machine learning
-algorithms are easy to parallelize in theory. However, the fixed cost of
-creating a distributed system that organizes and manages the work is an
-obstacle to parallelizing existing algorithms and prototyping new ones. We
-present Qjam, a Python library that transparently parallelizes certain machine
-learning algorithms that adhere to a constrained MapReduce model of
+Many machine learning algorithms are easy to parallelize in theory. However,
+the fixed cost of creating a distributed system that organizes and manages the
+work is an obstacle to parallelizing existing algorithms and prototyping new
+ones. We present Qjam, a Python library that transparently parallelizes certain
+machine learning algorithms that adhere to a constrained MapReduce model of
 computation.
-
 \section{Previous Work}
 
 Significant research has been done in the area of distributed data
@@ -98,17 +95,6 @@ Strictly from a syntactic and stylistic perspective, R wins on its simplicity
 and resemblance to MATLAB. However, Python's slight disadvantage here is far
 outweighed by the considerations presented below.
 
-\subsection{Functionality}
-
-We had two options when implementing our framework. We could have written the
-internals in something like C++ and make external calls to Python or R, or we
-could have implemented the internals in the scripting language itself. Each
-approach has its advantages. We settled with the latter as it is the simpler
-approach. Because Python is general-purpose scripting language, it is by far
-the better choice with respect to functionality. R is primarily a language for
-statistical computing and therefore lacks the library support necessary for the
-implementation of a distributed system.
-
 \subsection{Performance}
 
 Python is not a mathematical language, but it is easily extensible and provides
@@ -130,18 +116,6 @@ $Python / R$. Every test ran 10,000 operations.
 \begin{table}[h!]
   \scriptsize
   \begin{center}
-    \vspace{1em}
-    \textbf{Matrix Addition} \\
-    \begin{tabular}{cccc}
-      Size  & Python  &  R      & Python / R \\
-      \hline
-      50  & 0.0060 & 0.0159 & 0.3774 \\
-      75  & 0.0110 & 0.0302 & 0.3642 \\
-      100 & 0.0170 & 0.0519 & 0.3276 \\
-      150 & 0.0350 & 0.1161 & 0.3015 \\
-      250 & 0.0950 & 0.3396 & 0.2797 \\
-    \end{tabular}
-
     \vspace{1em}
     \textbf{Matrix Multiplication} \\
     \begin{tabular}{cccc}
@@ -380,16 +354,14 @@ module; second, the parameters, $\theta$, to be forwarded to each worker; and
 third, a dataset object. The return value of \texttt{master.run} is the result
 of the computation.
 
-The following is an example of a call to \texttt{master.run}:
+The following is a simple example of a call to \texttt{master.run}:
 
 {\tt \small
 \begin{verbatim}
-  from qjam.dataset import ListDataSet
   import examples import multiply_sum
 
   params = 42
   dataset = ListDataSet(range(1, 100))
-
   result = master.run(multiply_sum, params, dataset)
 \end{verbatim}}
 
@@ -409,7 +381,7 @@ communication workflow.
 
 \begin{figure}[!h]
   \centering
-  \includegraphics[scale=0.35]{protocol.png}
+  \includegraphics[scale=0.35]{protocol-diagram.pdf}
   \caption{Communication between \texttt{Master} and a single
            \texttt{RemoteWorker} during the execution of a typical Qjam
            distributed computation}
@@ -417,84 +389,48 @@ communication workflow.
 \end{figure}
 
 
-All Qjam messages are ASCII encoded JSON dictionaries of the following form:
-
-{\tt \small
-\begin{verbatim}
-  {"type": <type-name>,
-   <other params>}\n
-\end{verbatim}}
-
-Note that the newline character is used to denote \texttt{EOF}. Consequently,
-newline characters in the middle of the message must be escaped or otherwise
-avoided.
-
 \subsubsection{\texttt{TASK} Message}
 
-\paragraph{Message Structure}
-{\tt \small
-\begin{verbatim}
-  {"type": "task",
-   "module" : <base64 pickled python module source code>,
-   "dataset" : [<ref1>, <ref2>, ...],
-   "params" : <base64 pickled python object>}\n
-\end{verbatim}}
-
-\paragraph{Message Description}
-This message type is sent by the master to each worker to initiate a task.
+The \textsc{task} message type is sent by the master to each worker to initiate
+a task. It contains an encoded\footnote{base64 representation of the pickled
+python object} representation of the client's \texttt{mapfunc} code module,
+a hash of the chunks that compose the worker's assigned dataset, and an
+encoded representation of client specified parameters, $\theta$.
 
 
 
 \subsubsection{\texttt{STATE} Message}
 
-\paragraph{Message Structure}
-{\tt \small
-\begin{verbatim}
-  {"type": "state",
-   "status": "running" | "blocked",
-   "missing_refs" : ["ref1", "ref2", ...]}\n
-\end{verbatim}}
+Upon receiving a \textsc{task} message, the worker must respond with a
+\textsc{result} message. This message contains a status field that can take one
+of two values: ``\texttt{running}'' or ``\texttt{blocked}''. In the case that
+the status field is set to blocked, the worker must include a separate field
+whose value is a list of hash values where each hash value identifies a chunk of
+the dataset that the worker is missing.
 
-\paragraph{Message Description}
 
 
 \subsubsection{\texttt{REFS} Message}
 
-\paragraph{Message Structure}
-{\tt \small
-\begin{verbatim}
-  {"type": <type-name>,
-   <other params>,}\n
-\end{verbatim}}
-
-\paragraph{Message Description}
+If the master receives a \textsc{state} message whose status is set to
+``\texttt{blocked}'', then it responds with a \textsc{refs} message. This type
+of message includes a list of encoded objects that correspond to the data
+chunks that the worker identified as missing.
 
 
 
 \subsubsection{\texttt{RESULT} Message}
 
-\paragraph{Message Structure}
-{\tt \small
-\begin{verbatim}
-  {"type": "result",
-   "result": <base64 pickled python object>}\n
-\end{verbatim}}
-
-\paragraph{Message Description}
-
+Finally, the \textsc{result} message is sent to the from the worker to the
+master whenever it completes its task. This message contains an encoded
+representation of the computation's result.
 
 
 \subsubsection{\texttt{ERROR} Message}
 
-\paragraph{Message Structure}
-{\tt \small
-\begin{verbatim}
-  {"type": <type-name>,
-   <other params>}\n
-\end{verbatim}}
-
-\paragraph{Message Description}
-
+In the case that the worker encounters an unexpected state, it can send an
+\textsc{error} reply to any message sent by the master. This message contains
+a description of the error.
 
 
 
@@ -636,10 +572,11 @@ changes to code would be necessary to parallelize algorithms.
 \section{Conclusion}
 
 We have provided a Python parallel framework suited for machine learning
-algorithms with sufficiently good performance and with significant benefits
-over existing, general parallel frameworks. We think our system is valuable in
-its current state to machine learning researchers and demonstrates the utility
-of a parallel framework that allows for rapid prototyping on clusters, just as
+algorithms with sufficiently good performance (4x speed up on 4 workers; 5.5x
+speedup on 8 workers) and with significant development benefits over existing,
+general parallel frameworks.  We think our system is valuable in its current
+state to machine learning researchers and demonstrates the utility of a
+parallel framework that allows for rapid prototyping on clusters, just as
 MATLAB easily allows for serial algorithms.
 
 \section{Acknowledgements}
