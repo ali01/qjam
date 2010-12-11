@@ -98,17 +98,6 @@ Strictly from a syntactic and stylistic perspective, R wins on its simplicity
 and resemblance to MATLAB. However, Python's slight disadvantage here is far
 outweighed by the considerations presented below.
 
-\subsection{Functionality}
-
-We had two options when implementing our framework. We could have written the
-internals in something like C++ and make external calls to Python or R, or we
-could have implemented the internals in the scripting language itself. Each
-approach has its advantages. We settled with the latter as it is the simpler
-approach. Because Python is general-purpose scripting language, it is by far
-the better choice with respect to functionality. R is primarily a language for
-statistical computing and therefore lacks the library support necessary for the
-implementation of a distributed system.
-
 \subsection{Performance}
 
 Python is not a mathematical language, but it is easily extensible and provides
