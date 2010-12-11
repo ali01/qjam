@@ -422,9 +422,9 @@ Qjam worker, with no additional manual setup.)
 Our implementation of worker-local storage is similar to the SlaveRefs in Adam
 Coates' Matlab parallel framework, but we are able to use Python's superior
 syntax to hide the implementation details of references to data on
-workers. Also, our system as described will only send portions of the data to
-each worker, which entails lower data transmission overhead relative to
-distributing the entire data set to each worker.
+workers. Also, our system only sends portions of the data to each worker, which
+entails lower data transmission overhead relative to distributing the entire
+data set to each worker.
 
 \subsection{Implementation}
 \label{Implementation}
