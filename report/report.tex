@@ -503,23 +503,24 @@ to minimize the overhead of distributing the job.
 
 \section{Future Work}
 
-% TODO(ms): Add mentions about the following:
-%
-% Possible future improvements:
-%   binary formats (BSON) for sending larger data on wire
-%   more profiling for optimization
-%   doing stuff over ssh has some nice properties, but it is also unnecessary
-%     setup overhead. Might want to consider using it only for bootstrapping
-%     but not communication.
-%   splitting data into smaller chunks (like the code currently almost does)
-%   handling worker failure (reroute work to other workers)
-%   handling stragglers (duplicate work to other workers if one is slow)
-%     ^^^ the above two are common in mapreduce
-%   more datasets (maybe one that references files on a shared filesystem)
-%   persistent worker caches -- I implemented this recently, but a problem in
-%     the dataset library stopped us from using it for the experiments.
-%     Persistent here means that the ref cache lives across restarts of the
-%     workers, so starting a new job on old data is fast.
+Much more work can be done in achieving feature parity with other, more general
+MapReduce parallel frameworks. Handling worker failures, anticipating
+stragglers, and using a smarter job scheduling algorithm would give performance
+improvements, particularly when running on larger or heterogeneous clusters
+than those we tested on.
+
+We currently use SSH and JSON to transfer data and messages. Using a more
+efficient protocol and data encoding would improve performance and
+reliability. We noticed that SSH occasionally dropped connections and
+implemented a workaround to automatically reconnect upon failure; however, this
+remains the biggest source of instability on Qjam.
+
+Aside from these implementation-level improvements, we could offer more DataSet
+formats beyond those that encapsulate matrices and lists (e.g., ImageDataSet,
+AudioDataSet). We could also provide a modified NumPy package that
+transparently parallelizes large matrix operations, which could mean even fewer
+changes to code would be necessary to parallelize algorithms.
+
 
 \section{Conclusion}
 
