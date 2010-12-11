@@ -53,10 +53,6 @@ present Qjam, a Python library that transparently parallelizes certain machine
 learning algorithms that adhere to a constrained MapReduce model of
 computation.
 
-We would like to recognize the assistance of those in our CS 229 class research
-group: Prof. Andrew Ng, Adam Coates, Bobby Prochnow, Milinda Lakkam, Sisi
-Sarkizova, Raghav Pasari, and Abhik Lahiri.
-
 \section{Previous Work}
 
 Significant research has been done in the area of distributed data
@@ -293,7 +289,7 @@ of \texttt{RemoteWorker}s and \texttt{Master}:
 {\tt \small
 \begin{verbatim}
   from qjam import *
-
+  
   workers = [
               RemoteWorker(`corn15.stanford.edu'),
               RemoteWorker(`corn16.stanford.edu'),
@@ -391,7 +387,7 @@ The following is an example of a call to \texttt{master.run}:
 
   params = 42
   dataset = ListDataSet(range(1, 100))
-
+  
   result = master.run(multiply_sum, params, dataset)
 \end{verbatim}}
 
@@ -399,12 +395,114 @@ The following is an example of a call to \texttt{master.run}:
 \subsection{Protocol}
 \label{Protocol}
 
-% TODO(ms):
-% Serialization may not be that important, but just in case:
-%   - how we do serialization of the python code
-%     package up the self-contained module code, ship it over the wire, load it
-%   - how we serialize data
-%     for now, json/base64. Mostly for simplicity.
+Communication between the Qjam master and each of the workers occurs via
+a connection that is persistent throughout the existence of the \texttt{master}
+object. This section describes the details of the communication protocol that
+is used by our implementation to assign tasks to remote workers, efficiently
+distribute data, and coalesce results.
+
+The protocol implementation relies on five different types of messages.
+Figure \ref{ProtocolDiagram} the use of those messages in a typical
+communication workflow.
+
+\begin{figure}[!h]
+  \centering
+  \includegraphics[scale=0.35]{protocol.png}
+  \caption{Communication between \texttt{Master} and a single
+           \texttt{RemoteWorker} during the execution of a typical Qjam
+           distributed computation}
+  \label{ProtocolDiagram}
+\end{figure}
+
+
+All Qjam messages are ASCII encoded JSON dictionaries of the following form:
+
+{\tt \small
+\begin{verbatim}
+  {"type": <type-name>,
+   <other params>}\n
+\end{verbatim}}
+
+Note that the newline character is used to denote \texttt{EOF}. Consequently,
+newline characters in the middle of the message must be escaped or otherwise
+avoided.
+
+\subsubsection{\texttt{TASK} Message}
+
+\paragraph{Message Structure}
+{\tt \small
+\begin{verbatim}
+  {"type": "task",
+   "module" : <base64 pickled python module source code>,
+   "dataset" : [<ref1>, <ref2>, ...],
+   "params" : <base64 pickled python object>}\n
+\end{verbatim}}
+
+\paragraph{Message Description}
+This message type is sent by the master to each worker to initiate a task.
+
+
+
+\subsubsection{\texttt{STATE} Message}
+
+\paragraph{Message Structure}
+{\tt \small
+\begin{verbatim}
+  {"type": "state",
+   "status": "running" | "blocked",
+   "missing_refs" : ["ref1", "ref2", ...]}\n
+\end{verbatim}}
+
+\paragraph{Message Description}
+
+
+\subsubsection{\texttt{REFS} Message}
+
+\paragraph{Message Structure}
+{\tt \small
+\begin{verbatim}
+  {"type": <type-name>,
+   <other params>,}\n
+\end{verbatim}}
+
+\paragraph{Message Description}
+
+
+
+\subsubsection{\texttt{RESULT} Message}
+
+\paragraph{Message Structure}
+{\tt \small
+\begin{verbatim}
+  {"type": "result",
+   "result": <base64 pickled python object>}\n
+\end{verbatim}}
+
+\paragraph{Message Description}
+
+
+
+\subsubsection{\texttt{ERROR} Message}
+
+\paragraph{Message Structure}
+{\tt \small
+\begin{verbatim}
+  {"type": <type-name>,
+   <other params>}\n
+\end{verbatim}}
+
+\paragraph{Message Description}
+
+
+
+
+\subsection{Implementation}
+\label{Implementation}
+
+
+\subsubsection{Caching}
+
+TODO: section needs revision; there are a few things that could be added
 
 Each worker stores its slices of the data set in memory, not on disk. When it
 is given a task and references to data on which to perform that task, it
@@ -422,12 +520,10 @@ Qjam worker, with no additional manual setup.)
 Our implementation of worker-local storage is similar to the SlaveRefs in Adam
 Coates' Matlab parallel framework, but we are able to use Python's superior
 syntax to hide the implementation details of references to data on
-workers. Also, our system as described will only send portions of the data to
-each worker, which entails lower data transmission overhead relative to
-distributing the entire data set to each worker.
+workers. Also, our system only sends portions of the data to each worker, which
+entails lower data transmission overhead relative to distributing the entire
+data set to each worker.
 
-\subsection{Implementation}
-\label{Implementation}
 
 
 \section{Evaluation}
@@ -446,7 +542,7 @@ method for unconstrained optimization.
 We benchmarked the running time of the sparse autoencoder using a parallelized
 cost function (with L-BFGS optimizing it). We tested a regular single-core
 implementation against 2, 4, 8, and 16 workers over four multicore machines. We
-tested with three datasets (of sizes 1000, 10,000, and 100,000). We obtained
+tested with three datasets (of sizes 1,000, 10,000, and 100,000). We obtained
 the following results:
 
 \begin{table}[htbp]
@@ -490,7 +586,7 @@ the following results:
 The running times show a remarkable speedup when using qjam with multiple
 workers. For our longest run, we saw a drop to under 14\% of the single-core's
 running time. For big jobs (10,000, 100,000), qjam performs very well, beating
-the single-core every time. For non-intensive jobs (1000), the overhead of many
+the single-core every time. For non-intensive jobs (1,000), the overhead of many
 workers can drive the performance beyond that of the single-core's
 implementation.
 
@@ -504,25 +600,39 @@ to minimize the overhead of distributing the job.
 
 \section{Future Work}
 
-% TODO(ms): Add mentions about the following:
-%
-% Possible future improvements:
-%   binary formats (BSON) for sending larger data on wire
-%   more profiling for optimization
-%   doing stuff over ssh has some nice properties, but it is also unnecessary
-%     setup overhead. Might want to consider using it only for bootstrapping
-%     but not communication.
-%   splitting data into smaller chunks (like the code currently almost does)
-%   handling worker failure (reroute work to other workers)
-%   handling stragglers (duplicate work to other workers if one is slow)
-%     ^^^ the above two are common in mapreduce
-%   more datasets (maybe one that references files on a shared filesystem)
-%   persistent worker caches -- I implemented this recently, but a problem in
-%     the dataset library stopped us from using it for the experiments.
-%     Persistent here means that the ref cache lives across restarts of the
-%     workers, so starting a new job on old data is fast.
+Much more work can be done in achieving feature parity with other, more general
+MapReduce parallel frameworks. Handling worker failures, anticipating
+stragglers, and using a smarter job scheduling algorithm would give performance
+improvements, particularly when running on larger or heterogeneous clusters
+than those we tested on.
+
+We currently use SSH and JSON to transfer data and messages. Using a more
+efficient protocol and data encoding would improve performance and
+reliability. We noticed that SSH occasionally dropped connections and
+implemented a workaround to automatically reconnect upon failure; however, this
+remains the biggest source of instability on Qjam.
+
+Aside from these implementation-level improvements, we could offer more DataSet
+formats beyond those that encapsulate matrices and lists (e.g., ImageDataSet,
+AudioDataSet). We could also provide a modified NumPy package that
+transparently parallelizes large matrix operations, which could mean even fewer
+changes to code would be necessary to parallelize algorithms.
+
 
 \section{Conclusion}
+
+We have provided a Python parallel framework suited for machine learning
+algorithms with sufficiently good performance and with significant benefits
+over existing, general parallel frameworks. We think our system is valuable in
+its current state to machine learning researchers and demonstrates the utility
+of a parallel framework that allows for rapid prototyping on clusters, just as
+MATLAB easily allows for serial algorithms.
+
+\section{Acknowledgements}
+We would like to recognize the assistance of those in our CS 229 class research
+group: Prof. Andrew Ng, Adam Coates, Bobby Prochnow, Milinda Lakkam, Sisi
+Sarkizova, Raghav Pasari, and Abhik Lahiri.
+
 
 \bibliographystyle{IEEEbib}
 \bibliography{report}
