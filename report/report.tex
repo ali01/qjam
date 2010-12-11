@@ -358,12 +358,10 @@ The following is a simple example of a call to \texttt{master.run}:
 
 {\tt \small
 \begin{verbatim}
-  from qjam.dataset import ListDataSet
   import examples import multiply_sum
 
   params = 42
   dataset = ListDataSet(range(1, 100))
-
   result = master.run(multiply_sum, params, dataset)
 \end{verbatim}}
 
