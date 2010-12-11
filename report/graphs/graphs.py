@@ -2,7 +2,7 @@
 
 import sys
 import math
-import numpy as np
+import itertools
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 
@@ -51,17 +51,18 @@ def plot_graph(data, title, filename=None, **kwds):
   if 'xticks' not in kwds:
     kwds['xticks'] = [0] + workers
   if 'xticks_loc' not in kwds:
-    kwds['xticks_loc'] = [0, len(workers) + 2]
+    kwds['xticks_loc'] = range(0, len(workers) + 2)
 
   plt.figure(figsize=(4, 4.5))
 
+  linecycler = itertools.cycle([ '-o','-s', '-^' , '-d' ])
   for entry_num in range(0, data[0].entries()):
     X = range(1, len(workers) + 1)
     Y = map(lambda workerData: workerData[entry_num], data)
-    plt.plot(X, Y, '-o', lw=1, label=kwds['labels'][entry_num])
+    plt.plot(X, Y, linecycler.next(), lw=1, label=kwds['labels'][entry_num])
 
   if 'show-single-core' in kwds and kwds['show-single-core']:
-    plt.plot(kwds['xticks_loc'], [1, 1], '--', color='red', label='singe core')
+    plt.plot([0, len(workers)+2], [1, 1], '--', color='red', label='singe core')
 
   plt.xlabel(kwds['xlabel'])
   plt.ylabel(kwds['ylabel'])
