@@ -537,31 +537,29 @@ various job sizes with different worker pools.
 
 \section{Future Work}
 
-Running more benchmarks with significantly larger data sets, to better examine
-qjam's performance gains and stability under stress, is the logical next step.
-In addition, benchmarking with other parallelizable algorithms could yield
-different performance gains.
+The next logical step in the development of Qjam is running more benchmarks with
+significantly larger datasets and more iterations. It is important to observe
+Qjam's performance and reliability under high stress. Moreover, having more data
+about Qjam's performance would more clearly reveal whatever bottlenecks remain.
 
-Much more work can be done in achieving feature parity with other, more general
-MapReduce parallel frameworks. Handling worker failures, anticipating
-stragglers, and using a smarter job scheduling algorithm would give performance
-improvements, particularly when running on larger or heterogeneous clusters
-than those we tested on.
+
+With regard to features, another important step is to achieve feature parity
+with other, more general parallel frameworks (e.g. MapReduce). Handling worker
+failures, anticipating stragglers, and using a smarter job scheduling algorithm
+will likely yield performance improvements, particularly when running on larger
+or heterogeneous clusters than those we tested on.
 
 We currently use SSH and JSON to transfer data and messages. Using a more
-efficient protocol and data encoding would improve performance and
+efficient protocol and data encoding will improve performance and
 reliability. We noticed that SSH occasionally dropped connections and
-implemented a workaround to automatically reconnect upon failure; however, this
+implemented a workaround to automatically reconnect upon failure; this, however,
 remains the biggest source of instability on Qjam.
 
-Aside from these implementation-level improvements, we could offer more DataSet
-formats beyond those that encapsulate matrices and lists (e.g., ImageDataSet,
-AudioDataSet). We could also provide a modified NumPy package that
-transparently parallelizes large matrix operations, which could mean even fewer
-changes to code would be necessary to parallelize algorithms.
+Finally, aside from implementation related improvements, we will also
+improve usability. As a start, we can offer a wider range of convenience DataSet
+subclasses---beyond those that encapsulate matrices and lists (e.g.,
+ImageDataSet, AudioDataSet).
 
-TODO: mention need to run benchmarks with longer running times / larger number
-of patches
 
 \section{Conclusion}
 We have presented a framework that greatly simplifies the rapid prototyping of
