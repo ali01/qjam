@@ -448,7 +448,7 @@ data set to each worker.
 
 We benchmarked the framework running various algorithms with multiple workers.
 
-\subsection{L-BFGS Sparse Auto-Encoder}
+\subsection{L-BFGS Sparse Autoencoder}
 
 We benchmarked qjam using a sparse autoencoder with L-BFGS~\cite{lbfgs}. A
 sparse autoencoder is an unsupervised learning algorithm that automatically
@@ -511,22 +511,23 @@ overhead.
     \includegraphics[width=1.6in]{graphs/per_iteration_vs_total_speedup.pdf}
     \label{fig:graphs-b}
   }
-  \caption{a) Total Running Time Speedup. b) Per-Iteration and Total speedups (100k)}
+  \caption{(a) Total Running Time Speedup. (b) Per-Iteration and Total Speedups
+    (100k patches)}
   \label{fig:graphs}
 \end{figure}
 
-For large jobs (100k), qjam performs very well, beating the single-core every
-time, as seen in Figure \ref{fig:graphs-a}. The running times show a remarkable
-speedup when using qjam with multiple workers. In the 16 worker trial, we saw a
-speedup of over 7 times the single-core's running time. Comparing the speedups
-observed per-iteration against the total running time of this trial reveals that
-the master overhead is very small, yielding no significant slowdown, as seen in
-Figure \ref{fig:graphs-b}.
+For large jobs (100k patches), qjam performs very well, beating the single-core
+every time, as seen in Figure \ref{fig:graphs-a}. The running times show a
+remarkable speedup when using qjam with multiple workers. In the 16 worker
+trial, we saw a speedup of over 7 times the single-core's running
+time. Comparing the speedups observed per-iteration against the total running
+time of this trial reveals that the master overhead is very small, yielding no
+significant slowdown, as seen in Figure \ref{fig:graphs-b}.
 
 The non-intensive job (10k) saw a small increase in performance, but not
-significantly. For the smallest, trivial jobs (1k), the overhead of coordinating
-many workers with very little to compute drove the performance below that of the
-single-core's implementation, just as expected.
+significantly. For the smallest, trivial jobs (1k), the overhead of
+coordinating many workers with very little to compute drove the performance
+below that of the single-core's implementation, just as expected.
 
 This leads to another observation: a particular number of workers seems to be
 suited for a particular job size: for the 10k patches trials, the best run was
@@ -534,9 +535,9 @@ that with 2 workers. The others performed worse, though still most performed
 better than the single core. For the largest job, though the 16 worker runtime
 was the lowest, the savings from 8 workers to 16 were proportionally small,
 requiring twice the number of workers for 1x more. This further confirms that
-in order to minimize the overhead of distributing the job, the number of workers
-should be picked according to the job size. Further research should explore
-various job sizes with different worker pools.
+in order to minimize the overhead of distributing the job, the number of
+workers should be picked according to the job size. Further research should
+explore various job sizes with different worker pools.
 
 \section{Future Work}
 
