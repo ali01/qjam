@@ -89,7 +89,7 @@ The following sections compare Python and R and explain why we chose Python.
 R is stylistically very similar to MATLAB. Matrix and list operations are
 first-class operations, and it provides built-in equivalents to most of
 MATLAB's probability and statistics functions. Also, the R interpreter makes
-it just as easy as MATLAB to plot and visualize data structures.
+plotting and visualizing data structures just as easy as MATLAB does.
 
 While Python's syntax is less suited for matrix operations, the NumPy
 package~\cite{numpy} for Python includes Matlib, an interface that attempts to
@@ -107,8 +107,8 @@ outweighed by the considerations presented below.
 We had two options when implementing our framework. We could have written the
 internals in something like C++ and make external calls to Python or R, or we
 could have implemented the internals in the scripting language itself. Each
-approach has its advantages, but under time pressure, the latter approach was
-preferable. Because Python is general-purpose scripting language, it is by far
+approach has its advantages. We settled with the latter as it is the simpler
+approach. Because Python is general-purpose scripting language, it is by far
 the better choice with respect to functionality. R is primarily a language for
 statistical computing and therefore lacks the library support necessary for the
 implementation of a distributed system.
@@ -213,10 +213,11 @@ acceptable.
 
 This section describes the architecture of the qjam framework. Subsection
 \ref{Components} defines the major components of the system and how they
-communicate. Subsection \ref{Library} explains the programming
-interface. Subsection \ref{DataSet} explains our \texttt{DataSet} objects and
-how they are used to divide data among workers. Finally, Subsection
-\ref{Storage} covers how the worker obtains and stores data.
+communicate. Subsection \ref{Library} explains the programming interface.
+Subsection \ref{Protocol} describes the protocol that Qjam uses to communicate.
+And finally, subsection \ref{Implementation} describes details of Qjam's 
+python implementation.
+
 
 \subsection{Components}
 \label{Components}
@@ -395,8 +396,8 @@ The following is an example of a call to \texttt{master.run}:
 \end{verbatim}}
 
 
-\subsection{Serialization and Worker-Local Storage}
-\label{Storage}
+\subsection{Protocol}
+\label{Protocol}
 
 % TODO(ms): 
 % Serialization may not be that important, but just in case:
@@ -424,6 +425,10 @@ syntax to hide the implementation details of references to data on
 workers. Also, our system as described will only send portions of the data to
 each worker, which entails lower data transmission overhead relative to
 distributing the entire data set to each worker.
+
+\subsection{Implementation}
+\label{Implementation}
+
 
 \section{Evaluation}
 
