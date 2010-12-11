@@ -47,7 +47,7 @@ prototyping of parallel machine learning algorithms on clusters.
 Many machine learning algorithms are easy to parallelize in theory. However,
 the fixed cost of creating a distributed system that organizes and manages the
 work is an obstacle to parallelizing existing algorithms and prototyping new
-ones. We present Qjam, a Python library that transparently parallelizes certain
+ones. We present Qjam, a Python library that transparently parallelizes
 machine learning algorithms that adhere to a constrained MapReduce model of
 computation.
 \section{Previous Work}
@@ -558,14 +558,17 @@ changes to code would be necessary to parallelize algorithms.
 TODO: run benchmarks with longer running times / larger number of patches
 
 \section{Conclusion}
+We have presented a framework that greatly simplifies the rapid prototyping of
+distributed machine learning algorithms. Qjam provides an abstraction of the
+complexities associated with building an entire distributed system just to run a
+task on multiple computers in parallel. As a result, it is now possible rapidly
+prototype and execute distributed computations without having to explicitly
+manage communication overheard and the distribution of code and data to
+remote workers.
 
-We have presented Qjam, a Python parallel framework suited for machine learning
-algorithms. Qjam offers good performance (4x speed up on 4 workers; 5.5x
-speedup on 8 workers) and with significant development benefits over existing,
-general parallel frameworks. We believe that our system is valuable in its
-current state to machine learning researchers and demonstrates the utility of a
-parallel framework that allows for rapid prototyping on clusters, just as MATLAB
-easily allows for serial algorithms.
+Moreover, Qjam offers satisfactory performance. On a computation that takes a
+mean of 10 seconds to complete on a single machine, we observed 4x speed-up on 4
+workers and 7x speedup on 16 workers.
 
 \section{Acknowledgements}
 We would like to recognize the assistance of those in our CS 229 class research
