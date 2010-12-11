@@ -444,32 +444,39 @@ implementation against 2, 4, 8, and 16 workers over four multicore machines. We
 tested with three datasets (of sizes 1000, 10,000, and 100,000). We obtained
 the following results:
 
-% TODO(ms): use table environment here with a label.
-\begin{center}
+\begin{table}[htbp]
+  \label{table_iteration_mean_time}
+  \caption{Iteration Mean Time (seconds)}
+  \begin{center}
+    \begin{tabular}{cccc}
+    workers  & 1k  &  10k   & 100k   \\
+      \hline
+    1  & 0.1458 & 0.7310 & 10.0282 \\
+    2  & 0.1752 & 0.3321 & 4.6782 \\
+    4  & 0.2634 & 0.3360 & 2.4858 \\
+    8  & 0.5339 & 0.5251 & 1.8046 \\
+    16 & 0.9969 & 1.0186 & 1.5862 \\
+    \end{tabular}
+  \end{center}
+\end{table}
 
-\textbf{Iteration Mean Time (seconds)} \\
-\begin{tabular}{cccc}
-workers  & 1k  &  10k   & 100k   \\
-  \hline
-1  & 0.1458 & 0.7310 & 10.0282 \\
-2  & 0.1752 & 0.3321 & 4.6782 \\
-4  & 0.2634 & 0.3360 & 2.4858 \\
-8  & 0.5339 & 0.5251 & 1.8046 \\
-16 & 0.9969 & 1.0186 & 1.5862 \\
-\end{tabular}
 
-\vspace{1em}
-\textbf{Total Running Time (seconds)} \\
-\begin{tabular}{cccc}
-workers  & 1k  &  10k   & 100k   \\
-  \hline
-1  & 76 (1.00) & 370 (1.00) & 5030 (1.00) \\
-2  & 92 (1.21) & 170 (0.46) & 2350 (0.47) \\
-4  & 137 (1.80) & 173 (0.46) & 1253 (0.25) \\
-8  & 275 (3.61) & 270 (0.73) & 914 (0.18) \\
-16 & 544 (7.51) & 529 (1.43) & 703 (0.14) \\
-\end{tabular}
-\end{center}
+\begin{table}[htbp]
+  \label{table_total_running_time}
+  \caption{Total Running Time (seconds)}
+  \begin{center}
+    \begin{tabular}{crrr}
+    workers  & \multicolumn{1}{c}{1k} & \multicolumn{1}{c}{10k}
+             & \multicolumn{1}{c}{100k} \\
+      \hline
+    1  &  76  (1.00) & 370 (1.00) & 5030 (1.00) \\
+    2  &  92  (1.21) & 170 (0.46) & 2350 (0.47) \\
+    4  & 137  (1.80) & 173 (0.46) & 1253 (0.25) \\
+    8  & 275  (3.61) & 270 (0.73) & 914  (0.18) \\
+    16 & 544  (7.51) & 529 (1.43) & 703  (0.14) \\
+    \end{tabular}
+  \end{center}
+\end{table}
 
 % TODO(ms): A graph or two of this data would be nice. It would be best to use
 % the same style (i.e., axes) as in the Chu et al. paper.
