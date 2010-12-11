@@ -55,6 +55,9 @@ computation.
 
 \section{Previous Work}
 
+% TODO(ms): this section is a little strange to read. The second sentence is
+% mostly correct but confusing.
+
 Significant research has been done in the area of distributed data
 processing. We targeted algorithms written in the MapReduce programming
 model~\cite{mapreduce}, as constrained by the ``summation form'' introduced by
@@ -66,9 +69,9 @@ a near-linear speedup as the number of cores was increased.
 
 Whereas Chu et al. experimented on single multicore machines, our project
 extends their ideas to a cluster of networked computers. Rather than use a
-framework like Hadoop, which is intended for large batch processing jobs, we
-have designed and implemented a lightweight framework for low-latency tasks
-that requires minimal server configuration.
+framework like Hadoop~\cite{hadoop}, which is intended for large batch
+processing jobs, we have designed and implemented a lightweight framework for
+low-latency tasks that requires minimal server configuration.
 
 \section{Choosing a Language}
 
@@ -85,17 +88,17 @@ The following sections compare Python and R and explain why we chose Python.
 R is stylistically very similar to MATLAB. Matrix and list operations are
 first-class operations, and it provides built-in equivalents to most of
 MATLAB's probability and statistics functions. Also, the R interpreter makes
-plotting and visualizing data structures just as easy as MATLAB does.
+plotting and visualizing data structures just as easy as in MATLAB.
 
 While Python's syntax is less suited for matrix operations, the NumPy
-package~\cite{numpy} for Python includes Matlib, an interface that attempts to
+package for Python~\cite{numpy} includes Matlib, an interface that attempts to
 emulate MATLAB's syntax. It is designed specifically for MATLAB programmers and
 to ease the porting of MATLAB code. Certain syntactic elements are still overly
 verbose (e.g., \texttt{M.transpose()} vs \texttt{M'}) and may hinder the
 readability of an algorithm.
 
 Strictly from a syntactic and stylistic perspective, R wins on its simplicity
-and resemblance to MATLAB. However, Python's slight disadvantage here is far
+and similarity to MATLAB. However, Python's slight disadvantage here is far
 outweighed by the considerations presented below.
 
 \subsection{Functionality}
