@@ -446,7 +446,7 @@ method for unconstrained optimization.
 We benchmarked the running time of the sparse autoencoder using a parallelized
 cost function (with L-BFGS optimizing it). We tested a regular single-core
 implementation against 2, 4, 8, and 16 workers over four multicore machines. We
-tested with three datasets (of sizes 1000, 10,000, and 100,000). We obtained
+tested with three datasets (of sizes 1,000, 10,000, and 100,000). We obtained
 the following results:
 
 \begin{table}[htbp]
@@ -489,7 +489,7 @@ the following results:
 The running times show a remarkable speedup when using qjam with multiple
 workers. For our longest run, we saw a drop to under 14\% of the single-core's
 running time. For big jobs (10,000, 100,000), qjam performs very well, beating
-the single-core every time. For non-intensive jobs (1000), the overhead of many
+the single-core every time. For non-intensive jobs (1,000), the overhead of many
 workers can drive the performance beyond that of the single-core's
 implementation.
 
