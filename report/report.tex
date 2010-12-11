@@ -359,8 +359,8 @@ object. This section describes the details of the communication protocol that
 is used by our implementation to assign tasks to remote workers, efficiently
 distribute data, and coalesce results.
 
-The protocol implementation relies on five different types of messages.
-Figure \ref{ProtocolDiagram} the use of those messages in a typical
+The protocol implementation relies on five different types of messages. Figure
+\ref{ProtocolDiagram} shows the use of those messages in a typical
 communication workflow.
 
 \begin{figure}[!h]
@@ -373,7 +373,7 @@ communication workflow.
 \end{figure}
 
 
-\subsubsection{\texttt{TASK} Message}
+\subsubsection{\textsc{task} Message}
 
 The \textsc{task} message type is sent by the master to each worker to initiate
 a task. It contains an encoded\footnote{base64 representation of the pickled
@@ -383,7 +383,7 @@ encoded representation of client specified parameters, $\theta$.
 
 
 
-\subsubsection{\texttt{STATE} Message}
+\subsubsection{\textsc{state} Message}
 
 Upon receiving a \textsc{task} message, the worker must respond with a
 \textsc{result} message. This message contains a status field that can take one
@@ -394,7 +394,7 @@ the dataset that the worker is missing.
 
 
 
-\subsubsection{\texttt{REFS} Message}
+\subsubsection{\textsc{refs} Message}
 
 If the master receives a \textsc{state} message whose status is set to
 ``\texttt{blocked}'', then it responds with a \textsc{refs} message. This type
@@ -403,14 +403,14 @@ chunks that the worker identified as missing.
 
 
 
-\subsubsection{\texttt{RESULT} Message}
+\subsubsection{\textsc{result} Message}
 
 Finally, the \textsc{result} message is sent to the from the worker to the
 master whenever it completes its task. This message contains an encoded
 representation of the computation's result.
 
 
-\subsubsection{\texttt{ERROR} Message}
+\subsubsection{\textsc{error} Message}
 
 In the case that the worker encounters an unexpected state, it can send an
 \textsc{error} reply to any message sent by the master. This message contains
