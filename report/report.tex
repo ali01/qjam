@@ -248,43 +248,30 @@ multiple machines.
 
 This section describes the interface exposed by Qjam and provides a simple
 example of its use. The workflow of a typical distributed computation on Qjam
-divided into two phases. In the initialization phase, the client creates an
-instance of the class \texttt{Master} by passing its constructor a list of
-remote workers. In the execution phase, the client specifies a function,
-\texttt{mapfunc}, to be executed on each worker along with a dataset and a list
-of parameters for the computation. The framework then takes care of forwarding
-the parameter list to all workers, sending each worker an adequate partition of
-the dataset, and remotely executing \texttt{mapfunc}. The following two
-subsections elaborate on the details:
+is divided into two phases. In the initialization phase, the client creates an
+instance of the \texttt{Master} class by passing its constructor a list of
+remote workers. In the execution phase, the client specifies a Python module
+containing a function, \texttt{mapfunc}, to be executed on each worker along
+with a dataset and a list of parameters for the computation. The framework then
+breaks the dataset into smaller pieces and distributes the work to the worker
+processes. The following two subsections elaborate on the details.
 
 \subsubsection{Initialization}
 
-At a fundamental level, the Qjam library is built on top of the class
-\texttt{RemoteWorker}. An instance of \texttt{RemoteWorker} defines
-a single connection to a worker node. The first parameter to the constructor of
-\texttt{RemoteWorker} is a python string containing the hostname at which the
-worker node is located. The second parameter to the constructor is an optional
-TCP port number that defaults to the standard SSH port, $22$.
+At a fundamental level, the Qjam library is built on top of the
+\texttt{RemoteWorker} class. An instance of \texttt{RemoteWorker} defines a
+single connection to a worker node. A collection of \texttt{RemoteWorker}
+objects is passed to the constructor of \texttt{Master} to define the pool of
+workers available to the master.
 
-Once the client has created a \texttt{RemoteWorker} object for each desired
-worker node, the next initialization step is to create an instance of the class
-\texttt{Master}. The single parameter that must be passed
-to the constructor of \texttt{Master} is a Python list of \texttt{RemoteWorker}
-objects.
-
-The following is short example that includes the initialization of a list
-of \texttt{RemoteWorker}s and \texttt{Master}:
+The following code demonstrates the initialization of the worker pool and
+master.
 
 {\tt \small
 \begin{verbatim}
-  from qjam import *
-
-  workers = [
-              RemoteWorker(`corn15.stanford.edu'),
-              RemoteWorker(`corn16.stanford.edu'),
-              RemoteWorker(`corn17.stanford.edu')
-            ]
-
+  workers = [RemoteWorker(`corn15.stanford.edu'),
+             RemoteWorker(`corn16.stanford.edu'),
+             RemoteWorker(`corn17.stanford.edu')]
   master = Master(workers)
 \end{verbatim}}
 
