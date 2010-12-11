@@ -114,7 +114,10 @@ that are ubiquitous in learning algorithms.
 
 Table \ref{PythonvsR} shows the running times of Python and R on various
 operations using different matrix or vector sizes, as well as the time ratio of
-$Python / R$. Every test ran 10,000 operations.
+$Python / R$. Every test ran 10,000 operations. In terms of performance, Python
+is the clear winner. It outperforms R in every case, most of the cases by an
+order of magnitude. In the worst case, Python takes 82\% of the time that R
+takes.
 
 \begin{table}[h!]
   \scriptsize
@@ -171,10 +174,6 @@ $Python / R$. Every test ran 10,000 operations.
     operations.}
   \label{PythonvsR}
 \end{table}
-
-In terms of performance, Python is the clear winner. It outperforms R in every
-case, most of the cases by an order of magnitude. In the worst case, Python
-takes 82\% of the time that R takes.
 
 Although na\"{i}ve Python implementations of {\it serial} machine learning
 algorithms tend to be slower than their MATLAB equivalents, recent benchmarks
@@ -560,13 +559,13 @@ TODO: run benchmarks with longer running times / larger number of patches
 
 \section{Conclusion}
 
-We have provided a Python parallel framework suited for machine learning
-algorithms with sufficiently good performance (4x speed up on 4 workers; 5.5x
+We have presented Qjam, a Python parallel framework suited for machine learning
+algorithms. Qjam offers good performance (4x speed up on 4 workers; 5.5x
 speedup on 8 workers) and with significant development benefits over existing,
-general parallel frameworks.  We think our system is valuable in its current
-state to machine learning researchers and demonstrates the utility of a
-parallel framework that allows for rapid prototyping on clusters, just as
-MATLAB easily allows for serial algorithms.
+general parallel frameworks. We believe that our system is valuable in its
+current state to machine learning researchers and demonstrates the utility of a
+parallel framework that allows for rapid prototyping on clusters, just as MATLAB
+easily allows for serial algorithms.
 
 \section{Acknowledgements}
 We would like to recognize the assistance of those in our CS 229 class research
