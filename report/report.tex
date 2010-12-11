@@ -563,17 +563,18 @@ transparently parallelizes large matrix operations, which could mean even fewer
 changes to code would be necessary to parallelize algorithms.
 
 \section{Conclusion}
+
 We have presented a framework that greatly simplifies the rapid prototyping of
 distributed machine learning algorithms. Qjam provides an abstraction of the
-complexities associated with building an entire distributed system just to run a
-task on multiple computers in parallel. As a result, it is now possible rapidly
-prototype and execute distributed computations without having to explicitly
-manage communication overheard and the distribution of code and data to
-remote workers.
+complexities associated with building an entire distributed system just to run
+a task on multiple computers in parallel. As a result, it is now possible
+rapidly prototype and execute distributed computations without having to
+explicitly manage communication overheard and the distribution of code and data
+to remote workers.
 
 Moreover, Qjam offers satisfactory performance. On a computation that takes a
-mean of 10 seconds to complete on a single machine, we observed 4x speed-up on 4
-workers and 7x speedup on 16 workers.
+mean of 10 seconds to complete on a single machine, we observed 4x speed-up on
+4 workers and 7x speedup on 16 workers.
 
 \section{Acknowledgements}
 We would like to recognize the assistance of those in our CS 229 class research
