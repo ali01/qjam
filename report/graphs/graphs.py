@@ -37,7 +37,7 @@ class WorkersData(object):
 
 def plot_graph(data, title, filename=None, **kwds):
   if not filename:
-    filename = title.lower().replace(' ', '_') + '.png'
+    filename = title.lower().replace(' ', '_') + '.pdf'
 
   # defaults
   if 'labels' not in kwds:
