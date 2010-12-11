@@ -39,6 +39,8 @@ def plot_graph(data, title, filename=None, **kwds):
   if not filename:
     filename = title.lower().replace(' ', '_') + '.pdf'
 
+  workers = map(WorkersData.workers, data)
+
   # defaults
   if 'labels' not in kwds:
     kwds['labels'] = ['NA'] * data[0].entries()
@@ -46,23 +48,27 @@ def plot_graph(data, title, filename=None, **kwds):
     kwds['ylabel'] = 'speedup (times faster)'
   if 'xlabel' not in kwds:
     kwds['xlabel'] = 'workers'
+  if 'xticks' not in kwds:
+    kwds['xticks'] = [0] + workers
 
-  plt.figure()
+  plt.figure(figsize=(4, 4))
 
-  workers = map(WorkersData.workers, data)
+
   for entry_num in range(0, data[0].entries()):
+    X = range(1, len(workers) + 1)
     Y = map(lambda workerData: workerData[entry_num], data)
-    plt.plot(workers, Y, '-o', lw=1, label=kwds['labels'][entry_num])
+    plt.plot(X, Y, '-o', lw=1, label=kwds['labels'][entry_num])
 
   plt.xlabel(kwds['xlabel'])
   plt.ylabel(kwds['ylabel'])
+  plt.xticks( range(0, len(workers) + 2), kwds['xticks'])
 
   if 'ylim' in kwds:
     plt.ylim(kwds['ylim'])
   if 'xlim' in kwds:
     plt.xlim(kwds['xlim'])
 
-  plt.legend(loc='center right')
+  plt.legend(loc='upper left')
   plt.title(title)
 
   plt.savefig(filename, dpi=150)
@@ -103,6 +109,8 @@ def plot_iteration_mean_time_speedup(dataSet):
   data.append(WorkersData(16, inverseEntriesFromRuns(runs, 4)))
 
   params = {}
+  params['xlim'] = [0.5, 5.5]
+  params['ylim'] = [0, 8]
   params['labels'] = ['1k', '10k', '100k']
   plot_graph(data, 'Iteration Mean Time Speedup', **params)
 
@@ -133,6 +141,8 @@ def plot_total_running_time_speedup(dataSet):
   data.append(WorkersData(16, inverseEntriesFromRuns(runs, 4)))
 
   params = {}
+  params['xlim'] = [0.5, 5.5]
+  params['ylim'] = [0, 8]
   params['labels'] = ['1k', '10k', '100k']
   plot_graph(data, 'Total Running Time Speedup', **params)
 
