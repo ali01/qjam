@@ -266,31 +266,29 @@ master.
 \subsubsection{Execution}
 
 Once the list of \texttt{RemoteWorker}s and the \texttt{Master} have been
-initialized, the client must follow three steps to execute a distributed
-computation. In the first step, the client wraps any data that is required for
-the computation within a \texttt{DataSet} object; subsequently, the client
-places the code that is to be executed on every \texttt{RemoteWorker} in an
-independent python module; and finally, the client makes a call to
-\texttt{master.run}.
+initialized, the client must first wrap any static data into a \texttt{DataSet}
+object, and then it can issue a call to \texttt{master.run(...)} to distribute
+the computation. Results of the work are obtained through the return value of
+this call.
 
 \paragraph{Creating a \texttt{DataSet} Object}
 \label{DataSets}
 
 In order for \texttt{Master} to know how to partition the task data between the
-registered \texttt{RemoteWorker}s it needs to have some notion of how the data
+registered \texttt{RemoteWorker}s, it needs to have some notion of how the data
 is structured. In order to fulfill that requirement, the client can either
 resort to one of the convenience \texttt{DataSet} classes provided by Qjam, or
 define a custom data class that inherits from \texttt{BaseDataSet}.
 
-The \texttt{DataSet} classes provided by Qjam include support for python tuples
+The \texttt{DataSet} classes provided by Qjam include support for Python tuples
 or lists of any kind, or NumPy matrices. In the case the client wishes to
-represent the data as a matrix, he/she can choose between
+represent the data as a matrix, he can choose between
 \texttt{NumpyMatrixDataSet}, which simply represents the matrix in-memory, or
-\texttt{NumpyMatrixFileDataSet}, which represents the matrix as a file on-disk
-in the case that it is too large to fit in-memory.
+\texttt{NumpyMatrixFileDataSet}, which represents the matrix as a file on disk
+in the case that it is too large to fit in memory.
 
 In the case that the client wishes to define a custom data set class that
-inherits from Qjam's \texttt{BaseDataSet} class, he/she must implement at least
+inherits from Qjam's \texttt{BaseDataSet} class, he must implement at least
 the following two member functions:
 \begin{enumerate}
   \item
@@ -299,14 +297,14 @@ the following two member functions:
   \item
     \texttt{slice(index)}
     Returns the slice of data at the given index where index is an integer
-    between 1 and the value returned by \texttt{chunks()}
+    in [0, $chunks() - 1$].
 \end{enumerate}
 
 
 \paragraph{Defining a Code Module}
 
 The code that is to be executed at each remote worker must be written by the
-client in an independent Python module. The module must contain a function
+client in a self-contained Python module. The module must contain a function
 called \texttt{mapfunc} that will be called by the framework. The function
 \texttt{mapfunc} must take two arguments: The first argument are the parameters,
 $\theta$, passed by the client in the call to \texttt{master.run}. $\theta$ can
@@ -322,7 +320,7 @@ value of \texttt{mapfunc} must be of a type that defines the sum operator or
 a list of types that define the sum operator. More complex return values are
 possible if the client defines a custom reduce function.
 
-The following is a simple example of a simple code module:
+A simple \texttt{mapfunc} might be defined as follows.
 
 {\tt \small
 \begin{verbatim}
@@ -336,17 +334,16 @@ The following is a simple example of a simple code module:
 \paragraph{Calling \texttt{master.run}}
 
 Once the code module and the dataset object have been defined, the client can
-make a call to the function \texttt{master.run} to initiate the computation. The
-arguments that \texttt{master.run} takes are: first, the client defined code
-module; second, the parameters, $\theta$, to be forwarded to each worker; and
-third, a dataset object. The return value of \texttt{master.run} is the result
-of the computation.
+make a call to the function \texttt{master.run} to distribute the
+computation. The \texttt{master.run} function takes the client-defined code
+module, the parameters, and a \texttt{DataSet} object as arguments. The return
+value of \texttt{master.run} is the result of the computation.
 
-The following is a simple example of a call to \texttt{master.run}:
+The following simple example shows a call to \texttt{master.run}.
 
 {\tt \small
 \begin{verbatim}
-  import examples import multiply_sum
+  from examples import multiply_sum
 
   params = 42
   dataset = ListDataSet(range(1, 100))
